@@ -1,7 +1,10 @@
 function Header() {
+  let application_type = 'UI';
+  let application_tech = () => {return 'React App';}
+
   return (
     <div id="header">
-      Header
+      Welcome to {application_type} {application_tech()}
     </div>
   );
 }

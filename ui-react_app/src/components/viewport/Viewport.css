@@ -1,6 +1,4 @@
 body {
-  margin: 0;
-  padding: 0;
   width: 100%;
   height: 100%;  
   font-family: sans-serif;
@@ -11,19 +9,34 @@ body {
 
 
 /** COMPONENTS **/
-.viewport {
-  position: relative;
+/** Dimensions **/
+#viewport {
+  width: 95vw;
+  height: 35vw;
+}
+#viewport_header {
+  height: 20%;
+}
+#viewport_center {
+  height: 70%;
+}
+#viewport_footer {
+  height: 10%;
+}
+#viewport_navigation {
+  width: 10%;
+}
+#viewport_content {
+  width: 90%;
 }
 
-/* Align viewport_header, viewport_center, and viewport_footer centrally */
+/* Alignments */
 #viewport_header, #viewport_center, #viewport_footer {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
 }
-
-/* viewport_center container */
 #viewport_center {
   align-items: stretch; /* Aligns children in a row without overlap */
 }
