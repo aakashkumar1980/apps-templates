@@ -19,11 +19,11 @@ async function writeConfigFiles() {
 
         // Write Vite config
         const viteConfigContent = `export default { server: { port: ${vitePort} } };`;
-        fs.appendFileSync('vite.config.js', viteConfigContent);
+        fs.writeFileSync('vite.config.js', viteConfigContent);
 
         // Write .env file
         const envContent = `VITE_BACKEND_PORT=${backendPort}`;
-        fs.appendFileSync('.env', envContent);
+        fs.writeFileSync('.env', envContent);
     } catch (error) {
         console.error(error.message);
         process.exit(1);
