@@ -14,21 +14,25 @@ body {
   width: 95vw;
   height: 35vw;
 }
+
 #viewport_header {
-  height: 20%;
-}
-#viewport_center {
-  height: 70%;
-}
-#viewport_footer {
   height: 10%;
 }
+
+#viewport_center {
+  height: 85%;
+}
 #viewport_navigation {
-  width: 10%;
+  width: 20%;
 }
 #viewport_content {
-  width: 90%;
+  width: 80%;
 }
+
+#viewport_footer {
+  height: 5%;
+}
+
 
 /* Alignments */
 #viewport_header, #viewport_center, #viewport_footer {
@@ -41,8 +45,12 @@ body {
   align-items: stretch; /* Aligns children in a row without overlap */
 }
 #viewport_navigation {
-  flex: 0 0 30%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 #viewport_content {
-  flex: 0 0 70%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
