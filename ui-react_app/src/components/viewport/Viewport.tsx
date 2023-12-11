@@ -3,6 +3,7 @@ import Footer from "./footer/Footer";
 import Header from "./header/Header";
 import Navigation from "./navigation/Navigation";
 import "./Viewport.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function Viewport() {
   return (
