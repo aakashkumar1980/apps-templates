@@ -1,9 +1,9 @@
+import styles from './Content.module.scss';
 import Dashboard from "./pages/dashboard/Dashboard";
-import "./Content.css";
 
 function Content() {
   return (
-    <div id="content">
+    <div id="content" className={`${styles.content}`}>
       <Dashboard />
     </div>
   );

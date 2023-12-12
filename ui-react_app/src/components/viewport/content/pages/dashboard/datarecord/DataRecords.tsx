@@ -1,3 +1,4 @@
+import styles from '../Dashboard.module.scss';
 import DataMessage from "./DataMessage";
 import RecordWrapper from "./RecordWrapper";
 

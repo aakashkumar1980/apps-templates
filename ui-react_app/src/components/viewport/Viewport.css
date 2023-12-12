@@ -7,6 +7,9 @@ body {
   justify-content: center; /* Center horizontally */  
 }
 
+button {
+  min-width: 80px;
+}
 
 /** COMPONENTS **/
 /** Dimensions **/

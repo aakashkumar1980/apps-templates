@@ -1,4 +1,4 @@
-import "./Dashboard.css";
+import styles from './Dashboard.module.scss';
 import Record from "./datarecord/Record";
 import DataRecords from "./datarecord/DataRecords";
 
@@ -9,7 +9,7 @@ function Dashboard() {
   return (
     <div id="dashboard">
 
-      <div className="toast" style={{display:"block"}} role="alert" aria-live="assertive" aria-atomic="true">
+      <div style={{display:"block", width:"100%"}} className="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div className="toast-header">
           <strong className="me-auto">TODO App</strong>
         </div>

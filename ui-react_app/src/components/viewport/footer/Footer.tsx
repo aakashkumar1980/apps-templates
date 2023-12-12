@@ -1,3 +1,5 @@
+import styles from './Footer.module.scss';
+
 function Footer() {
   let year = new Date().getFullYear();
 

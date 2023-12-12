@@ -1,10 +1,10 @@
-import "./CreateDataRecord.css"
+import "./CreateDataRecord.module.scss"
 
 function CreateDataRecord() {
   return (
     <div id="create-record-data">
       
-      <div className="toast" style={{display:"block"}} role="alert" aria-live="assertive" aria-atomic="true">
+      <div style={{display:"block", width:"100%"}} className="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div className="toast-header">
           <strong className="me-auto">TODO App</strong>
         </div>
