@@ -1,4 +1,5 @@
-import Dashboard from "./pages/Dashboard/Dashboard";
+import Dashboard from "./pages/dashboard/Dashboard";
+import "./Content.css";
 
 function Content() {
   return (

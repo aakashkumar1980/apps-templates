@@ -1,5 +1,5 @@
 // <></> : it is equivant to the <React.Fragment></React.Fragment> shortcut tag
-function RowData() {
+function Record () {
   return (
     <>
       <div id="rowdata" className="row">
@@ -15,4 +15,4 @@ function RowData() {
   );
 }
 
-export default RowData;
+export default Record;

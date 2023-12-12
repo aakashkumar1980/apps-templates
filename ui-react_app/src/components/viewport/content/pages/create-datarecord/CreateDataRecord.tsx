@@ -1,14 +1,9 @@
-import React from "react";
-import "./Dashboard.css";
-import RowData from "./RowData";
+import "./CreateDataRecord.css"
 
-function Dashboard() {
-  let rowData: any[] = [];
-  //rowData.push(<RowData key={0} />);
-
+function CreateDataRecord() {
   return (
-    <div id="dashboard">
-
+    <div id="create-record-data">
+      
       <div className="toast" style={{display:"block"}} role="alert" aria-live="assertive" aria-atomic="true">
         <div className="toast-header">
           <strong className="me-auto">TODO App</strong>
@@ -26,11 +21,6 @@ function Dashboard() {
               <button className="btn btn-success">Add</button>
             </div>
           </div>
-
-          <div id="rowdata-items">
-            {rowData}
-          </div>
-          
         </div>
       </div>
 
@@ -38,4 +28,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default CreateDataRecord;
