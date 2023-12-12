@@ -9,7 +9,6 @@ const DataRecords: React.FC<DataRecordsProps> = ({ items }) => {
     <>
       <div id="recorddata-items">
         {items.map((item, index) => (
-          // Use index as the key
           <RecordWrapper key={index} value={item} />
         ))}
       </div>
