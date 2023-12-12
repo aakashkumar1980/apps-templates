@@ -1,6 +1,5 @@
 import styles from '../Dashboard.module.scss';
 import DataMessage from "./DataMessage";
-import RecordWrapper from "./RecordWrapper";
 
 interface DataRecordsProps {
   items: React.ReactNode[];
@@ -10,7 +9,9 @@ const DataRecords: React.FC<DataRecordsProps> = ({ items }) => {
     <>
       <div id="recorddata-items">
         {items.map((item, index) => (
-          <RecordWrapper key={index} value={item} />
+          <div key={index} className={`${styles.rowdata} row ${index % 2 === 0 ? styles.alternateRow : ''}`}>
+            <div>{item}</div>
+          </div>
         ))}
       </div>
 

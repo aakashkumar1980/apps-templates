@@ -4,7 +4,9 @@ import DataRecords from "./datarecord/DataRecords";
 
 function Dashboard() {
   let list: JSX.Element[] = []; 
-  list.push(<Record key={1} />);
+  list.push(<Record key={1} todoName={'Milk'} todoDate={'4/10/2020'} />);
+  list.push(<Record key={1} todoName={'Rice'} todoDate={'8/10/2020'} />);
+  list.push(<Record key={1} todoName={'Chocolate'} todoDate={'8/10/2020'} />);
 
   return (
     <div id="dashboard">
