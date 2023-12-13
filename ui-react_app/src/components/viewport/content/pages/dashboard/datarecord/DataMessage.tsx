@@ -1,4 +1,4 @@
-import styles from '../Dashboard.module.scss';
+import styles from './Datarecord.module.scss';
 
 interface DataRecordsProps {
   items: React.ReactNode[];

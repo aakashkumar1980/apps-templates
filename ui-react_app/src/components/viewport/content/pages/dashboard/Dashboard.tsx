@@ -1,6 +1,8 @@
 import styles from './Dashboard.module.scss';
 import Record from "./datarecord/Record";
 import DataRecords from "./datarecord/DataRecords";
+import Container from '../../Container';
+
 
 function Dashboard() {
   let list: JSX.Element[] = []; 
@@ -11,15 +13,17 @@ function Dashboard() {
   return (
     <div id="dashboard">
 
-      <div style={{display:"block", width:"100%"}} className="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div className="toast-header">
-          <strong className="me-auto">TODO App</strong>
-        </div>
+      <Container className="">
+        <div style={{display:"block", width:"100%"}} className="toast" role="alert" aria-live="assertive" aria-atomic="true">
+          <div className="toast-header">
+            <strong className="me-auto">TODO App</strong>
+          </div>
 
-        <div className="toast-body">
-            <DataRecords items={list}></DataRecords>
+          <div className="toast-body">
+              <DataRecords items={list}></DataRecords>
+          </div>
         </div>
-      </div>
+      </Container>
 
     </div>
   );

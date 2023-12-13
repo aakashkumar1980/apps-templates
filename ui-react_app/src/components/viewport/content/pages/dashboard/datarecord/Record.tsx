@@ -1,10 +1,10 @@
-import styles from '../Dashboard.module.scss';
+import styles from './Datarecord.module.scss';
 
 // <></> : it is equivant to the <React.Fragment></React.Fragment> shortcut tag
 function Record ({todoName, todoDate}: {todoName: string, todoDate: string}) {
   return (
     <>
-      <div id="rowdata" className={`${styles.rowdata} row`}>
+      <div id="record" className="row">
         <div id="todo" className="col-md-6">
           {todoName}
         </div>

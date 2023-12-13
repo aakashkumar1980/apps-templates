@@ -1,5 +1,6 @@
-import styles from '../Dashboard.module.scss';
+import styles from './Datarecord.module.scss';
 import DataMessage from "./DataMessage";
+import Container from '../../../Container';
 
 interface DataRecordsProps {
   items: React.ReactNode[];
@@ -7,16 +8,18 @@ interface DataRecordsProps {
 const DataRecords: React.FC<DataRecordsProps> = ({ items }) => {
   return (
     <>
-      <div id="recorddata-items">
+      <div id="datarecords">
         {items.map((item, index) => (
-          <div key={index} className={`${styles.rowdata} row ${index % 2 === 0 ? styles.alternateRow : ''}`}>
-            <div>{item}</div>
-          </div>
+          <Container key={index} className={`${styles.rowdata} ${index%2===0? styles.alternateRow:''}`}>
+            <div key={index} className="row">
+              {item}
+            </div>
+          </Container>
         ))}
       </div>
 
-      <DataMessage items={items}></DataMessage>  
-    </>  
+      <DataMessage items={items}></DataMessage>
+    </>
   );
 };
 
