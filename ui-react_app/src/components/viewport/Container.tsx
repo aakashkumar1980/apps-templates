@@ -1,4 +1,4 @@
-import styles from './Content.module.scss';
+import './Viewport.css';
 import React from 'react';
 
 interface ContainerProps {
@@ -8,7 +8,7 @@ interface ContainerProps {
 
 const Container: React.FC<ContainerProps> = (props) => {
   const { children, className } = props;
-  const combinedClassName = `${styles["container-style"]} ${className || ''}`;
+  const combinedClassName = `container-style ${className || ''}`;
 
   return (
     <div id="container" className={combinedClassName}>

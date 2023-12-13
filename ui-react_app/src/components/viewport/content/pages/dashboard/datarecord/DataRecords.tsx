@@ -1,6 +1,6 @@
 import styles from './Datarecord.module.scss';
 import DataMessage from "./DataMessage";
-import Container from '../../../Container';
+import Container from '../../../../Container';
 
 interface DataRecordsProps {
   items: React.ReactNode[];

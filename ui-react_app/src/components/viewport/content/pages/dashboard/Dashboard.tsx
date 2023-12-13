@@ -1,7 +1,7 @@
 import styles from './Dashboard.module.scss';
 import Record from "./datarecord/Record";
 import DataRecords from "./datarecord/DataRecords";
-import Container from '../../Container';
+import Container from '../../../Container';
 
 
 function Dashboard() {
