@@ -5,10 +5,13 @@ import Container from '../../../Container';
 
 
 function Dashboard() {
+  const handleDelete = (todoName: string) => {
+    console.log(todoName);
+  }  
   let list: JSX.Element[] = []; 
-  list.push(<Record key={1} todoName={'Milk'} todoDate={'4/10/2020'} />);
-  list.push(<Record key={1} todoName={'Rice'} todoDate={'8/10/2020'} />);
-  list.push(<Record key={1} todoName={'Chocolate'} todoDate={'8/10/2020'} />);
+  list.push(<Record key={1} todoName={'Milk'} todoDate={'4/10/2020'} onDelete={handleDelete} />);
+  list.push(<Record key={1} todoName={'Rice'} todoDate={'8/10/2020'} onDelete={handleDelete} />);
+  list.push(<Record key={1} todoName={'Chocolate'} todoDate={'8/10/2020'} onDelete={handleDelete} />);
 
   return (
     <div id="dashboard">

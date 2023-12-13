@@ -1,7 +1,8 @@
 import styles from './Datarecord.module.scss';
 
 // <></> : it is equivant to the <React.Fragment></React.Fragment> shortcut tag
-function Record ({todoName, todoDate}: {todoName: string, todoDate: string}) {
+function Record ({todoName, todoDate, onDelete}: {todoName: string, todoDate: string, onDelete: (name: string) => void}) {
+   
   return (
     <>
       <div id="record" className="row">
@@ -12,7 +13,7 @@ function Record ({todoName, todoDate}: {todoName: string, todoDate: string}) {
           {todoDate}
         </div>
         <div className="col-md-2">
-          <button className="btn btn-danger">Delete</button>
+          <button className="btn btn-danger" onClick={() => onDelete(todoName)}>Delete</button>
         </div>
       </div>
     </>
