@@ -4,6 +4,7 @@ import Record from "./datarecord/Record";
 import DataRecords from "./datarecord/DataRecords";
 import Container from '../../../Container';
 import React, { useState } from 'react';
+import CreateDataRecord from '../create-datarecord/CreateDataRecord';
 
 
 function Dashboard() {
@@ -32,7 +33,11 @@ function Dashboard() {
   ));  
   return (
     <div id="dashboard">
-      <Container className="">
+      <Container>
+        <CreateDataRecord/>
+      </Container>
+
+      <Container>
         <div style={{ display: "block", width: "100%" }} className="toast" role="alert" aria-live="assertive" aria-atomic="true">
           <div className="toast-header">
             <strong className="me-auto">TODO App</strong>
@@ -44,7 +49,6 @@ function Dashboard() {
           </div>
         </div>
       </Container>
-
     </div>
   );
 }
