@@ -7,21 +7,28 @@ import React, { useState } from 'react';
 
 function Dashboard() {
   const [list, setList] = useState([
-    <Record recordKey={1} todoName={'Milk'} todoDate={'4/10/2020'} onDelete={() => handleDelete(1)} />,
-    <Record recordKey={2} todoName={'Rice'} todoDate={'8/10/2020'} onDelete={() => handleDelete(2)} />,
-    <Record recordKey={3} todoName={'Chocolate'} todoDate={'8/10/2020'} onDelete={() => handleDelete(3)} />
+    { id: 1, todoName: 'Milk', todoDate: '4/10/2020' },
+    { id: 2, todoName: 'Rice', todoDate: '8/10/2020' },
+    { id: 3, todoName: 'Chocolate', todoDate: '8/10/2020' }
   ]);
+
+
   let [todoName, setTodoName] = React.useState<string>();
-  const handleDelete = (recordKey: number) => {
-    const recordToDelete = list.find(record => record.props.recordKey === recordKey);
-
-    if (recordToDelete) 
-      setTodoName(recordToDelete.props.todoName+ " deleted.");
-    setList(list.filter((record) => {
-      return record.props.recordKey !== recordKey;
-    }));
+  const onDelete = (id: number) => {
+    setTodoName(list.filter((item) => item.id === id)[0].todoName + " is deleted");
+    setList(
+      list.filter((item) => item.id !== id)
+    );
   }
-
+  const renderRecords = list.map(item => (
+    <Record 
+      key={item.id}
+      id={item.id} 
+      todoName={item.todoName} 
+      todoDate={item.todoDate} 
+      onDelete={onDelete}
+    />
+  ));  
   return (
     <div id="dashboard">
       <Container className="">
@@ -32,7 +39,7 @@ function Dashboard() {
 
           <div className="toast-body">
             <div className="badge bg-secondary">INFO: <span>{todoName}</span></div>
-            <DataRecords items={list}></DataRecords>
+            <DataRecords items={renderRecords}></DataRecords>
           </div>
         </div>
       </Container>
