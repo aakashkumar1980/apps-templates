@@ -10,6 +10,8 @@ function CreateDataRecord() {
     const todoName = todoNameRef.current!.value;
     const todoDate = todoDateRef.current!.value;
     console.log("todoName:", todoName, "| todoDate:", todoDate);
+    todoNameRef.current!.value = "";
+    todoDateRef.current!.value = "";
   }
 
   return (
