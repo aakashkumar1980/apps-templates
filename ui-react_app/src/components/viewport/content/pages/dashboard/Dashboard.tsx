@@ -1,4 +1,5 @@
 import styles from './Dashboard.module.scss';
+import { BsInfoSquare } from "react-icons/bs";
 import Record from "./datarecord/Record";
 import DataRecords from "./datarecord/DataRecords";
 import Container from '../../../Container';
@@ -15,7 +16,7 @@ function Dashboard() {
 
   let [todoName, setTodoName] = React.useState<string>();
   const onDelete = (id: number) => {
-    setTodoName(list.filter((item) => item.id === id)[0].todoName + " is deleted");
+    setTodoName(list.filter((item) => item.id === id)[0].todoName + " is deleted.");
     setList(
       list.filter((item) => item.id !== id)
     );
@@ -38,7 +39,7 @@ function Dashboard() {
           </div>
 
           <div className="toast-body">
-            <div className="badge bg-secondary">INFO: <span>{todoName}</span></div>
+            <div style={{"fontSize":"large"}} className="badge bg-secondary"><BsInfoSquare/> <span>: {todoName}</span></div>
             <DataRecords items={renderRecords}></DataRecords>
           </div>
         </div>
