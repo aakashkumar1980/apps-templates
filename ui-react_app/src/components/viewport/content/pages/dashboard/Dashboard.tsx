@@ -2,12 +2,15 @@ import styles from './Dashboard.module.scss';
 import Record from "./datarecord/Record";
 import DataRecords from "./datarecord/DataRecords";
 import Container from '../../../Container';
+import React from 'react';
 
 
 function Dashboard() {
+  let [todoName, setTodoName] = React.useState('');
   const handleDelete = (todoName: string) => {
-    console.log(todoName);
-  }  
+    setTodoName(todoName+' clicked.');
+  }
+
   let list: JSX.Element[] = []; 
   list.push(<Record key={1} todoName={'Milk'} todoDate={'4/10/2020'} onDelete={handleDelete} />);
   list.push(<Record key={1} todoName={'Rice'} todoDate={'8/10/2020'} onDelete={handleDelete} />);
@@ -15,7 +18,6 @@ function Dashboard() {
 
   return (
     <div id="dashboard">
-
       <Container className="">
         <div style={{display:"block", width:"100%"}} className="toast" role="alert" aria-live="assertive" aria-atomic="true">
           <div className="toast-header">
@@ -23,6 +25,7 @@ function Dashboard() {
           </div>
 
           <div className="toast-body">
+              <div className="badge bg-secondary">INFO: <span>{todoName}</span></div>
               <DataRecords items={list}></DataRecords>
           </div>
         </div>
