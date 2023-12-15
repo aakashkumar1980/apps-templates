@@ -5,7 +5,7 @@ import DataRecords from "./datarecord/DataRecords";
 import DataMessage from './datarecord/DataMessage';
 import Container from '../../../Container';
 import React, { useEffect, useState } from 'react';
-import { TodoContext } from '../../../../store/TodoStore';
+import { DataContext } from '../../../../store/DataStore';
 
 
 function Dashboard() {
@@ -57,13 +57,14 @@ function Dashboard() {
 
           <div className="toast-body">
             <DataInfo items={deletedTodoNameArray}></DataInfo>
-            <TodoContext.Provider value={{
+            
+            <DataContext.Provider value={{
               list: renderRecords,
               deletez: deleteRecord
             }}>
               <DataRecords />
               <DataMessage />
-            </TodoContext.Provider>
+            </DataContext.Provider>
           </div>
         </div>
       </Container>

@@ -1,11 +1,10 @@
 import React, { ReactNode, createContext } from "react";
 
-interface TodoContextType {
+interface DataContextType {
   list: React.ReactNode[];
   deletez: (id: number) => void;
 }
-
-export const TodoContext = createContext<TodoContextType>({
+export const DataContext = createContext<DataContextType>({
   list: [],
   deletez: () => {}
 });

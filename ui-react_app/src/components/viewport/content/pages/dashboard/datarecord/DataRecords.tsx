@@ -1,11 +1,11 @@
 import styles from './Datarecord.module.scss';
 import Container from '../../../../Container';
-import { TodoContext } from '../../../../../store/TodoStore';
-import { useContext } from 'react';
-import React from 'react';
+import React, { useContext } from 'react';
+import { DataContext } from '../../../../../store/DataStore';
+
 
 const DataRecords: React.FC = () => {
-  const { list, deletez } = useContext(TodoContext);
+  const { list, deletez } = useContext(DataContext);
 
   return (
     <>

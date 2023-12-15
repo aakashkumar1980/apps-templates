@@ -1,10 +1,9 @@
 import styles from './Datarecord.module.scss';
 import { useContext } from 'react';
-import { TodoContext } from '../../../../../store/TodoStore';
-
+import { DataContext } from '../../../../../store/DataStore';
 
 const DataMessage: React.FC = () => {
-  const {list} = useContext(TodoContext);
+  const {list} = useContext(DataContext);
 
   return (
     <div id="datarecords-message">
