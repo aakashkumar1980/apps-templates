@@ -1,5 +1,4 @@
 import styles from './Datarecord.module.scss';
-import DataMessage from "./DataMessage";
 import Container from '../../../../Container';
 
 interface DataRecordsProps {
@@ -18,7 +17,7 @@ const DataRecords: React.FC<DataRecordsProps> = ({ items }) => {
         ))}
       </div>
 
-      <DataMessage items={items}></DataMessage>
+      
     </>
   );
 };

@@ -5,7 +5,7 @@ interface DataRecordsProps {
 }
 const DataRecords: React.FC<DataRecordsProps> = ({ items }) => {
   return (
-    <div id="recorddata-message">
+    <div id="datarecords-message">
       {items.length !== 0 ? "" : <div className="alert alert-info">No TODOs found.</div>}
       {items.length === 0 && <div>Please try again later.</div>}
 

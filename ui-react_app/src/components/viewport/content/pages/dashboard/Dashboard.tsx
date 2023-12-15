@@ -1,12 +1,14 @@
 import styles from './Dashboard.module.scss';
-import { BsInfoSquare } from "react-icons/bs";
 import Record from "./datarecord/Record";
+import DataInfo from './datarecord/DataInfo';
 import DataRecords from "./datarecord/DataRecords";
+import DataMessage from './datarecord/DataMessage';
 import Container from '../../../Container';
 import React, { useState } from 'react';
 
 
 function Dashboard() {
+  /** APPLICATION DATASET */
   const [list, setList] = useState([
     { id: 1, todoName: 'Milk', todoDate: '4/10/2020' },
     { id: 2, todoName: 'Rice', todoDate: '8/10/2020' },
@@ -14,10 +16,12 @@ function Dashboard() {
   ]);
 
 
+  
+  /** Delete Function */
   let [deletedTodoNameArray, setDeletedTodoNameArray] = React.useState<string[]>([]);
   const onDelete = (id: number) => {
     setDeletedTodoNameArray(() => [
-      ...deletedTodoNameArray, 
+      ...deletedTodoNameArray,
       list.filter((item) => item.id === id)[0].todoName + " "
     ]);
 
@@ -25,6 +29,8 @@ function Dashboard() {
       list.filter((item) => item.id !== id)
     );
   }
+
+  /** RENDER */
   const renderRecords = list.map(item => (
     <Record
       key={item.id}
@@ -43,8 +49,9 @@ function Dashboard() {
           </div>
 
           <div className="toast-body">
-            <div style={{ "fontSize": "large" }} className="badge bg-secondary"><BsInfoSquare /> <span>: {deletedTodoNameArray} {deletedTodoNameArray.length!==0 && " is deleted."}</span></div>
+            <DataInfo items={deletedTodoNameArray}></DataInfo>
             <DataRecords items={renderRecords}></DataRecords>
+            <DataMessage items={renderRecords}></DataMessage>
           </div>
         </div>
       </Container>
