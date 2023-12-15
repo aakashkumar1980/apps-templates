@@ -1,3 +1,11 @@
 import React, { ReactNode, createContext } from "react";
 
-export const TodoContext = createContext<ReactNode[]>([]);
+interface TodoContextType {
+  list: React.ReactNode[];
+  deletez: (id: number) => void;
+}
+
+export const TodoContext = createContext<TodoContextType>({
+  list: [],
+  deletez: () => {}
+});

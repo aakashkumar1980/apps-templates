@@ -27,7 +27,7 @@ function Dashboard() {
 
   /** Delete Function */
   let [deletedTodoNameArray, setDeletedTodoNameArray] = React.useState<string[]>([]);
-  const onDelete = (id: number) => {
+  const deleteRecord = (id: number) => {
     setDeletedTodoNameArray(() => [
       ...deletedTodoNameArray,
       list.filter((item) => item.id === id)[0].todoName + " "
@@ -45,7 +45,6 @@ function Dashboard() {
       id={item.id}
       todoName={item.todoName}
       todoDate={item.todoDate}
-      onDelete={onDelete}
     />
   ));
   return (
@@ -58,7 +57,10 @@ function Dashboard() {
 
           <div className="toast-body">
             <DataInfo items={deletedTodoNameArray}></DataInfo>
-            <TodoContext.Provider value={renderRecords}>
+            <TodoContext.Provider value={{
+              list: renderRecords,
+              deletez: deleteRecord
+            }}>
               <DataRecords />
               <DataMessage />
             </TodoContext.Provider>
