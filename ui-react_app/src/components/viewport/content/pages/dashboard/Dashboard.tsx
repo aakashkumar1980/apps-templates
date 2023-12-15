@@ -4,19 +4,27 @@ import DataInfo from './datarecord/DataInfo';
 import DataRecords from "./datarecord/DataRecords";
 import DataMessage from './datarecord/DataMessage';
 import Container from '../../../Container';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { TodoContext } from '../../../../store/TodoStore';
 
 
 function Dashboard() {
   /** APPLICATION DATASET */
-  const [list, setList] = useState([
-    { id: 1, todoName: 'Milk', todoDate: '4/10/2020' },
-    { id: 2, todoName: 'Rice', todoDate: '8/10/2020' },
-    { id: 3, todoName: 'Chocolate', todoDate: '8/10/2020' }
-  ]);
+  interface Todo {
+    id: number; todoName: string; todoDate: string;
+  }
+  const [list, setList] = useState<Todo[]>([]);
+  useEffect(() => {
+    const initialData: Todo[] = [
+      { id: Math.random(), todoName: 'Milk', todoDate: '4/10/2020' },
+      { id: Math.random(), todoName: 'Rice', todoDate: '8/10/2020' },
+      { id: Math.random(), todoName: 'Chocolate', todoDate: '8/10/2020' }
+    ];
+    setList(initialData);
+  }, []);
 
 
-  
+
   /** Delete Function */
   let [deletedTodoNameArray, setDeletedTodoNameArray] = React.useState<string[]>([]);
   const onDelete = (id: number) => {
@@ -50,8 +58,10 @@ function Dashboard() {
 
           <div className="toast-body">
             <DataInfo items={deletedTodoNameArray}></DataInfo>
-            <DataRecords items={renderRecords}></DataRecords>
-            <DataMessage items={renderRecords}></DataMessage>
+            <TodoContext.Provider value={renderRecords}>
+              <DataRecords />
+              <DataMessage />
+            </TodoContext.Provider>
           </div>
         </div>
       </Container>
