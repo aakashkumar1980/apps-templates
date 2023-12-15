@@ -15,28 +15,28 @@ function Dashboard() {
   ]);
 
 
-  let [todoName, setTodoName] = React.useState<string>();
+  let [deletedTodoNameArray, setDeletedTodoNameArray] = React.useState<string[]>([]);
   const onDelete = (id: number) => {
-    setTodoName(list.filter((item) => item.id === id)[0].todoName + " is deleted.");
+    setDeletedTodoNameArray(() => [
+      ...deletedTodoNameArray, 
+      list.filter((item) => item.id === id)[0].todoName + " "
+    ]);
+
     setList(
       list.filter((item) => item.id !== id)
     );
   }
   const renderRecords = list.map(item => (
-    <Record 
+    <Record
       key={item.id}
-      id={item.id} 
-      todoName={item.todoName} 
-      todoDate={item.todoDate} 
+      id={item.id}
+      todoName={item.todoName}
+      todoDate={item.todoDate}
       onDelete={onDelete}
     />
-  ));  
+  ));
   return (
     <div id="dashboard">
-      <Container>
-        <CreateDataRecord/>
-      </Container>
-
       <Container>
         <div style={{ display: "block", width: "100%" }} className="toast" role="alert" aria-live="assertive" aria-atomic="true">
           <div className="toast-header">
@@ -44,7 +44,7 @@ function Dashboard() {
           </div>
 
           <div className="toast-body">
-            <div style={{"fontSize":"large"}} className="badge bg-secondary"><BsInfoSquare/> <span>: {todoName}</span></div>
+            <div style={{ "fontSize": "large" }} className="badge bg-secondary"><BsInfoSquare /> <span>: {deletedTodoNameArray} {deletedTodoNameArray.length>0 && " is deleted."}</span></div>
             <DataRecords items={renderRecords}></DataRecords>
           </div>
         </div>
