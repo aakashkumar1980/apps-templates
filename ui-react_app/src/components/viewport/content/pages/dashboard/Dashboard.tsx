@@ -4,7 +4,6 @@ import Record from "./datarecord/Record";
 import DataRecords from "./datarecord/DataRecords";
 import Container from '../../../Container';
 import React, { useState } from 'react';
-import CreateDataRecord from '../create-datarecord/CreateDataRecord';
 
 
 function Dashboard() {
