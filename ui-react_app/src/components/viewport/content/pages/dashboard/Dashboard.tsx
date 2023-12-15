@@ -43,7 +43,7 @@ function Dashboard() {
           </div>
 
           <div className="toast-body">
-            <div style={{ "fontSize": "large" }} className="badge bg-secondary"><BsInfoSquare /> <span>: {deletedTodoNameArray} {deletedTodoNameArray.length>0 && " is deleted."}</span></div>
+            <div style={{ "fontSize": "large" }} className="badge bg-secondary"><BsInfoSquare /> <span>: {deletedTodoNameArray} {deletedTodoNameArray.length!==0 && " is deleted."}</span></div>
             <DataRecords items={renderRecords}></DataRecords>
           </div>
         </div>
