@@ -28,8 +28,27 @@ function listReducer(currentList: Todo[], action: Action) {
 }
 
 function Dashboard() {
-  /** APPLICATION DATASET */
   const [list, dispatchList] = useReducer(listReducer, []);
+  // [dynamic equivalent to] const list = function listReducer(); triggered via. dispatchList();
+  // similar as useState(), but with more complex state management (e.g. delete, update, etc. in same reducer)
+  
+  const [status, setStatus] = useState<string>("");
+  useEffect(() => {
+    setStatus(list.length + " records found.");
+  }, [list]); 
+
+  /** Delete Function */
+  const deleteRecord = (id: number) => {
+    dispatchList({
+      type: "DELETE",
+      payload: { id }
+    });
+  }
+
+  /** ****** */
+  /** RENDER */
+  /** ****** */
+  /** APPLICATION DATASET */
   useEffect(() => {
     const initialData: Todo[] = [
       { id: Math.random(), todoName: 'Milk', todoDate: '4/10/2020' },
@@ -38,23 +57,6 @@ function Dashboard() {
     ];
     dispatchList({ type: "INIT", payload: initialData });
   }, []);
-
-
-  /** Delete Function */
-  const deleteRecord = (id: number) => {
-    dispatchList({ 
-      type: "DELETE", 
-      payload: {
-        id
-      } 
-    });
-  }
-
-  /** RENDER */
-  const [status, setStatus] = useState<string>("");
-  useEffect(() => {
-    setStatus(list.length + " records found.");
-  }, [list]); 
 
   const renderRecords = list.map(item => (
     <Record
