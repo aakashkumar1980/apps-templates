@@ -2,10 +2,10 @@ import styles from './Datarecord.module.scss';
 
 // <></> : it is equivant to the <React.Fragment></React.Fragment> shortcut tag
 function Record({ id, todoName, todoDate }:
-  { id: number, todoName: string, todoDate: string }) {
+  { id: string, todoName: string, todoDate: string }) {
   return (
     <>
-      <div id="record" className="row">
+      <div id={`record-${id}`} className="row">
         <div id="todo" className="col-md-6">
           {todoName}
         </div>
