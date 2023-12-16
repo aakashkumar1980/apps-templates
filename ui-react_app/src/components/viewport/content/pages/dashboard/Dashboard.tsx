@@ -1,6 +1,6 @@
 import styles from './Dashboard.module.scss';
 import Record from "./datarecord/Record";
-import DataInfo from './datarecord/DataInfo';
+import DataStatus from './datarecord/DataStatus';
 import DataRecords from "./datarecord/DataRecords";
 import DataMessage from './datarecord/DataMessage';
 import Container from '../../../Container';
@@ -14,6 +14,7 @@ function Dashboard() {
     id: number; todoName: string; todoDate: string;
   }
   const [list, setList] = useState<Todo[]>([]);
+  const [status, setStatus] = useState<string>("");
   useEffect(() => {
     const initialData: Todo[] = [
       { id: Math.random(), todoName: 'Milk', todoDate: '4/10/2020' },
@@ -21,17 +22,17 @@ function Dashboard() {
       { id: Math.random(), todoName: 'Chocolate', todoDate: '8/10/2020' }
     ];
     setList(initialData);
+    setStatus(initialData.length+" records found.");
   }, []);
 
 
 
   /** Delete Function */
-  let [deletedTodoNameArray, setDeletedTodoNameArray] = React.useState<string[]>([]);
   const deleteRecord = (id: number) => {
-    setDeletedTodoNameArray(() => [
-      ...deletedTodoNameArray,
-      list.filter((item) => item.id === id)[0].todoName + " "
-    ]);
+    setStatus(() => {
+      let newList = list.filter((item) => item.id !== id);
+      return newList.length+" records found.";
+    });
 
     setList(
       list.filter((item) => item.id !== id)
@@ -56,7 +57,7 @@ function Dashboard() {
           </div>
 
           <div className="toast-body">
-            <DataInfo items={deletedTodoNameArray}></DataInfo>
+            <DataStatus items={status}></DataStatus>
             
             <DataContext.Provider value={{
               list: renderRecords,
