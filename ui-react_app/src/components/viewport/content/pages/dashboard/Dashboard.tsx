@@ -1,71 +1,18 @@
 import styles from './Dashboard.module.scss';
-import Record from "./datarecord/Record";
+import { useContext } from 'react';
+import { DataContext } from '../../../../store/DataStore';
 import DataStatus from './datarecord/DataStatus';
 import DataRecords from "./datarecord/DataRecords";
 import DataMessage from './datarecord/DataMessage';
 import Container from '../../../Container';
-import React, { useEffect, useState, useReducer } from 'react';
-import { DataContext } from '../../../../store/DataStore';
 
-
-interface Todo {
-  id: number; todoName: string; todoDate: string;
-}
-/** REDUCER */
-type Action = 
-  | { type: 'INIT'; payload: Todo[] }
-  | { type: 'DELETE'; payload: { id: number } };
-
-function listReducer(currentList: Todo[], action: Action) {
-  switch (action.type) {
-    case "INIT":
-      return action.payload;
-    case "DELETE":
-      return currentList.filter(item => item.id !== action.payload.id);
-    default:
-      return currentList;
-  }
-}
 
 function Dashboard() {
-  const [list, dispatchList] = useReducer(listReducer, []);
-  // [dynamic equivalent to] const list = function listReducer(); triggered via. dispatchList();
-  // similar as useState(), but with more complex state management (e.g. delete, update, etc. in same reducer)
-  
-  const [status, setStatus] = useState<string>("");
-  useEffect(() => {
-    setStatus(list.length + " records found.");
-  }, [list]); 
-
-  /** Delete Function */
-  const deleteRecord = (id: number) => {
-    dispatchList({
-      type: "DELETE",
-      payload: { id }
-    });
-  }
+  const { status } = useContext(DataContext);
 
   /** ****** */
   /** RENDER */
   /** ****** */
-  /** APPLICATION DATASET */
-  useEffect(() => {
-    const initialData: Todo[] = [
-      { id: Math.random(), todoName: 'Milk', todoDate: '4/10/2020' },
-      { id: Math.random(), todoName: 'Rice', todoDate: '8/10/2020' },
-      { id: Math.random(), todoName: 'Chocolate', todoDate: '8/10/2020' }
-    ];
-    dispatchList({ type: "INIT", payload: initialData });
-  }, []);
-
-  const renderRecords = list.map(item => (
-    <Record
-      key={item.id}
-      id={item.id}
-      todoName={item.todoName}
-      todoDate={item.todoDate}
-    />
-  ));
   return (
     <div id="dashboard">
       <Container>
@@ -76,14 +23,8 @@ function Dashboard() {
 
           <div className="toast-body">
             <DataStatus items={status}></DataStatus>
-
-            <DataContext.Provider value={{
-              list: renderRecords,
-              deletez: deleteRecord
-            }}>
-              <DataRecords />
-              <DataMessage />
-            </DataContext.Provider>
+            <DataRecords />
+            <DataMessage />
           </div>
         </div>
       </Container>
