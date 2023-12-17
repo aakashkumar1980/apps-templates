@@ -15,12 +15,12 @@ function Navigation({ page, selectedPage }: ContentProps) {
           <hr />
 
           <ul className="nav nav-pills flex-column mb-auto">
-            <li onClick={()=> selectedPage("Home")}>
+            <li onClick={() => selectedPage("Home")}>
               <a href="#" className={`nav-link text-white ${page === 'Home' && "active"}`}>
                 <span className="bi bi-house-door">&nbsp; Home</span>
               </a>
             </li>
-            <li onClick={()=> selectedPage("Create DataRecord")}>
+            <li onClick={() => selectedPage("Create DataRecord")}>
               <a href="#" className={`nav-link text-white ${page === 'Create DataRecord' && "active"}`}>
                 <span className="bi bi-vinyl-fill">&nbsp; Create DataRecord</span>
               </a>

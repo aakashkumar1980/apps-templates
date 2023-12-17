@@ -1,9 +1,9 @@
-import styles from './Datarecord.module.scss';
+import styles from './DataGrid.module.scss';
 import { useContext } from 'react';
 import { DataContext } from '../../../../../store/DataStore';
 
 const DataMessage: React.FC = () => {
-  const {recordsList} = useContext(DataContext);
+  const { recordsList } = useContext(DataContext);
 
   return (
     <div id="datagrid">

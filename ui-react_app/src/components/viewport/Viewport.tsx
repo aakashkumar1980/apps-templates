@@ -9,7 +9,7 @@ import { useState } from "react";
 
 function Viewport() {
   const [page, selectedPage] = useState("Home");
-  
+
   return (
     <>
       <div id="viewport">
@@ -20,7 +20,7 @@ function Viewport() {
           <Footer />
         </div>
       </div>
-    </>    
+    </>
   );
 }
 

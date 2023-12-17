@@ -1,5 +1,5 @@
 import "./CreateDataRecord.module.scss"
-import React, {useRef} from "react";
+import React, { useRef } from "react";
 
 function CreateDataRecord() {
   const todoNameRef = useRef<HTMLInputElement>(null);
@@ -16,8 +16,8 @@ function CreateDataRecord() {
 
   return (
     <div id="create-record-data">
-      <div style={{display:"block", width:"100%"}} className="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        
+      <div style={{ display: "block", width: "100%" }} className="toast" role="alert" aria-live="assertive" aria-atomic="true">
+
         <div className="toast-header">
           <strong className="me-auto">TODO App</strong>
         </div>
@@ -25,15 +25,15 @@ function CreateDataRecord() {
         <div className="toast-body">
           <form className="row" onSubmit={onAdd}>
             <div className="col-md-6">
-              <input 
-                type="text" 
-                className="form-control" 
+              <input
+                type="text"
+                className="form-control"
                 ref={todoNameRef} placeholder="Enter TODO here..." />
             </div>
             <div className="col-md-4">
               <input
-                type="date" 
-                className="form-control" 
+                type="date"
+                className="form-control"
                 ref={todoDateRef} />
             </div>
             <div className="col-md-2">

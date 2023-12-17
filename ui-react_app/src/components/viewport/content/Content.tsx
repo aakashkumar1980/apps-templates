@@ -21,7 +21,7 @@ function Content({ page }: ContentProps) {
   return (
     <div id="content">
       <DataContextProvider>
-      {renderPage()}
+        {renderPage()}
       </DataContextProvider>
     </div>
   );

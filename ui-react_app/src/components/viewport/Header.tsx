@@ -9,7 +9,7 @@ function Header() {
       </div>
 
       <div style={{ width: "100vw" }} className="container">
-        <header style={{ textAlign: "right" }} className="py-3 mb-4 border-bottom">  
+        <header style={{ textAlign: "right" }} className="py-3 mb-4 border-bottom">
           <div className="btn-group">
             <button id="login" type="button" className="btn btn-outline-danger" disabled>Login</button>
             <button id="signup" type="button" className="btn btn-outline-danger active">Sign-up</button>

@@ -1,4 +1,4 @@
-import styles from './Datarecord.module.scss';
+import styles from './DataGrid.module.scss';
 import { BsInfoSquare } from 'react-icons/bs';
 
 interface DataStatusProps {
