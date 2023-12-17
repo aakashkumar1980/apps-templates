@@ -11,21 +11,12 @@ function Header() {
       </div>
 
       <div style={{ width: "100vw" }} className="container">
-      <header className="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
-        <div className="col-md-3 mb-2 mb-md-0">
-        </div>
-        <ul className="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-        </ul>
-        <div className="col-md-3 text-end">
-          <button type="button" className="btn btn-outline-danger me-2">
-            Login
-          </button>
-          <button type="button" className="btn btn-danger">
-            Sign-up
-          </button>
-        </div>
-      </header>
-
+        <header style={{ textAlign: "right" }} className="py-3 mb-4 border-bottom">  
+          <div className="btn-group">
+            <button id="login" type="button" className="btn btn-outline-danger" disabled>Login</button>
+            <button id="signup" type="button" className="btn btn-outline-danger active">Sign-up</button>
+          </div>
+        </header>
       </div>
 
     </div>
