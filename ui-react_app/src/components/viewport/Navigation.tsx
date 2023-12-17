@@ -36,7 +36,7 @@ function Navigation({ page, selectedPage }: ContentProps) {
               </li>
               <li>
                 <a href="#" className="nav-link text-white">
-                  <span className="bi bi-box-arrow-right">&nbsp; Signout</span>
+                  <span className="bi bi-box-arrow-right">&nbsp; Logout</span>
                 </a>
               </li>
             </ul>
