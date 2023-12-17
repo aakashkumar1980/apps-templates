@@ -3,12 +3,12 @@ import { useContext } from 'react';
 import { DataContext } from '../../../../../store/DataStore';
 
 const DataMessage: React.FC = () => {
-  const {list} = useContext(DataContext);
+  const {recordsList} = useContext(DataContext);
 
   return (
-    <div id="datarecords-message">
-      {list.length !== 0 ? "" : <div className="alert alert-info">No TODOs found.</div>}
-      {list.length === 0 && <div>Please try again later.</div>}
+    <div id="datagrid">
+      {recordsList.length !== 0 ? "" : <div className="alert alert-info">No TODOs found.</div>}
+      {recordsList.length === 0 && <div>Please try again later.</div>}
 
     </div>
   );

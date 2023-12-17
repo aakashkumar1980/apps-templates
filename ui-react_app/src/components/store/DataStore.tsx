@@ -1,74 +1,70 @@
 import React, { ReactNode, createContext, useState, useEffect, useReducer } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { _sample_records } from "./sample_records";
 
-/** Data Model */
-export interface Todo {
+
+/** DATA MODEL */
+export interface Record {
   id: string; todoName: string; todoDate: string;
 }
 
-/** REDUCER */
+/** REDUCER (FUNCTION) */
 type Action =
-  | { type: 'INIT'; payload: Todo[] }
+  | { type: 'INIT'; payload: Record[] }
   | { type: 'DELETE'; payload: { id: string } };
 
-export function listReducer(currentList: Todo[], action: Action) {
+export function recordReducer(currentRecords: Record[], action: Action) {
   switch (action.type) {
     case "INIT":
       return action.payload;
     case "DELETE":
-      return currentList.filter(item => item.id !== action.payload.id);
+      return currentRecords.filter(item => item.id !== action.payload.id);
     default:
-      return currentList;
+      return currentRecords;
   }
 }
 
-interface DataContextType {
-  list: Todo[];
-  dispatchList: React.Dispatch<Action>;
-  status: string; 
-  deletez: (id: string) => void;
-}
-export const DataContext = createContext<DataContextType>({
-  list: [],
-  dispatchList: () => {},
-  status: "",
-  deletez: () => {}
+/** CONTEXT PROVIDER */
+export const DataContext = createContext<{
+  // record
+  recordsList: Record[];
+  dispatchRecord: React.Dispatch<Action>;
+  deleteRecord: (id: string) => void;
+
+  // status
+  status: string;
+}>({
+  recordsList: [],
+  dispatchRecord: () => { },
+  deleteRecord: () => { },
+
+  status: ""
 });
 
-
-interface DataContextProviderProps {
+const DataContextProvider = ({ children }: {
   children: ReactNode;
-}
-const DataContextProvider = ({ children }: DataContextProviderProps) => {
-  /** INITIAL DATA */
-  const initialData: Todo[] = [
-    { id: uuidv4(), todoName: 'Milk', todoDate: '4/10/2020' },
-    { id: uuidv4(), todoName: 'Rice', todoDate: '8/10/2020' },
-    { id: uuidv4(), todoName: 'Chocolate', todoDate: '8/10/2020' }
-  ];
-
-  const [list, dispatchList] = useReducer(listReducer, initialData);
-  // [dynamic equivalent to] const list = function listReducer(); triggered via. dispatchList();
-  // similar as useState(), but with more complex state management (e.g. delete, update, etc. in same reducer)
-  const [status, setStatus] = useState<string>("");
-  useEffect(() => {
-    setStatus(`${list.length} records found.`);
-  }, [list.length]); 
-  
-  /** Delete Function */
+}) => {
+  // record
+  const [recordsList, dispatchRecord] = useReducer(recordReducer, _sample_records);
   const deleteRecord = (id: string) => {
-    dispatchList({
+    dispatchRecord({
       type: "DELETE",
       payload: { id }
     });
   }
-  
+
+  // status
+  const [status, setStatus] = useState<string>("");
+  useEffect(() => {
+    setStatus(`${recordsList.length} records found.`);
+  }, [recordsList.length]);
+
   return (
     <DataContext.Provider value={{
-      list,
-      dispatchList,
-      status,
-      deletez: deleteRecord
+      recordsList,
+      dispatchRecord,
+      deleteRecord,
+
+      status
     }}>
       {children}
     </DataContext.Provider>

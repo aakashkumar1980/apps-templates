@@ -1,10 +1,10 @@
 import styles from './Dashboard.module.scss';
 import { useContext } from 'react';
 import { DataContext } from '../../../../store/DataStore';
-import DataStatus from './datarecord/DataStatus';
-import DataRecords from "./datarecord/DataRecords";
-import DataMessage from './datarecord/DataMessage';
 import Container from '../../../Container';
+import DataStatus from './list-datarecord/DataStatus';
+import DataGrid from "./list-datarecord/DataGrid";
+import DataMessage from './list-datarecord/DataMessage';
 
 
 function Dashboard() {
@@ -23,7 +23,7 @@ function Dashboard() {
 
           <div className="toast-body">
             <DataStatus items={status}></DataStatus>
-            <DataRecords />
+            <DataGrid />
             <DataMessage />
           </div>
         </div>

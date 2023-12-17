@@ -1,11 +1,11 @@
-import styles from './Datarecord.module.scss';
+import styles from './DataGrid.module.scss';
 
 // <></> : it is equivant to the <React.Fragment></React.Fragment> shortcut tag
-function Record({ id, todoName, todoDate }:
+function DataGridRecord({ id, todoName, todoDate }:
   { id: string, todoName: string, todoDate: string }) {
   return (
     <>
-      <div id={`record-${id}`} className="row">
+      <div id={`datagridrecord-${id}`} className="row">
         <div id="todo" className="col-md-6">
           {todoName}
         </div>
@@ -17,4 +17,4 @@ function Record({ id, todoName, todoDate }:
   );
 }
 
-export default Record;
+export default DataGridRecord;
