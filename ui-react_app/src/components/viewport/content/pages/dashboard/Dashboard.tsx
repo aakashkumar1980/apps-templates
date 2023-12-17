@@ -2,9 +2,9 @@ import styles from './Dashboard.module.scss';
 import { useContext } from 'react';
 import { DataContext } from '../../../../store/DataStore';
 import Container from '../../../Container';
-import DataStatus from './list-datarecord/DataStatus';
-import DataGrid from "./list-datarecord/DataGrid";
-import DataMessage from './list-datarecord/DataMessage';
+import DataStatus from './datagrid/DataStatus';
+import DataGrid from "./datagrid/DataGrid";
+import DataMessage from './datagrid/DataMessage';
 
 
 function Dashboard() {

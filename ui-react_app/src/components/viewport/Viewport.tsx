@@ -1,29 +1,23 @@
 import Content from "./content/Content";
-import Footer from "./footer/Footer";
-import Header from "./header/Header";
-import Navigation from "./navigation/Navigation";
+import Footer from "./Footer";
+import Header from "./Header";
+import Navigation from "./Navigation";
 import "./Viewport.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function Viewport() {
   return (
-    <div id="viewport" className="viewport">
-      <div id="viewport_header">
-        <Header />
-      </div>
-      <div id="viewport_center">
-        <div id="viewport_navigation">
-          <Navigation />
-        </div>
-        <div id="viewport_content">
+    <>
+      <div id="viewport" style={{ display: "flex" }}>
+        <Navigation />
+        <div>
+          <Header />
           <Content />
+          <Footer />
         </div>
       </div>
-      <div id="viewport_footer">
-        <Footer />
-      </div>
-    </div>
+    </>    
   );
 }
 

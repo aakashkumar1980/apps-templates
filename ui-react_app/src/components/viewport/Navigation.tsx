@@ -1,5 +1,4 @@
-import styles from './Navigation.module.scss';
-import Container from '../Container';
+import Container from './Container';
 
 function Navigation() {
   return (

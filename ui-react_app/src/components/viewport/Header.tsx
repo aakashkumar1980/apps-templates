@@ -1,11 +1,9 @@
-import styles from './Header.module.scss';
-
 function Header() {
   let application_type = 'UI';
   let application_tech = () => { return 'React App'; }
 
   return (
-    <div id="header" className={`${styles["header"]}`}>
+    <div id="header">
       <div id="title" style={{ textAlign: "center" }}>
         Welcome to {application_type} {application_tech()}
       </div>

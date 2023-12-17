@@ -1,10 +1,6 @@
-body {
-  width: 100%;
-  height: 100%;  
+body {  
   font-family: sans-serif;
   font-size: 14px;
-  overflow: hidden;  
-  justify-content: center; /* Center horizontally */  
 }
 
 button {
@@ -19,48 +15,3 @@ button {
   padding: 5px;
 }
 
-/** Dimensions **/
-#viewport {
-  width: 95vw;
-  height: 35vw;
-}
-
-#viewport_header {
-  height: 10%;
-}
-
-#viewport_center {
-  height: 85%;
-}
-#viewport_navigation {
-  width: 20%;
-}
-#viewport_content {
-  width: 80%;
-}
-
-#viewport_footer {
-  height: 5%;
-}
-
-
-/* Alignments */
-#viewport_header, #viewport_center, #viewport_footer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-#viewport_center {
-  align-items: stretch; /* Aligns children in a row without overlap */
-}
-#viewport_navigation {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-#viewport_content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
