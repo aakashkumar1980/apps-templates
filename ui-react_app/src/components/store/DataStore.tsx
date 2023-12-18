@@ -1,6 +1,5 @@
 import React, { ReactNode, createContext, useState, useEffect, useReducer } from "react";
-import { _sample_records } from "./sample_records";
-
+import { getRecordsAPI, addRecordAPI, deleteRecordAPI } from './apiServices';
 
 /** DATA MODEL */
 export interface Record {
@@ -9,14 +8,18 @@ export interface Record {
 
 /** REDUCER (FUNCTION) */
 type Action =
-  | { type: 'INIT'; payload: Record[] }
-  | { type: 'DELETE'; payload: { id: string } };
+  | { type: 'GET_RECORDS'; payload: Record[] }
+  | { type: 'ADD_RECORD'; payload: Record[] }
+  | { type: 'DELETE_RECORD'; payload: { id: string } };
 
 export function recordReducer(currentRecords: Record[], action: Action) {
   switch (action.type) {
-    case "INIT":
-      return action.payload;
-    case "DELETE":
+    case "GET_RECORDS":
+      return [...action.payload];   
+    case "ADD_RECORD":
+      // append the new record to the existing records
+      return [...currentRecords, ...action.payload];
+    case "DELETE_RECORD":
       return currentRecords.filter(item => item.id !== action.payload.id);
     default:
       return currentRecords;
@@ -28,6 +31,7 @@ export const DataContext = createContext<{
   // record
   recordsList: Record[];
   dispatchRecord: React.Dispatch<Action>;
+  addRecord: (todoName: string) => void;
   deleteRecord: (id: string) => void;
 
   // status
@@ -35,6 +39,7 @@ export const DataContext = createContext<{
 }>({
   recordsList: [],
   dispatchRecord: () => { },
+  addRecord: () => { },
   deleteRecord: () => { },
 
   status: ""
@@ -43,16 +48,21 @@ export const DataContext = createContext<{
 const DataContextProvider = ({ children }: {
   children: ReactNode;
 }) => {
-  // record
-  const [recordsList, dispatchRecord] = useReducer(recordReducer, _sample_records);
+  /** record **/
+  const [recordsList, dispatchRecord] = useReducer(recordReducer, []);
+  useEffect(() => {
+    // initial data load
+    getRecordsAPI(dispatchRecord);
+  }, []);
+
+  const addRecord = (todoName: string) => {
+    addRecordAPI(todoName, dispatchRecord);
+  };
   const deleteRecord = (id: string) => {
-    dispatchRecord({
-      type: "DELETE",
-      payload: { id }
-    });
+    deleteRecordAPI(id, dispatchRecord);
   }
 
-  // status
+  /** status **/
   const [status, setStatus] = useState<string>("");
   useEffect(() => {
     setStatus(`${recordsList.length} records found.`);
@@ -62,6 +72,7 @@ const DataContextProvider = ({ children }: {
     <DataContext.Provider value={{
       recordsList,
       dispatchRecord,
+      addRecord,
       deleteRecord,
 
       status

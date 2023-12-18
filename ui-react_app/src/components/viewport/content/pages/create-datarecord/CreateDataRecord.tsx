@@ -1,18 +1,11 @@
+import { DataContext } from "../../../../store/DataStore";
 import "./CreateDataRecord.module.scss"
-import React, { useRef } from "react";
+import React, { useContext, useRef } from "react";
 
 function CreateDataRecord() {
+  const { addRecord } = useContext(DataContext);
   const todoNameRef = useRef<HTMLInputElement>(null);
   const todoDateRef = useRef<HTMLInputElement>(null);
-
-  const onAdd = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const todoName = todoNameRef.current!.value;
-    const todoDate = todoDateRef.current!.value;
-    console.log("todoName:", todoName, "| todoDate:", todoDate);
-    todoNameRef.current!.value = "";
-    todoDateRef.current!.value = "";
-  }
 
   return (
     <div id="create-record-data">
@@ -23,7 +16,12 @@ function CreateDataRecord() {
         </div>
 
         <div className="toast-body">
-          <form className="row" onSubmit={onAdd}>
+          <form className="row" onSubmit={(event: React.FormEvent<HTMLFormElement>)=> {
+            event.preventDefault();
+            addRecord(todoNameRef.current!.value);
+            todoNameRef.current!.value = "";
+            todoDateRef.current!.value = "";
+          }}>
             <div className="col-md-6">
               <input
                 type="text"
