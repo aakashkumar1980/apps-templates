@@ -30,7 +30,6 @@ export function recordReducer(currentRecords: Record[], action: Action) {
 export const DataContext = createContext<{
   // record
   recordsList: Record[];
-  dispatchRecord: React.Dispatch<Action>;
   addRecord: (todoName: string) => void;
   deleteRecord: (id: string) => void;
 
@@ -38,7 +37,6 @@ export const DataContext = createContext<{
   status: string;
 }>({
   recordsList: [],
-  dispatchRecord: () => { },
   addRecord: () => { },
   deleteRecord: () => { },
 
@@ -71,7 +69,6 @@ const DataContextProvider = ({ children }: {
   return (
     <DataContext.Provider value={{
       recordsList,
-      dispatchRecord,
       addRecord,
       deleteRecord,
 
