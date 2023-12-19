@@ -6,7 +6,10 @@ export interface Record {
   id: string; todoName: string; todoDate: string;
 }
 
+
+/** ****************** */
 /** REDUCER (FUNCTION) */
+/** ****************** */
 type Action =
   | { type: 'GET_RECORDS'; payload: Record[] }
   | { type: 'ADD_RECORD'; payload: Record[] }
@@ -29,7 +32,9 @@ export function recordsListReducer(currentRecordsList: Record[], action: Action)
   }
 }
 
+/** **************** */
 /** CONTEXT PROVIDER */
+/** **************** */
 export const DataContext = createContext<{
   // record
   recordsList: Record[];
@@ -47,25 +52,31 @@ export const DataContext = createContext<{
 });
 
 const DataContextProvider = ({ children }: { children: ReactNode; }) => {
-  /** record **/
+  /** RECORD **/
   const [recordsList, dispatchRecordsList] = useReducer(recordsListReducer, []);
+
+  // initial data load
   useEffect(() => {
-    // initial data load
     getRecordsAPI(dispatchRecordsList);
   }, []);
-
+  // add record
   const addRecord = (todoName: string) => {
     addRecordAPI(todoName, dispatchRecordsList);
   };
+  // delete record
   const deleteRecord = (id: string, todoName: string) => {
     deleteRecordAPI(id, todoName, dispatchRecordsList);
   }
 
-  /** status **/
+  
+  /** STATUS **/
   const [status, setStatus] = useState<string>("");
+
+  // update status when recordsList changes
   useEffect(() => {
     setStatus(`${recordsList.length} records found.`);
   }, [recordsList.length]);
+
 
   return (
     <DataContext.Provider value={{
