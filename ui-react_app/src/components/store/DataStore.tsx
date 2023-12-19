@@ -10,17 +10,20 @@ export interface Record {
 type Action =
   | { type: 'GET_RECORDS'; payload: Record[] }
   | { type: 'ADD_RECORD'; payload: Record[] }
-  | { type: 'DELETE_RECORD'; payload: { id: string } };
+  | { type: 'DELETE_RECORD'; payload: Record[] };
 
 export function recordsListReducer(currentRecordsList: Record[], action: Action) {
+  const newRecordsList = action.payload
+  console.log("currentRecordsList: ", currentRecordsList);
+  console.log("newRecordsList: ", newRecordsList);
+
   switch (action.type) {
     case "GET_RECORDS":
-      return [...action.payload];
+      return [...newRecordsList];
     case "ADD_RECORD":
-      // append the new record to the existing records
-      return [...currentRecordsList, ...action.payload];
+      return [...currentRecordsList, ...newRecordsList];
     case "DELETE_RECORD":
-      return currentRecordsList.filter(item => item.id !== action.payload.id);
+      return currentRecordsList.filter(item => item.id !== newRecordsList[0].id);
     default:
       return currentRecordsList;
   }
@@ -31,7 +34,7 @@ export const DataContext = createContext<{
   // record
   recordsList: Record[];
   addRecord: (todoName: string) => void;
-  deleteRecord: (id: string) => void;
+  deleteRecord: (id: string, todoName: string) => void;
 
   // status
   status: string;
@@ -54,8 +57,8 @@ const DataContextProvider = ({ children }: { children: ReactNode; }) => {
   const addRecord = (todoName: string) => {
     addRecordAPI(todoName, dispatchRecordsList);
   };
-  const deleteRecord = (id: string) => {
-    deleteRecordAPI(id, dispatchRecordsList);
+  const deleteRecord = (id: string, todoName: string) => {
+    deleteRecordAPI(id, todoName, dispatchRecordsList);
   }
 
   /** status **/

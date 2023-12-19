@@ -19,7 +19,7 @@ const DataGrid: React.FC = () => {
                 todoDate={item.todoDate} />
 
               <div style={{ textAlign: 'right' }}>
-                <button className="btn btn-danger" onClick={() => item.id !== null && deleteRecord(item.id)}>Delete</button>
+                <button className="btn btn-danger" onClick={() => item.id !== null && deleteRecord(item.id, item.todoName)}>Delete</button>
               </div>
             </div>
           </Container>
