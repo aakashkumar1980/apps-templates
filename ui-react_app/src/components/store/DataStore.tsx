@@ -1,4 +1,4 @@
-import React, { ReactNode, createContext, useState, useEffect, useReducer } from "react";
+import { ReactNode, createContext, useState, useEffect, useReducer } from "react";
 import { getRecordsAPI, addRecordAPI, deleteRecordAPI } from './apiServices';
 
 /** DATA MODEL */
@@ -12,17 +12,17 @@ type Action =
   | { type: 'ADD_RECORD'; payload: Record[] }
   | { type: 'DELETE_RECORD'; payload: { id: string } };
 
-export function recordReducer(currentRecords: Record[], action: Action) {
+export function recordsListReducer(currentRecordsList: Record[], action: Action) {
   switch (action.type) {
     case "GET_RECORDS":
-      return [...action.payload];   
+      return [...action.payload];
     case "ADD_RECORD":
       // append the new record to the existing records
-      return [...currentRecords, ...action.payload];
+      return [...currentRecordsList, ...action.payload];
     case "DELETE_RECORD":
-      return currentRecords.filter(item => item.id !== action.payload.id);
+      return currentRecordsList.filter(item => item.id !== action.payload.id);
     default:
-      return currentRecords;
+      return currentRecordsList;
   }
 }
 
@@ -43,21 +43,19 @@ export const DataContext = createContext<{
   status: ""
 });
 
-const DataContextProvider = ({ children }: {
-  children: ReactNode;
-}) => {
+const DataContextProvider = ({ children }: { children: ReactNode; }) => {
   /** record **/
-  const [recordsList, dispatchRecord] = useReducer(recordReducer, []);
+  const [recordsList, dispatchRecordsList] = useReducer(recordsListReducer, []);
   useEffect(() => {
     // initial data load
-    getRecordsAPI(dispatchRecord);
+    getRecordsAPI(dispatchRecordsList);
   }, []);
 
   const addRecord = (todoName: string) => {
-    addRecordAPI(todoName, dispatchRecord);
+    addRecordAPI(todoName, dispatchRecordsList);
   };
   const deleteRecord = (id: string) => {
-    deleteRecordAPI(id, dispatchRecord);
+    deleteRecordAPI(id, dispatchRecordsList);
   }
 
   /** status **/

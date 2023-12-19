@@ -5,7 +5,7 @@ function getRandomDate() {
   return `${randomDate.getMonth() + 1}/${randomDate.getDate()}/${randomDate.getFullYear()}`;
 }
 
-export const getRecordsAPI = (dispatchRecord: Function) => {
+export const getRecordsAPI = (dispatchRecordsList: Function) => {
   fetch("https://dummyjson.com/todos/user/1")
     .then(res => res.json())
     .then(data => {
@@ -16,7 +16,7 @@ export const getRecordsAPI = (dispatchRecord: Function) => {
           todoDate: getRandomDate()
         }));
 
-        dispatchRecord({
+        dispatchRecordsList({
           type: "GET_RECORDS",
           payload: transformedData
         });
@@ -25,7 +25,7 @@ export const getRecordsAPI = (dispatchRecord: Function) => {
     .catch(error => console.error('Error fetching data:', error));
 };
 
-export const addRecordAPI = (todoName: string, dispatchRecord: Function) => {
+export const addRecordAPI = (todoName: string, dispatchRecordsList: Function) => {
   const newRecord = {
     todo: todoName,
     completed: false,
@@ -47,12 +47,12 @@ export const addRecordAPI = (todoName: string, dispatchRecord: Function) => {
         todoDate: getRandomDate()
       };
       // Update your state with the new record
-      dispatchRecord({ type: 'ADD_RECORD', payload: [transformedRecord] });
+      dispatchRecordsList({ type: 'ADD_RECORD', payload: [transformedRecord] });
     })
     .catch(error => console.error('Error adding record:', error));
 };
 
-export const deleteRecordAPI = (id: string, dispatchRecord: Function) => {
+export const deleteRecordAPI = (id: string, dispatchRecordsList: Function) => {
   const newRecord = {
     id: id
   };
@@ -67,7 +67,7 @@ export const deleteRecordAPI = (id: string, dispatchRecord: Function) => {
     .then(response => response.json())
     .then(deletedRecord => {
       // Update your state with the deleted record
-      dispatchRecord({ type: 'DELETE_RECORD', payload: { id } });
+      dispatchRecordsList({ type: 'DELETE_RECORD', payload: { id } });
     })
     .catch(error => console.error('Error adding record:', error));
 };
