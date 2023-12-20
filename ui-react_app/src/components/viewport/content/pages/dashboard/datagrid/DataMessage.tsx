@@ -7,9 +7,10 @@ const DataMessage: React.FC = () => {
 
   return (
     <div id="datagrid">
-      {recordsList.length !== 0 ? "" : <div className="alert alert-info">No TODOs found.</div>}
-      {recordsList.length === 0 && <div>Please try again later.</div>}
-
+      <div style={{textAlign:"center", color:"red"}}>
+        {recordsList.length !== 0 ? "" : <span>No data found.</span>}
+        {recordsList.length === 0 && <span>&nbsp; Please try again later.</span>}
+      </div>
     </div>
   );
 };
