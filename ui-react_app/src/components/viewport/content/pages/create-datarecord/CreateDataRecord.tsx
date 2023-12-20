@@ -7,6 +7,7 @@ function CreateDataRecord() {
   const todoNameRef = useRef<HTMLInputElement>(null);
   const todoDateRef = useRef<HTMLInputElement>(null);
 
+
   return (
     <div id="create-record-data">
       <div style={{ display: "block", width: "100%" }} className="toast" role="alert" aria-live="assertive" aria-atomic="true">

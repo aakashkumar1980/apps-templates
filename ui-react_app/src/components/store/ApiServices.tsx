@@ -1,3 +1,5 @@
+/** TODO: Implement real REST API endpoints with storage */
+
 function getRandomDate() {
   const start = new Date(2020, 0, 1);
   const end = new Date();
@@ -6,13 +8,13 @@ function getRandomDate() {
 }
 
 export const getRecordsAPI = (dispatchRecordsList: Function) => {
-  fetch("https://dummyjson.com/todos/user/1")
+  fetch("http://localhost:8083/api/todos")
     .then(res => res.json())
     .then(data => {
-      if (data && data.todos) {
-        const transformedData = data.todos.map((item: any) => ({
+      if (data) {
+        const transformedData = data.map((item: any) => ({
           id: item.id,
-          todoName: item.todo,
+          todoName: item.description,
           todoDate: getRandomDate()
         }));
 
@@ -27,12 +29,12 @@ export const getRecordsAPI = (dispatchRecordsList: Function) => {
 
 export const addRecordAPI = (todoName: string, dispatchRecordsList: Function) => {
   const newRecord = {
-    todo: todoName,
-    completed: false,
-    userId: 1
+    title: todoName,
+    description: todoName,
+    completed: false
   };
 
-  fetch("https://dummyjson.com/todos/add", {
+  fetch("http://localhost:8083/api/todos", {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -43,7 +45,7 @@ export const addRecordAPI = (todoName: string, dispatchRecordsList: Function) =>
     .then(addedRecord => {
       const transformedRecord = {
         id: addedRecord.id.toString(),
-        todoName: addedRecord.todo,
+        todoName: addedRecord.description,
         todoDate: getRandomDate()
       };
       // Update your state with the new record
@@ -57,7 +59,7 @@ export const deleteRecordAPI = (id: string, todoName: string, dispatchRecordsLis
     id: id
   };
 
-  fetch("https://dummyjson.com/todos/1", {
+  fetch(`http://localhost:8083/api/todos/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'

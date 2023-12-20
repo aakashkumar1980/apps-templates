@@ -32,59 +32,42 @@ export function recordsListReducer(currentRecordsList: Record[], action: Action)
   }
 }
 
+
+
 /** **************** */
 /** CONTEXT PROVIDER */
 /** **************** */
 export const DataContext = createContext<{
   // record
   recordsList: Record[];
+  dispatchRecordsList: React.Dispatch<Action>;
   addRecord: (todoName: string) => void;
   deleteRecord: (id: string, todoName: string) => void;
-
-  // status
-  status: string;
 }>({
   recordsList: [],
+  dispatchRecordsList: () => {}, // empty function as a placeholder
   addRecord: () => { },
-  deleteRecord: () => { },
-
-  status: ""
+  deleteRecord: () => { }
 });
-
 const DataContextProvider = ({ children }: { children: ReactNode; }) => {
   /** RECORD **/
   const [recordsList, dispatchRecordsList] = useReducer(recordsListReducer, []);
-
-  // initial data load
-  useEffect(() => {
-    getRecordsAPI(dispatchRecordsList);
-  }, []);
   // add record
   const addRecord = (todoName: string) => {
-    addRecordAPI(todoName, dispatchRecordsList);
+    addRecordAPI(todoName, dispatchRecordsList);   
   };
   // delete record
   const deleteRecord = (id: string, todoName: string) => {
-    deleteRecordAPI(id, todoName, dispatchRecordsList);
+    deleteRecordAPI(id, todoName, dispatchRecordsList);  
   }
-
-  
-  /** STATUS **/
-  const [status, setStatus] = useState<string>("");
-
-  // update status when recordsList changes
-  useEffect(() => {
-    setStatus(`${recordsList.length} records found.`);
-  }, [recordsList.length]);
 
 
   return (
     <DataContext.Provider value={{
       recordsList,
+      dispatchRecordsList,
       addRecord,
-      deleteRecord,
-
-      status
+      deleteRecord
     }}>
       {children}
     </DataContext.Provider>

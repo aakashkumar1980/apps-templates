@@ -1,15 +1,37 @@
 import styles from './Dashboard.module.scss';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { DataContext } from '../../../../store/DataStore';
 import Container from '../../../Container';
 import DataStatus from './datagrid/DataStatus';
 import DataGrid from "./datagrid/DataGrid";
 import DataMessage from './datagrid/DataMessage';
+import { getRecordsAPI } from '../../../../store/ApiServices';
 
 
 function Dashboard() {
-  const { status } = useContext(DataContext);
+  /** RECORD **/
+  const { recordsList, dispatchRecordsList } = useContext(DataContext);
+  // load records
+  useEffect(() => {
+    getRecordsAPI(dispatchRecordsList);
 
+    return () => {
+      console.log("Dashboard cleanup");
+    };
+  }, []); 
+
+  /** STATUS **/
+  const [status, setStatus] = useState<string>("");
+  // update status when recordsList changes
+  useEffect(() => {
+    setStatus(`${recordsList.length} records found.`);
+
+    return () => {
+      console.log("cleanup setStatus");
+    }
+  }, [recordsList.length]);
+  
+  
   /** ****** */
   /** RENDER */
   /** ****** */
