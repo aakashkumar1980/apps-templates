@@ -1,27 +1,16 @@
-import Dashboard from "./pages/dashboard/Dashboard";
-import DataContextProvider from '../../store/DataStore';
+import { Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/dashboard/Dashboard';
 import CreateDataRecord from './pages/create-datarecord/CreateDataRecord';
+import DataContextProvider from '../../store/DataStore';
 
-interface ContentProps {
-  page: string;
-}
-function Content({ page }: ContentProps) {
-  const renderPage = () => {
-    switch (page) {
-      case "Home":
-        return <Dashboard />;
-      case "Create DataRecord":
-        return <CreateDataRecord />;
-
-      default:
-        return <Dashboard />;
-    }
-  }
-
+function Content() {
   return (
     <div id="content">
       <DataContextProvider>
-        {renderPage()}
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/create-datarecord" element={<CreateDataRecord />} />
+        </Routes>
       </DataContextProvider>
     </div>
   );

@@ -1,10 +1,7 @@
+import { NavLink } from 'react-router-dom';
 import Container from './Container';
 
-interface ContentProps {
-  page: string;
-  selectedPage: (page: string) => void;
-}
-function Navigation({ page, selectedPage }: ContentProps) {
+function Navigation() {
   return (
     <div id="navigation">
       <Container>
@@ -15,15 +12,15 @@ function Navigation({ page, selectedPage }: ContentProps) {
           <hr />
 
           <ul className="nav nav-pills flex-column mb-auto">
-            <li onClick={() => selectedPage("Home")}>
-              <a href="#" className={`nav-link text-white ${page === 'Home' && "active"}`}>
+            <li>
+              <NavLink to="/" className={({ isActive }) => `nav-link text-white ${isActive ? 'active' : ''}`}>
                 <span className="bi bi-house-door">&nbsp; Home</span>
-              </a>
+              </NavLink>
             </li>
-            <li onClick={() => selectedPage("Create DataRecord")}>
-              <a href="#" className={`nav-link text-white ${page === 'Create DataRecord' && "active"}`}>
+            <li>
+              <NavLink to="/create-datarecord" className={({ isActive }) => `nav-link text-white ${isActive ? 'active' : ''}`}>
                 <span className="bi bi-vinyl-fill">&nbsp; Create DataRecord</span>
-              </a>
+              </NavLink>
             </li>
           </ul>
           <hr />

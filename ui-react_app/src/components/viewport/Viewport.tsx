@@ -5,22 +5,17 @@ import Content from "./content/Content";
 import Footer from "./Footer";
 import Header from "./Header";
 import Navigation from "./Navigation";
-import { useState } from "react";
 
 function Viewport() {
-  const [page, selectedPage] = useState("Home");
-
   return (
-    <>
-      <div id="viewport">
-        <Navigation page={page} selectedPage={selectedPage} />
-        <div id="content-wrapper">
-          <Header />
-          <Content page={page} />
-          <Footer />
-        </div>
+    <div id="viewport">
+      <Navigation />
+      <div id="content-wrapper">
+        <Header />
+        <Content />
+        <Footer />
       </div>
-    </>
+    </div>
   );
 }
 
