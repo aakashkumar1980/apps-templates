@@ -13,10 +13,13 @@ function Dashboard() {
   const { recordsList, dispatchRecordsList } = useContext(DataContext);
   // load records
   useEffect(() => {
-    getRecordsAPI(dispatchRecordsList);
+    const controller = new AbortController();
+    const signal = controller.signal;
+    getRecordsAPI(dispatchRecordsList, signal);
 
     return () => {
-      console.log("Dashboard cleanup");
+      console.log("Dashboard cleanup.");
+      controller.abort();
     };
   }, []); 
 
@@ -27,7 +30,7 @@ function Dashboard() {
     setStatus(`${recordsList.length} records found.`);
 
     return () => {
-      console.log("cleanup setStatus");
+      console.log("Status cleanup.");
     }
   }, [recordsList.length]);
   

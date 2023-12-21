@@ -7,8 +7,8 @@ function getRandomDate() {
   return `${randomDate.getMonth() + 1}/${randomDate.getDate()}/${randomDate.getFullYear()}`;
 }
 
-export const getRecordsAPI = (dispatchRecordsList: Function) => {
-  fetch("http://localhost:8083/api/todos")
+export const getRecordsAPI = (dispatchRecordsList: Function, signal: AbortSignal) => {
+  fetch("http://localhost:8083/api/todos", { signal })
     .then(res => res.json())
     .then(data => {
       if (data) {
