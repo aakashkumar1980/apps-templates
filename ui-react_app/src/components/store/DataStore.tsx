@@ -1,5 +1,5 @@
-import { ReactNode, createContext, useState, useEffect, useReducer } from "react";
-import { getRecordsAPI, addRecordAPI, deleteRecordAPI } from './ApiServices';
+import { ReactNode, createContext, useReducer, useCallback } from "react";
+import { addRecordAPI, deleteRecordAPI } from './ApiServices';
 
 /** DATA MODEL */
 export interface Record {
@@ -53,13 +53,14 @@ const DataContextProvider = ({ children }: { children: ReactNode; }) => {
   /** RECORD **/
   const [recordsList, dispatchRecordsList] = useReducer(recordsListReducer, []);
   // add record
-  const addRecord = (todoName: string) => {
-    addRecordAPI(todoName, dispatchRecordsList);   
-  };
+  const addRecord = useCallback((todoName: string) => {
+    addRecordAPI(todoName, dispatchRecordsList);
+  }, [dispatchRecordsList]);
+
   // delete record
-  const deleteRecord = (id: string, todoName: string) => {
-    deleteRecordAPI(id, todoName, dispatchRecordsList);  
-  }
+  const deleteRecord = useCallback((id: string, todoName: string) => {
+    deleteRecordAPI(id, todoName, dispatchRecordsList);
+  }, [dispatchRecordsList]);  
 
 
   return (
