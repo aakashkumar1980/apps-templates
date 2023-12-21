@@ -43,13 +43,8 @@ export const addRecordAPI = (todoName: string, dispatchRecordsList: Function) =>
   })
     .then(response => response.json())
     .then(addedRecord => {
-      const transformedRecord = {
-        id: addedRecord.id.toString(),
-        todoName: addedRecord.description,
-        todoDate: getRandomDate()
-      };
       // Update your state with the new record
-      dispatchRecordsList({ type: 'ADD_RECORD', payload: [transformedRecord] });
+      dispatchRecordsList({ type: 'ADD_RECORD', payload: [addedRecord] });
     })
     .catch(error => console.error('Error adding record:', error));
 };
@@ -68,12 +63,12 @@ export const deleteRecordAPI = (id: string, todoName: string, dispatchRecordsLis
   })
     .then(response => response.json())
     .then(deletedRecord => {
-      const transformedRecord = {
+      const deletedRecordTransformed = {
         id: id,
         todoName: todoName,
         todoDate: getRandomDate()
       };
-      dispatchRecordsList({ type: 'DELETE_RECORD', payload: [transformedRecord] });
+      dispatchRecordsList({ type: 'DELETE_RECORD', payload: [deletedRecordTransformed] });
     })
     .catch(error => console.error('Error adding record:', error));
 };
