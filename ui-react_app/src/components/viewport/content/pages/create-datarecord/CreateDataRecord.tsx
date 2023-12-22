@@ -1,12 +1,21 @@
-import { DataContext } from "../../../../store/DataStore";
 import "./CreateDataRecord.module.scss"
-import React, { useContext, useRef } from "react";
+import { DataContext } from "../../../../store/DataStore";
+import { useContext, useRef } from "react";
+
 
 function CreateDataRecord() {
   const { addRecord } = useContext(DataContext);
-  const todoNameRef = useRef<HTMLInputElement>(null);
-  const todoDateRef = useRef<HTMLInputElement>(null);
-
+  const formRef = useRef<HTMLFormElement>(null);
+  
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (formRef.current) {
+      const formData = new FormData(formRef.current);
+      const postData = Object.fromEntries(formData.entries()) as { [key: string]: string };
+      await addRecord(postData.todoName);
+      formRef.current.reset();
+    }
+  };
 
   return (
     <div id="create-record-data">
@@ -17,23 +26,18 @@ function CreateDataRecord() {
         </div>
 
         <div className="toast-body">
-          <form className="row" onSubmit={(event: React.FormEvent<HTMLFormElement>)=> {
-            event.preventDefault();
-            addRecord(todoNameRef.current!.value);
-            todoNameRef.current!.value = "";
-            todoDateRef.current!.value = "";
-          }}>
+          <form className="row" ref={formRef} onSubmit={handleSubmit}>
             <div className="col-md-6">
               <input
                 type="text"
                 className="form-control"
-                ref={todoNameRef} placeholder="Enter TODO here..." />
+                name="todoName" placeholder="Enter TODO here..." />
             </div>
             <div className="col-md-4">
               <input
                 type="date"
                 className="form-control"
-                ref={todoDateRef} />
+                name="todoDate" />
             </div>
             <div className="col-md-2">
               <button className="btn btn-success">Add</button>
