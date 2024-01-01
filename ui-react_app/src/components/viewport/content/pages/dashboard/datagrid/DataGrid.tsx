@@ -7,7 +7,7 @@ import { DataContext } from '../../../../../store/DataStore';
 const DataGrid: React.FC = () => {
   const { recordsList, listRecordsFunction,deleteRecordFunction } = useContext(DataContext);
 
-  /** load records */ 
+  /** list records */ 
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
