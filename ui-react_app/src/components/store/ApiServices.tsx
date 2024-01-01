@@ -7,7 +7,7 @@ function getRandomDate() {
   return `${randomDate.getMonth() + 1}/${randomDate.getDate()}/${randomDate.getFullYear()}`;
 }
 
-export const getRecordsAPI = (dispatchRecordsList: Function, signal: AbortSignal) => {
+export const getRecordsAPI = (recordsListDispatcher: Function, signal: AbortSignal) => {
   fetch("http://localhost:8083/api/todos", { signal })
     .then(res => res.json())
     .then(data => {
@@ -18,7 +18,7 @@ export const getRecordsAPI = (dispatchRecordsList: Function, signal: AbortSignal
           todoDate: getRandomDate()
         }));
 
-        dispatchRecordsList({
+        recordsListDispatcher({
           type: "GET_RECORDS",
           payload: transformedData
         });
@@ -27,7 +27,7 @@ export const getRecordsAPI = (dispatchRecordsList: Function, signal: AbortSignal
     .catch(error => console.error('Error fetching data:', error));
 };
 
-export const addRecordAPI = (todoName: string, dispatchRecordsList: Function) => {
+export const addRecordAPI = (todoName: string, recordsListDispatcher: Function) => {
   const newRecord = {
     title: todoName,
     description: todoName,
@@ -44,7 +44,7 @@ export const addRecordAPI = (todoName: string, dispatchRecordsList: Function) =>
     .then(response => response.json())
     .then(addedRecord => {
       // Update your state with the new record
-      dispatchRecordsList({ 
+      recordsListDispatcher({ 
         type: 'ADD_RECORD', 
         payload: [addedRecord] 
       });
@@ -52,7 +52,7 @@ export const addRecordAPI = (todoName: string, dispatchRecordsList: Function) =>
     .catch(error => console.error('Error adding record:', error));
 };
 
-export const deleteRecordAPI = (id: string, todoName: string, dispatchRecordsList: Function) => {
+export const deleteRecordAPI = (id: string, todoName: string, recordsListDispatcher: Function) => {
   const deleteRecord = {
     id: id
   };
@@ -71,7 +71,7 @@ export const deleteRecordAPI = (id: string, todoName: string, dispatchRecordsLis
         todoName: todoName,
         todoDate: getRandomDate()
       };
-      dispatchRecordsList({ type: 'DELETE_RECORD', payload: [deletedRecordTransformed] });
+      recordsListDispatcher({ type: 'DELETE_RECORD', payload: [deletedRecordTransformed] });
     })
     .catch(error => console.error('Error adding record:', error));
 };

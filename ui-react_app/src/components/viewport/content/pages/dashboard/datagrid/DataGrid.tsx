@@ -6,13 +6,16 @@ import { DataContext } from '../../../../../store/DataStore';
 import { getRecordsAPI } from '../../../../../store/ApiServices';
 
 const DataGrid: React.FC = () => {
-  const { recordsList, dispatchRecordsList, deleteRecord } = useContext(DataContext);
+  const { 
+    recordsList, recordsListDispatcher, 
+    deleteRecord 
+  } = useContext(DataContext);
 
   /** load records */ 
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
-    getRecordsAPI(dispatchRecordsList, signal);
+    getRecordsAPI(recordsListDispatcher, signal);
 
     return () => {
       console.log("Dashboard cleanup.");

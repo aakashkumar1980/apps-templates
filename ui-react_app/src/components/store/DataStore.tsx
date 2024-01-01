@@ -38,35 +38,37 @@ export function recordsListReducer(currentRecordsList: Record[], action: Action)
 /** CONTEXT PROVIDER */
 /** **************** */
 export const DataContext = createContext<{
-  // record
   recordsList: Record[];
-  dispatchRecordsList: React.Dispatch<Action>;
+  recordsListDispatcher: React.Dispatch<Action>;
+  
   addRecord: (todoName: string) => void;
   deleteRecord: (id: string, todoName: string) => void;
 }>({
   recordsList: [],
-  dispatchRecordsList: () => {}, // empty function as a placeholder
+  recordsListDispatcher: () => {},
+  
   addRecord: () => { },
   deleteRecord: () => { }
 });
+
 const DataContextProvider = ({ children }: { children: ReactNode; }) => {
-  /** RECORD **/
-  const [recordsList, dispatchRecordsList] = useReducer(recordsListReducer, []);
+  const [recordsList, recordsListDispatcher] = useReducer(recordsListReducer, []);
   // add record
   const addRecord = useCallback((todoName: string) => {
-    addRecordAPI(todoName, dispatchRecordsList);
-  }, [dispatchRecordsList]);
+    addRecordAPI(todoName, recordsListDispatcher);
+  }, [recordsListDispatcher]);
 
   // delete record
   const deleteRecord = useCallback((id: string, todoName: string) => {
-    deleteRecordAPI(id, todoName, dispatchRecordsList);
-  }, [dispatchRecordsList]);  
+    deleteRecordAPI(id, todoName, recordsListDispatcher);
+  }, [recordsListDispatcher]);  
 
 
   return (
     <DataContext.Provider value={{
       recordsList,
-      dispatchRecordsList,
+      recordsListDispatcher,
+
       addRecord,
       deleteRecord
     }}>
