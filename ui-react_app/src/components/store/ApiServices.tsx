@@ -44,7 +44,10 @@ export const addRecordAPI = (todoName: string, dispatchRecordsList: Function) =>
     .then(response => response.json())
     .then(addedRecord => {
       // Update your state with the new record
-      dispatchRecordsList({ type: 'ADD_RECORD', payload: [addedRecord] });
+      dispatchRecordsList({ 
+        type: 'ADD_RECORD', 
+        payload: [addedRecord] 
+      });
     })
     .catch(error => console.error('Error adding record:', error));
 };
