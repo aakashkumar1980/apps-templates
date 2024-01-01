@@ -1,6 +1,6 @@
 import styles from './DataGrid.module.scss';
 import { useContext } from 'react';
-import { DataContext } from '../../../../../store/DataStore';
+import { DataContext } from '../../../../../state-management/context/DataContextProvider';
 
 const DataMessage: React.FC = () => {
   const { recordsList } = useContext(DataContext);

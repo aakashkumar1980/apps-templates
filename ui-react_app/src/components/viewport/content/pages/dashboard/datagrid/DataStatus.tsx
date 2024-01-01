@@ -1,7 +1,7 @@
 import styles from './DataGrid.module.scss';
 import { useContext, useEffect, useState } from 'react';
 import { BsInfoSquare } from 'react-icons/bs';
-import { DataContext } from '../../../../../store/DataStore';
+import { DataContext } from '../../../../../state-management/context/DataContextProvider';
 
 const DataStatus: React.FC = () => {
   const { recordsList } = useContext(DataContext);

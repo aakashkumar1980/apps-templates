@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/dashboard/Dashboard';
 import CreateDataRecord from './pages/create-datarecord/CreateDataRecord';
-import DataContextProvider from '../../store/DataStore';
+import DataContextProvider from '../../state-management/context/DataContextProvider';
 
 function Content() {
   return (

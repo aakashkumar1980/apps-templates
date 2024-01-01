@@ -2,7 +2,7 @@ import styles from './DataGrid.module.scss';
 import Container from '../../../../Container';
 import DataGridRecord from './DataGridRecord';
 import React, { useContext, useEffect } from 'react';
-import { DataContext } from '../../../../../store/DataStore';
+import { DataContext } from '../../../../../state-management/context/DataContextProvider';
 
 const DataGrid: React.FC = () => {
   const { recordsList, listRecordsFunction,deleteRecordFunction } = useContext(DataContext);
