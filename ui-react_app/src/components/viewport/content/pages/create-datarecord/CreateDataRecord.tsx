@@ -4,7 +4,7 @@ import { useContext, useRef } from "react";
 
 
 function CreateDataRecord() {
-  const { addRecord } = useContext(DataContext);
+  const { addRecordFunction } = useContext(DataContext);
   const formRef = useRef<HTMLFormElement>(null);
   
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -12,7 +12,7 @@ function CreateDataRecord() {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const postData = Object.fromEntries(formData.entries()) as { [key: string]: string };
-      await addRecord(postData.todoName);
+      await addRecordFunction(postData.todoName);
       formRef.current.reset();
     }
   };

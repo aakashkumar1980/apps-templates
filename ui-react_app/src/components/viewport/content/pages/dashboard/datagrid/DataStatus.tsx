@@ -4,9 +4,7 @@ import { BsInfoSquare } from 'react-icons/bs';
 import { DataContext } from '../../../../../store/DataStore';
 
 const DataStatus: React.FC = () => {
-  const { 
-    recordsList 
-  } = useContext(DataContext);
+  const { recordsList } = useContext(DataContext);
 
   // update status when recordsList changes
   const [status, setStatus] = useState<string>("");

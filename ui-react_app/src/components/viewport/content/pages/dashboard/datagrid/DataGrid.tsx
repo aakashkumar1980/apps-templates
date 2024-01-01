@@ -3,19 +3,15 @@ import Container from '../../../../Container';
 import DataGridRecord from './DataGridRecord';
 import React, { useContext, useEffect } from 'react';
 import { DataContext } from '../../../../../store/DataStore';
-import { getRecordsAPI } from '../../../../../store/ApiServices';
 
 const DataGrid: React.FC = () => {
-  const { 
-    recordsList, recordsListDispatcher, 
-    deleteRecord 
-  } = useContext(DataContext);
+  const { recordsList, listRecordsFunction,deleteRecordFunction } = useContext(DataContext);
 
   /** load records */ 
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
-    getRecordsAPI(recordsListDispatcher, signal);
+    listRecordsFunction(signal);
 
     return () => {
       console.log("Dashboard cleanup.");
@@ -35,7 +31,7 @@ const DataGrid: React.FC = () => {
                 todoDate={item.todoDate} />
 
               <div style={{ textAlign: 'right' }}>
-                <button className="btn btn-danger" onClick={() => item.id !== null && deleteRecord(item.id, item.todoName)}>Delete</button>
+                <button className="btn btn-danger" onClick={() => item.id !== null && deleteRecordFunction(item.id, item.todoName)}>Delete</button>
               </div>
             </div>
           </Container>

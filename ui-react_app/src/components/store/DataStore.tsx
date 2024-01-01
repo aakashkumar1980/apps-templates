@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useReducer, useCallback } from "react";
-import { addRecordAPI, deleteRecordAPI } from './ApiServices';
+import { getRecordsAPI, addRecordAPI, deleteRecordAPI } from './ApiServices';
 
 /** DATA MODEL */
 export interface Record {
@@ -41,25 +41,34 @@ export const DataContext = createContext<{
   recordsList: Record[];
   recordsListDispatcher: React.Dispatch<Action>;
   
-  addRecord: (todoName: string) => void;
-  deleteRecord: (id: string, todoName: string) => void;
+  listRecordsFunction: (signal: AbortController["signal"]) => void;
+  addRecordFunction: (todoName: string) => void;
+  deleteRecordFunction: (id: string, todoName: string) => void;
 }>({
   recordsList: [],
   recordsListDispatcher: () => {},
   
-  addRecord: () => { },
-  deleteRecord: () => { }
+  listRecordsFunction: () => { },
+  addRecordFunction: () => { },
+  deleteRecordFunction: () => { }
 });
 
 const DataContextProvider = ({ children }: { children: ReactNode; }) => {
+  /** Define Record */
   const [recordsList, recordsListDispatcher] = useReducer(recordsListReducer, []);
-  // add record
-  const addRecord = useCallback((todoName: string) => {
+
+  /** List Records */ 
+  const listRecordsFunction = useCallback((signal: AbortController["signal"]) => {  
+    getRecordsAPI(recordsListDispatcher, signal);
+  }, [recordsListDispatcher]);  
+  
+  /** Add Record */ 
+  const addRecordFunction = useCallback((todoName: string) => {
     addRecordAPI(todoName, recordsListDispatcher);
   }, [recordsListDispatcher]);
-
-  // delete record
-  const deleteRecord = useCallback((id: string, todoName: string) => {
+  
+  /** Delete Record */
+  const deleteRecordFunction = useCallback((id: string, todoName: string) => {
     deleteRecordAPI(id, todoName, recordsListDispatcher);
   }, [recordsListDispatcher]);  
 
@@ -69,8 +78,9 @@ const DataContextProvider = ({ children }: { children: ReactNode; }) => {
       recordsList,
       recordsListDispatcher,
 
-      addRecord,
-      deleteRecord
+      listRecordsFunction,
+      addRecordFunction,
+      deleteRecordFunction
     }}>
       {children}
     </DataContext.Provider>
