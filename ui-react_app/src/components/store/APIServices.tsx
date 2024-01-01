@@ -43,7 +43,7 @@ export const addRecordAPI = (todoName: string, recordsListDispatcher: Function) 
   })
     .then(response => response.json())
     .then(addedRecord => {
-      // Update your state with the new record
+      
       recordsListDispatcher({ 
         type: 'ADD_RECORD', 
         payload: [addedRecord] 
@@ -71,7 +71,11 @@ export const deleteRecordAPI = (id: string, todoName: string, recordsListDispatc
         todoName: todoName,
         todoDate: getRandomDate()
       };
-      recordsListDispatcher({ type: 'DELETE_RECORD', payload: [deletedRecordTransformed] });
+
+      recordsListDispatcher({ 
+        type: 'DELETE_RECORD', 
+        payload: [deletedRecordTransformed] 
+      });
     })
     .catch(error => console.error('Error adding record:', error));
 };

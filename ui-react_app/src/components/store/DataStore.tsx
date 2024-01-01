@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useReducer, useCallback } from "react";
-import { getRecordsAPI, addRecordAPI, deleteRecordAPI } from './ApiServices';
+import { getRecordsAPI, addRecordAPI, deleteRecordAPI } from './APIServices';
 
 /** DATA MODEL */
 export interface Record {
