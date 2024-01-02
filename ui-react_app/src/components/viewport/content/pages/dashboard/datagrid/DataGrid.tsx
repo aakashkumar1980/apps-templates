@@ -1,28 +1,27 @@
 import styles from './DataGrid.module.scss';
 import Container from '../../../../Container';
 import DataGridRecord from './DataGridRecord';
-import React, { useContext, useEffect } from 'react';
-import { DataContext } from '../../../../../state-management/context/DataContextProvider';
+import React, { useEffect } from 'react';
+
+import { useSelector } from 'react-redux';
+import { deleteRecordAPI, getRecordsAPI } from '../../../../../state-management/redux/APIServices';
+
 
 const DataGrid: React.FC = () => {
-  const { recordsList, listRecordsFunction,deleteRecordFunction } = useContext(DataContext);
+  const recordsList = useSelector((state: any) => state || []);
 
-  /** list records */ 
   useEffect(() => {
-    const controller = new AbortController();
-    const signal = controller.signal;
-    listRecordsFunction(signal);
+    getRecordsAPI();
+  }, []);
 
-    return () => {
-      console.log("Dashboard cleanup.");
-      controller.abort();
-    };
-  }, []); 
-
+  const handleDelete = (id: string, todoName: string) => {
+    deleteRecordAPI(id, todoName);
+  };
+  
   return (
     <>
       <div id="datagrid">
-        {recordsList.map((item, index) => (
+        {recordsList.map((item: any, index: number) => (
           <Container key={index} className={`${styles.rowdata} ${index % 2 === 0 ? styles.alternateRow : ''}`}>
             <div key={index} className="row">
               <DataGridRecord
@@ -31,7 +30,7 @@ const DataGrid: React.FC = () => {
                 todoDate={item.todoDate} />
 
               <div style={{ textAlign: 'right' }}>
-                <button className="btn btn-danger" onClick={() => item.id !== null && deleteRecordFunction(item.id, item.todoName)}>Delete</button>
+                <button className="btn btn-danger" onClick={() => item.id !== null && handleDelete(item.id, item.todoName)}>Delete</button>
               </div>
             </div>
           </Container>

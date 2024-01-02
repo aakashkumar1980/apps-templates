@@ -1,10 +1,9 @@
-import styles from './DataGrid.module.scss';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BsInfoSquare } from 'react-icons/bs';
-import { DataContext } from '../../../../../state-management/context/DataContextProvider';
+import { useSelector } from 'react-redux';
 
 const DataStatus: React.FC = () => {
-  const { recordsList } = useContext(DataContext);
+  const recordsList = useSelector((state: any) => state || []);
 
   // update status when recordsList changes
   const [status, setStatus] = useState<string>("");

@@ -1,9 +1,7 @@
-import styles from './DataGrid.module.scss';
-import { useContext } from 'react';
-import { DataContext } from '../../../../../state-management/context/DataContextProvider';
+import { useSelector } from 'react-redux';
 
 const DataMessage: React.FC = () => {
-  const { recordsList } = useContext(DataContext);
+  const recordsList = useSelector((state: any) => state || []);
 
   return (
     <div id="datagrid">
