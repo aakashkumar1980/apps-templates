@@ -1,5 +1,6 @@
-import store from './Store';
-import { ActionTypes } from './Actions';
+import { Record } from '../DataModel';
+import recordsListStore from './Store';
+import { deleteRecordAction, getRecordsAction } from './Actions';
 
 /** TODO: Implement real REST API endpoints with storage */
 function getRandomDate() {
@@ -14,47 +15,30 @@ export const getRecordsAPI = () => {
     .then(res => res.json())
     .then(data => {
       if (data) {
-        const transformedData = data.map((item: any) => ({
+        const recordsList = data.map((item: any) => ({
           id: item.id,
           todoName: item.description,
           todoDate: getRandomDate()
         }));
-
-        store.dispatch({
-          type: ActionTypes.GET_RECORDS,
-          payload: transformedData
-        });
+        recordsListStore.dispatch(getRecordsAction(recordsList));
       }
     })
     .catch(error => console.error('Error fetching data:', error));
 };
 
-
-export const deleteRecordAPI = (id: string, todoName: string) => {
-  const deleteRecord = {
-    id: id
-  };
-
+export const deleteRecordAPI = (id: string) => {
   fetch(`http://localhost:8083/api/todos/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(deleteRecord)
+    }
   })
     .then(response => response.json())
-    .then(deletedRecord => {
-      const deletedRecordTransformed = {
-        id: id,
-        todoName: todoName,
-        todoDate: getRandomDate()
-      };
-
-      store.dispatch({
-        type: ActionTypes.DELETE_RECORD,
-        payload: deletedRecordTransformed
-      });       
+    .then(() => {
+      const deletedRecord: Record = { id: id, todoName: '', todoDate: '' };
+      recordsListStore.dispatch(deleteRecordAction(deletedRecord));
     })
+
     .catch(error => console.error('Error adding record:', error));
 };
 

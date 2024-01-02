@@ -6,17 +6,16 @@ export enum ActionTypes {
   DELETE_RECORD = 'DELETE_RECORD'
 }
 
-// Define the shape of each action using interfaces
-interface getRecordsAction {
-  type: ActionTypes.GET_RECORDS;
-  payload: Record[];
-}
+export const getRecordsAction = (records: Record[]) => ({
+  type: ActionTypes.GET_RECORDS,
+  payload: records,
+});
 
-interface deleteRecordAction {
-  type: ActionTypes.DELETE_RECORD;
-  payload: { id: string };
-}
+export const deleteRecordAction = (record: Record) => ({
+  type: ActionTypes.DELETE_RECORD,
+  payload: record,
+});
 
 // Use a type union for the reducer actions
-export type Actions = getRecordsAction | deleteRecordAction;
+export type Actions = ReturnType<typeof getRecordsAction> | ReturnType<typeof deleteRecordAction>;
 

@@ -12,17 +12,21 @@ export const recordsListReducer = (state: State = initialState, action: Actions)
   switch (action.type) {
     case ActionTypes.GET_RECORDS:
       // replace the entire recordsList with the new one
-      return { ...state, recordsList: action.payload };
+      if (Array.isArray(action.payload)) {
+        return { ...state, recordsList: action.payload };
+      }
+      console.error('Invalid payload for GET_RECORDS action');
+      return state;
 
     case ActionTypes.DELETE_RECORD:
       // filter out the record to delete
       return { 
         ...state, 
-        recordsList: state.recordsList.filter(record => record.id !== action.payload.id)
+        recordsList: state.recordsList.filter(record => record.id !== (action.payload as Record).id)
       };
 
     default:
-      // Return the current state if no action is matched
+      // return the current state if no action is matched
       return state;
   }
 };

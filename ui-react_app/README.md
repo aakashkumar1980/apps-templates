@@ -16,7 +16,7 @@
 <br/>
 
 # REDUCER
-API() | Functions() -> variableDispatcher (action) [variableReducer] => VARIABLE <br/>
+API() | Functions() => variableDispatcher (action) -> [variableReducer] => VARIABLE <br/>
  (APIServices.tsx)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(DataStore.tsx)<br/>
 where,
 - API(): executes the api calls.<br/>
@@ -31,4 +31,7 @@ getRecordsAPI
 addRecordAPI   -> recordsListDispatcher [recordsListReducer] => recordsList
 deleteRecordAPI
 ```
+<br/>
 
+# REDUX
+API() => variableStore (dispatch Action) -> [variableReducer] => VARIABLE <br/>
