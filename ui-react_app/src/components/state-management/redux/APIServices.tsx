@@ -1,5 +1,5 @@
 import store from './Store';
-import { ActionTypes } from './Action';
+import { ActionTypes } from './Actions';
 
 /** TODO: Implement real REST API endpoints with storage */
 function getRandomDate() {
@@ -29,29 +29,6 @@ export const getRecordsAPI = () => {
     .catch(error => console.error('Error fetching data:', error));
 };
 
-export const addRecordAPI = (todoName: string) => {
-  const newRecord = {
-    title: todoName,
-    description: todoName,
-    completed: false
-  };
-
-  fetch("http://localhost:8083/api/todos", {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(newRecord)
-  })
-    .then(response => response.json())
-    .then(addedRecord => {
-      store.dispatch({
-        type: ActionTypes.ADD_RECORD,
-        payload: addedRecord
-      });      
-    })
-    .catch(error => console.error('Error adding record:', error));
-};
 
 export const deleteRecordAPI = (id: string, todoName: string) => {
   const deleteRecord = {

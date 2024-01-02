@@ -1,6 +1,5 @@
-// store/store.tsx
 import { createStore } from 'redux';
-import recordsReducer from './recordsReducer';
+import { recordsListReducer } from './Reducer';
 
-const store = createStore(recordsReducer);
+const store = createStore(recordsListReducer);
 export default store;
