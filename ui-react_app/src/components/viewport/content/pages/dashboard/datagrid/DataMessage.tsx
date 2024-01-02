@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 
 const DataMessage: React.FC = () => {
-  const recordsList = useSelector((state: any) => state.recordsList);
+  const recordsList = useSelector((state: any) => state.recordsList.recordsList);
 
   return (
     <div id="datagrid">

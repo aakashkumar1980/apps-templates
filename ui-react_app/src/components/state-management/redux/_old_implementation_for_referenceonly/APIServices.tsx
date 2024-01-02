@@ -1,7 +1,6 @@
-import { Record } from '../DataModel';
-import recordsListStore from './Store';
-import { getRecords, deleteRecord } from './Reducer';
-
+import { Record } from '../../DataModel';
+import recordsListStore from '../Store';
+import { deleteRecordAction, getRecordsAction } from '../Actions';
 
 /** TODO: Implement real REST API endpoints with storage */
 function getRandomDate() {
@@ -21,7 +20,7 @@ export const getRecordsAPI = () => {
           todoName: item.description,
           todoDate: getRandomDate()
         }));
-        recordsListStore.dispatch(getRecords(recordsList));
+        recordsListStore.dispatch(getRecordsAction(recordsList));
       }
     })
     .catch(error => console.error('Error fetching data:', error));
@@ -37,7 +36,7 @@ export const deleteRecordAPI = (id: string) => {
     .then(response => response.json())
     .then(() => {
       const deletedRecord: Record = { id: id, todoName: '', todoDate: '' };
-      recordsListStore.dispatch(deleteRecord(deletedRecord));
+      recordsListStore.dispatch(deleteRecordAction(deletedRecord));
     })
 
     .catch(error => console.error('Error adding record:', error));

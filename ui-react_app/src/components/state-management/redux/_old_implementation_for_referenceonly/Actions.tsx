@@ -1,4 +1,4 @@
-import { Record } from '../DataModel';
+import { Record } from '../../DataModel';
 
 // Define specific action types as an enum
 export enum ActionTypes {
