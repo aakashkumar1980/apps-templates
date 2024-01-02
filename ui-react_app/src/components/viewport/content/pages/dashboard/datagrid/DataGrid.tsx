@@ -14,8 +14,8 @@ const DataGrid: React.FC = () => {
     getRecordsAPI();
   }, []);
 
-  const handleDelete = (id: string, todoName: string) => {
-    deleteRecordAPI(id, todoName);
+  const handleDelete = (id: string) => {
+    deleteRecordAPI(id);
   };
   
   return (
@@ -30,7 +30,7 @@ const DataGrid: React.FC = () => {
                 todoDate={item.todoDate} />
 
               <div style={{ textAlign: 'right' }}>
-                <button className="btn btn-danger" onClick={() => item.id !== null && handleDelete(item.id, item.todoName)}>Delete</button>
+                <button className="btn btn-danger" onClick={() => item.id !== null && handleDelete(item.id)}>Delete</button>
               </div>
             </div>
           </Container>
