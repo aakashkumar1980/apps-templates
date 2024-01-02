@@ -1,24 +1,20 @@
-import { Record } from '../APIServices';
+import { Record } from '../DataModel';
+import { Action, ActionTypes } from './Action';
 
-
-export type Action =
-  | { type: 'GET_RECORDS'; payload: Record[] }
-  | { type: 'ADD_RECORD'; payload: Record[] }
-  | { type: 'DELETE_RECORD'; payload: Record[] };
-
-export function recordsListReducer(currentRecordsList: Record[], action: Action) {
-  const newRecordsList = action.payload
-  console.log("currentRecordsList: ", currentRecordsList);
-  console.log("newRecordsList: ", newRecordsList);
-
+export const recordsListReducer: (currentRecordsList: Record[], action: Action) => Record[] = (currentRecordsList, action) => {
+  const newPayload = action.payload as Record[];
+  
   switch (action.type) {
-    case "GET_RECORDS":
-      return [...newRecordsList];
-    case "ADD_RECORD":
-      return [...currentRecordsList, ...newRecordsList];
-    case "DELETE_RECORD":
-      return currentRecordsList.filter(item => item.id !== newRecordsList[0].id);
+    case ActionTypes.GET_RECORDS:
+      return [...action.payload];
+
+    case ActionTypes.ADD_RECORD:
+      return [...currentRecordsList, action.payload];
+
+    case ActionTypes.DELETE_RECORD:
+      return currentRecordsList.filter(item => item.id !== newPayload[0].id);
+
     default:
-      return currentRecordsList;
+      throw new Error(`Unhandled action type: ${(action as Action).type}`);
   }
-}
+};

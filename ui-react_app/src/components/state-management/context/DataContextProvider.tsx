@@ -1,6 +1,8 @@
-import { Action, recordsListReducer } from './Reducer';
+import { Action } from './Action';
+import { Record } from '../DataModel';
+import { recordsListReducer } from './Reducer';
 import { ReactNode, createContext, useReducer, useCallback } from "react";
-import { Record, getRecordsAPI, addRecordAPI, deleteRecordAPI } from '../APIServices';
+import { getRecordsAPI, addRecordAPI, deleteRecordAPI } from './APIServices';
 
 
 /** **************** */

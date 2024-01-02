@@ -1,9 +1,3 @@
-/** DATA MODEL */
-export interface Record {
-  id: string; todoName: string; todoDate: string;
-}
-
-
 /** TODO: Implement real REST API endpoints with storage */
 function getRandomDate() {
   const start = new Date(2020, 0, 1);
