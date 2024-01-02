@@ -1,9 +1,9 @@
-# STATE MANAGEMENT
-## Local State
+# STATE MANAGEMENT: Concepts
+### Local State
 - useState / useReducer (for complex usecase)
-## Cross Component State
+### Cross Component State
 - useState / useReducer (for complex usecase) -> props
-## App-wide State
+### App-wide State
 - useState / useReducer (for complex usecase) -> props
 - useContext 
   - can have multiple context across an application, i.e. AuthenticationContext, DataContext etc.
@@ -15,7 +15,8 @@
 <br/>
 <br/>
 
-# REDUCER
+# STATE MANAGEMENT: Implementations
+## REDUCER
 API() | Functions() => &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;variableDispatcher &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(action) -> &nbsp;&nbsp;&nbsp;&nbsp;[variableReducer] => &nbsp;&nbsp;&nbsp;&nbsp;VARIABLE<br/>
 &nbsp;(APIServices.tsx)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(DataContextProvider.tsx)&nbsp;&nbsp;&nbsp;(Actions.tsx)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Reducer.tsx)<br/>
 where,
@@ -31,7 +32,7 @@ addRecordAPI   -> recordsListDispatcher [recordsListReducer] => recordsList
 ```
 <br/>
 
-# REDUX
+## REDUX
 API() => &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;variableStore (dispatch action) -> [variableReducer] => &nbsp;&nbsp;&nbsp;&nbsp;VARIABLE <br/>
 (APIServices.tsx)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Store.tsx)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Actions.tsx)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Reducer.tsx)<br/>
 where,
