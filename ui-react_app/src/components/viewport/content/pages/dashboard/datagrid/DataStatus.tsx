@@ -3,7 +3,7 @@ import { BsInfoSquare } from 'react-icons/bs';
 import { useSelector } from 'react-redux';
 
 const DataStatus: React.FC = () => {
-  const recordsList = useSelector((state: any) => state || []);
+  const recordsList = useSelector((state: any) => state.recordsList);
 
   // update status when recordsList changes
   const [status, setStatus] = useState<string>("");

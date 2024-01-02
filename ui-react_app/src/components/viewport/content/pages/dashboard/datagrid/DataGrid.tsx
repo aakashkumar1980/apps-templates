@@ -8,7 +8,7 @@ import { deleteRecordAPI, getRecordsAPI } from '../../../../../state-management/
 
 
 const DataGrid: React.FC = () => {
-  const recordsList = useSelector((state: any) => state || []);
+  const recordsList = useSelector((state: any) => state.recordsList);
 
   useEffect(() => {
     getRecordsAPI();
