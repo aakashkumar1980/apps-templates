@@ -1,4 +1,4 @@
-package com.aadityadesigners.poc;
+package com.aadityadesigners.poc.max;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
