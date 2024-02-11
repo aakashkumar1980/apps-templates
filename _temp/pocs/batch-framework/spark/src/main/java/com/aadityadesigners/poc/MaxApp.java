@@ -10,19 +10,19 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import java.util.Iterator;
 
-public class App {
-  private static final Logger LOGGER = Logger.getLogger(App.class);
+public class MaxApp {
+  private static final Logger LOGGER = Logger.getLogger(MaxApp.class);
 
   public static void main(String[] args) {
     System.out.println("#########################");
-    System.out.println("Starting Spark Application");
+    System.out.println("Starting MaxApp Application");
     System.out.println("#########################");
 
     SparkConf conf = new SparkConf()
         .setAppName("Simple Test")
         .setMaster("spark://ip-172-31-7-170.us-west-1.compute.internal:7077");
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-    conf.registerKryoClasses(new Class<?>[] { App.class, MaxFunction.class });
+    conf.registerKryoClasses(new Class<?>[] { MaxApp.class, MaxFunction.class });
     JavaSparkContext sc = new JavaSparkContext(conf);
 
     String filePath = "/home/ubuntu/Desktop/apps-templates/_temp/pocs/batch-framework/spark/src/main/resources/temperature.txt";
