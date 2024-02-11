@@ -19,7 +19,7 @@ public class MaxApp {
     System.out.println("#########################");
 
     SparkConf conf = new SparkConf()
-        .setAppName("Simple Test")
+        .setAppName("MaxApp")
         .setMaster("spark://ip-172-31-7-170.us-west-1.compute.internal:7077");
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     conf.registerKryoClasses(new Class<?>[] { MaxApp.class, MaxFunction.class });
