@@ -24,7 +24,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-api:2.14.1'    
 }
 application {
-    mainClassName = 'com.aadityadesigners.poc.estimate.EstimateApp'    
+    mainClassName = 'com.aadityadesigners.poc.max.MaxApp'    
 }
 
 // configure the shadow plugin to create a fat jar

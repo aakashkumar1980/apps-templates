@@ -23,10 +23,12 @@ public class EstimateApp {
     // Start timing
     long startTime = System.currentTimeMillis();
 
-    int numSamples = 1000000 * loadFactor(args); // Adjust this value based on your cluster's performance
+    int numSamples = 1000000 * loadFactor(args);
     JavaRDD<Integer> sample = sc.parallelize(range(0, numSamples));
     long count = sample.filter(new Function<Integer, Boolean>() {
       public Boolean call(Integer i) {
+        LOGGER.info("##### Inside call method" + Thread.currentThread().getName());
+        System.out.println("##### Inside call method" + Thread.currentThread().getName());
         double x = Math.random() * 2 - 1;
         double y = Math.random() * 2 - 1;
         return x * x + y * y <= 1;

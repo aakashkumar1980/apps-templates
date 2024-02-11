@@ -8,7 +8,7 @@ public class MaxFunction implements Function2<Integer, Integer, Integer> {
 
   @Override
   public Integer call(Integer a, Integer b) throws Exception {
-    LOGGER.info("##### Comparing: " + a + " and " + b);
+    LOGGER.info("##### [" + Thread.currentThread().getName() + "] Comparing: " + a + " and " + b);
     return Math.max(a, b);
   }
 }

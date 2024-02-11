@@ -3,50 +3,48 @@ package com.aadityadesigners.poc.max;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
-
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.log4j.Logger;
-import java.util.Iterator;
 
 public class MaxApp {
   private static final Logger LOGGER = Logger.getLogger(MaxApp.class);
 
   public static void main(String[] args) {
-    System.out.println("#########################");
-    System.out.println("Starting MaxApp Application");
-    System.out.println("#########################");
+    LOGGER.info("#########################");
+    LOGGER.info("Starting MaxApp Application");
+    LOGGER.info("#########################");
 
     SparkConf conf = new SparkConf()
         .setAppName("MaxApp")
         .setMaster("spark://ip-172-31-7-170.us-west-1.compute.internal:7077");
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-    conf.registerKryoClasses(new Class<?>[] { MaxApp.class, MaxFunction.class });
+    conf.registerKryoClasses(new Class<?>[] { MaxApp.class });
     JavaSparkContext sc = new JavaSparkContext(conf);
 
-    String filePath = "/home/ubuntu/Desktop/apps-templates/_temp/pocs/batch-framework/spark/src/main/resources/temperature.txt";
-    // Load the temperature data from a file
-    JavaRDD<String> lines = sc.textFile(filePath);
-    JavaRDD<Integer> temperatures = lines.map(line -> Integer.parseInt(line));
+    String filePath = "/home/ubuntu/Downloads/data.csv";
 
-    // Logging within mapPartitions to capture processing on workers
-    JavaRDD<Integer> loggedTemperatures = temperatures.mapPartitions(new FlatMapFunction<Iterator<Integer>, Integer>() {
-      @Override
-      public Iterator<Integer> call(Iterator<Integer> iterator) throws Exception {
-        List<Integer> tempList = new ArrayList<>();
-        while (iterator.hasNext()) {
-          Integer temperature = iterator.next();
-          System.out.println("##### Processing temperature: " + temperature);
-          tempList.add(temperature);
-        }
-        return tempList.iterator();
+    // Load the data from a file
+    JavaRDD<String> lines = sc.textFile(filePath);
+    LOGGER.info("##### lines: " + lines.count());
+    JavaRDD<Integer> numbers = lines.map(line -> {
+      // Assuming the numerical word is always last, and entries are comma-separated
+      String[] parts = line.split(",");
+      try {
+        return Integer.parseInt(parts[parts.length - 1]); // Parse the last part as an integer
+      } catch (NumberFormatException e) {
+        return 0; // Return a default value if parsing fails
       }
     });
 
+    // Start timing
+    long startTime = System.currentTimeMillis();
     // Use the reduce operation to find the maximum value
-    Integer maxTemperature = loggedTemperatures.reduce(new MaxFunction());
-    LOGGER.info("##### maxTemperature: " + maxTemperature);
+    Integer maxNumber = numbers.reduce(Math::max);
+    LOGGER.info("##### maxNumber: " + maxNumber);
+
+    // End timing and calculate the total time taken
+    long endTime = System.currentTimeMillis();
+    long duration = (endTime - startTime) / 1000; // Convert milliseconds to seconds
+    LOGGER.info("##### Total time taken: " + duration + " seconds");
 
     // Stop the Spark context
     sc.stop();
