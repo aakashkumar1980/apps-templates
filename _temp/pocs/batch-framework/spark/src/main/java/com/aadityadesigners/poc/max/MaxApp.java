@@ -24,7 +24,6 @@ public class MaxApp {
 
     // Load the data from a file
     JavaRDD<String> lines = sc.textFile(filePath);
-    LOGGER.info("##### lines: " + lines.count());
     JavaRDD<Integer> numbers = lines.map(line -> {
       // Assuming the numerical word is always last, and entries are comma-separated
       String[] parts = line.split(",");
@@ -39,6 +38,7 @@ public class MaxApp {
     long startTime = System.currentTimeMillis();
     // Use the reduce operation to find the maximum value
     Integer maxNumber = numbers.reduce(Math::max);
+    LOGGER.info("##### lines: " + lines.count());
     LOGGER.info("##### maxNumber: " + maxNumber);
 
     // End timing and calculate the total time taken

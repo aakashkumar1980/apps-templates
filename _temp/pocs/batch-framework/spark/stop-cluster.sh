@@ -10,3 +10,10 @@ sleep 5
 
 export SPARK_IDENT_STRING=master
 stop-master.sh
+
+
+rm -rf $SPARK_HOME/work/*
+rm -rf /tmp/spark-*
+rm -rf $SPARK_HOME/logs/*
+rm -rf ~/.gradle/caches/
+rm -rf ~/.gradle/wrapper/dists/
