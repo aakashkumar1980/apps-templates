@@ -5,7 +5,7 @@ export SPARK_IDENT_STRING=master
 start-master.sh &
 sleep 10
 
-numWorkers=18
+numWorkers=3
 # Start Spark Workers in the background
 for ((i=1; i<=numWorkers; i++)); do
     echo "Starting slave$i"
