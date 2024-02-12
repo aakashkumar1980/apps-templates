@@ -1,6 +1,6 @@
 #!/bin/bash
 
-numWorkers=10
+numWorkers=25
 # Start Spark Workers in the background
 for ((i=1; i<=numWorkers; i++)); do
     export SPARK_IDENT_STRING=slave$i
@@ -12,6 +12,7 @@ export SPARK_IDENT_STRING=master
 stop-master.sh
 
 
+echo "Cleaning up..."
 rm -rf $SPARK_HOME/work/*
 rm -rf /tmp/spark-*
 rm -rf $SPARK_HOME/logs/*
