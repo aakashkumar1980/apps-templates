@@ -1,0 +1,14 @@
+<configuration>
+    <property>
+        <name>fs.s3a.access.key</name>
+        <value></value>
+    </property>
+    <property>
+        <name>fs.s3a.secret.key</name>
+        <value></value>
+    </property>
+    <property>
+        <name>fs.s3a.endpoint</name>
+        <value>s3.amazonaws.com</value>
+    </property>
+</configuration>

@@ -11,8 +11,8 @@ import com.amazonaws.services.s3.model.Bucket;
 public class AWSS3Test {
   public static void main(String[] args) {
     // Replace these with your actual access key and secret key
-    String accessKey = "AKIA4UGDRGS26ROFES6S";
-    String secretKey = "phBHNCSSymnQ95sst0j7lkHcegaZki23Qr2U3gFZ";
+    String accessKey = "";
+    String secretKey = "";
 
     // Create AWS credentials
     BasicAWSCredentials awsCreds = new BasicAWSCredentials(accessKey, secretKey);
