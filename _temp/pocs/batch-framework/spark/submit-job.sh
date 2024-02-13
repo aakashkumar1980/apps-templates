@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Spark Submit (TEST ON: MD5.12XLARGE)
+# Spark Submit (TEST ON: M6A.16XLARGE | 64 vCPU | 256 GB Memory | 25 Gbps Network)
 # $ start-dfs.sh
 # $ start-yarn.sh
 # $ ls -l /opt/hadoop/2.7.7/logs/
-numvCPU=4
-numMemoryGB=8
-numWorkers=4
+numvCPU=2
+numMemoryGB=4
+numWorkers=2
 executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
 spark-submit --class com.aadityadesigners.poc.fileupdate.FileColumnUpdateApp \
   --master spark://ip-172-31-7-170.us-west-1.compute.internal:7077 \
