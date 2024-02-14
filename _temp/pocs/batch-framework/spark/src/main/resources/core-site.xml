@@ -1,11 +1,11 @@
 <configuration>
     <property>
         <name>fs.s3a.access.key</name>
-        <value>AKIA4UGDRGS2XVDAGH2I</value>
+        <value>AKIA4DGDRGSSXVDAGH2I</value>
     </property>
     <property>
         <name>fs.s3a.secret.key</name>
-        <value>VwH/60KwKlK7maiBGIxsp4Q+xvsqVcXjtJepD/PK</value>
+        <value>VwH/60KwKlK7maiBGDxsp4Q+xvsqVcXjdtJepD/PK</value>
     </property>
     <property>
         <name>fs.s3a.endpoint</name>
