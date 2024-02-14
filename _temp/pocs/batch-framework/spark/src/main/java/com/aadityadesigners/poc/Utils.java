@@ -1,18 +1,27 @@
 package com.aadityadesigners.poc;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3Client;
 
 public class Utils {
   private static final Logger LOGGER = Logger.getLogger(Utils.class);
 
   /**
-   * TODO: Implement and check the performance of this method
    * Set optimized S3A configuration for improved performance
    * 
-   * @param conf
+   * @param conf SparkConf object to set the configurations
+   * @param sc   JavaSparkContext object to get the executor cores
    */
   public static void setOptimizedS3AConfig(SparkConf conf, JavaSparkContext sc) {
     int executorCores = Integer.parseInt(sc.getConf().get("spark.executor.cores", "1"));
@@ -58,6 +67,22 @@ public class Utils {
     conf.set("spark.hadoop.fs.s3a.multipart.purge", "false");
     conf.set("spark.hadoop.fs.s3a.multipart.purge.age", "86400"); // Age in seconds before purging incomplete uploads
 
+  }
+
+  public static List<String> listFilesInS3Bucket(String s3BucketPath, Configuration hadoopConfiguration) {
+    List<String> s3Files = new ArrayList<>();
+
+    BasicAWSCredentials awsCreds = new BasicAWSCredentials(
+        hadoopConfiguration.get("fs.s3a.access.key"),
+        hadoopConfiguration.get("fs.s3a.secret.key"));
+    AmazonS3Client s3Client = new AmazonS3Client(awsCreds);
+    s3Client.setRegion(Region.getRegion(Regions.US_WEST_1));
+
+    s3Client.listObjects(s3BucketPath).getObjectSummaries().forEach(objectSummary -> {
+      s3Files.add(objectSummary.getKey());
+    });
+
+    return s3Files;
   }
 
   public static void printExecutionTime(final Logger logger, long startTime, long endTime) {

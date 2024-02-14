@@ -1,8 +1,8 @@
 #!/bin/bash
 
-numvCPU=2
-numMemoryGB=4
-numWorkers=2
+numvCPU=4
+numMemoryGB=6
+numWorkers=6
 # MASTER
 export SPARK_IDENT_STRING=master
 start-master.sh &

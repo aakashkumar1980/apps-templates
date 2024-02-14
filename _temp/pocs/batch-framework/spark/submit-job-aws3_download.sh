@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Spark Submit (TEST ON: M6A.16XLARGE | 64 vCPU | 256 GB Memory | 25 Gbps Network)
-numvCPU=2
-numMemoryGB=4
-numWorkers=2
+# Spark Submit (TEST ON: M6A.8XLARGE | 32 vCPU | 128 GB Memory | 12.5 Gibps [13.42 GBps] Network)
+numvCPU=4
+numMemoryGB=6
+numWorkers=6
 executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
 spark-submit --class com.aadityadesigners.poc.s3filesdownload.S3FileDownloadApp \
   --master spark://ip-172-31-7-170.us-west-1.compute.internal:7077 \
