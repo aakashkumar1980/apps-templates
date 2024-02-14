@@ -26,14 +26,14 @@ public class S3FileDownloadApp {
         .setAppName("S3FileDownloadApp")
         .setMaster("spark://ip-172-31-7-170.us-west-1.compute.internal:7077");
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-    // Utils.setOptimizedS3AConfig(conf);
-
     JavaSparkContext sc = new JavaSparkContext(conf);
+    Utils.setOptimizedS3AConfig(conf, sc);
+
     sc.hadoopConfiguration().addResource(new Path(
         "/home/ubuntu/Desktop/apps-templates/_temp/pocs/batch-framework/spark/src/main/resources/core-site.xml"));
 
     long startTime = System.currentTimeMillis();
-    String s3BucketPath = "aakash-kumar.apps-configs";
+    String s3BucketPath = "aakash-kumar.apps-configs-test";
     String hdfsDestinationPath = "hdfs://ip-172-31-7-170.us-west-1.compute.internal:9000/poc/batch-applications/";
     for (String fileName : listFilesInS3Bucket(s3BucketPath, sc.hadoopConfiguration())) {
       LOGGER.info(String.format("Downloading file: %s", fileName));
