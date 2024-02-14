@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Spark Submit (TEST ON: M6A.8XLARGE | 32 vCPU | 128 GB Memory | 12.5 Gibps [13.42 GBps] Network)
+# Spark Submit (TEST ON: M6A.8XLARGE | 32 vCPU | 128 GB Memory | 12.5 Gibps [1.56 GBps] Network)
 numvCPU=4
 numMemoryGB=6
 numWorkers=6
