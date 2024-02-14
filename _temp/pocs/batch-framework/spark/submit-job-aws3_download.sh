@@ -1,17 +1,14 @@
 #!/bin/bash
 
 # Spark Submit (TEST ON: M6A.16XLARGE | 64 vCPU | 256 GB Memory | 25 Gbps Network)
-# $ start-dfs.sh
-# $ start-yarn.sh
-# $ ls -l /opt/hadoop/2.7.7/logs/
 numvCPU=2
 numMemoryGB=4
 numWorkers=2
 executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
-spark-submit --class com.aadityadesigners.poc.fileupdate.FileColumnUpdateApp \
+spark-submit --class com.aadityadesigners.poc.s3filesdownload.S3FileDownloadApp \
   --master spark://ip-172-31-7-170.us-west-1.compute.internal:7077 \
   --num-executors $numWorkers \
-  --executor-cores $((numvCPU-1)) \ # NOTE: this is one executor per worker node. (multiple executors per worker node is good for high CPU workloads)
+  --executor-cores $((numvCPU-1)) \
   --executor-memory ${executorMemoryGB}G \
   --conf spark.executor.memoryOverhead=512M \
   --conf spark.dynamicAllocation.enabled=false \

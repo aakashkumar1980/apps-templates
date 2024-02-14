@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# WORKER NODES
 numWorkers=25
 # Start Spark Workers in the background
 for ((i=1; i<=numWorkers; i++)); do
@@ -8,10 +9,20 @@ for ((i=1; i<=numWorkers; i++)); do
 done
 sleep 5
 
+# MASTER
 export SPARK_IDENT_STRING=master
 stop-master.sh
 
 
+# HADFS and YARN
+stop-dfs.sh
+stop-yarn.sh
+sudo rm -f /opt/hadoop/2.7.7/logs/hadoop-ubuntu-*
+sudo rm -f /opt/hadoop/2.7.7/logs/yarn-ubuntu-*
+# $ ls -l /opt/hadoop/2.7.7/logs/
+
+
+# CLEAN-UP
 echo "Cleaning up..."
 rm -rf $SPARK_HOME/work/*
 rm -rf /tmp/spark-*
