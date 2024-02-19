@@ -9,6 +9,8 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
+import com.aadityadesigners.poc.Utils;
+
 public class FileColumnUpdateApp {
   private static final Logger LOGGER = Logger.getLogger(FileColumnUpdateApp.class);
 
@@ -16,8 +18,8 @@ public class FileColumnUpdateApp {
     LOGGER.info("##### Starting Application #####");
     SparkSession spark = SparkSession
         .builder()
-        .appName("App")
-        .master("spark://ip-172-31-7-170.us-west-1.compute.internal:7077")
+        .appName("FileColumnUpdateApp")
+        .master(String.format("spark://%s:7077", Utils.HOSTNAME))
         .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
         .getOrCreate();
 

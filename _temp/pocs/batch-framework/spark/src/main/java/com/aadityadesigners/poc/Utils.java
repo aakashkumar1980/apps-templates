@@ -16,6 +16,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 
 public class Utils {
   private static final Logger LOGGER = Logger.getLogger(Utils.class);
+  public static final String HOSTNAME = "ip-172-31-7-170.us-west-1.compute.internal";
 
   /**
    * Set optimized S3A configuration for improved performance

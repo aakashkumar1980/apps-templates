@@ -11,22 +11,22 @@ import com.aadityadesigners.poc.Utils;
 public class S3FileDownloadApp {
   private static final Logger LOGGER = Logger.getLogger(S3FileDownloadApp.class);
 
+  static String s3BucketPath = "aakash-kumar-poc-batch-poc-test";
+  static String hdfsDestinationPath = String.format("hdfs://%s:9000/poc/batch-applications/", Utils.HOSTNAME);
+  static String RESOURCE = "/home/ubuntu/Desktop/apps-templates/_temp/pocs/batch-framework/spark/src/main/resources";
+
   public static void main(String[] args) {
     LOGGER.info("##### Starting Application #####");
 
     SparkConf conf = new SparkConf()
         .setAppName("S3FileDownloadApp")
-        .setMaster("spark://ip-172-31-7-170.us-west-1.compute.internal:7077");
+        .setMaster(String.format("spark://%s:7077", Utils.HOSTNAME));
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     JavaSparkContext sc = new JavaSparkContext(conf);
     Utils.setOptimizedS3AConfig(conf, sc);
-
-    sc.hadoopConfiguration().addResource(new Path(
-        "/home/ubuntu/Desktop/apps-templates/_temp/pocs/batch-framework/spark/src/main/resources/core-site.xml"));
+    sc.hadoopConfiguration().addResource(new Path(RESOURCE + "/core-site.xml"));
 
     long startTime = System.currentTimeMillis();
-    String s3BucketPath = "aakash-kumar.apps-configs";
-    String hdfsDestinationPath = "hdfs://ip-172-31-7-170.us-west-1.compute.internal:9000/poc/batch-applications/";
     for (String fileName : Utils.listFilesInS3Bucket(s3BucketPath, sc.hadoopConfiguration())) {
       LOGGER.info(String.format("Downloading file: %s", fileName));
 
