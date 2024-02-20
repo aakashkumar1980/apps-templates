@@ -68,12 +68,11 @@ services:
       - resourcemanager
 
 
-
   #####################
   ### SPARK CLUSTER ###
   #####################
   spark-master:
-    image: bitnami/spark:latest
+    image: custom-spark:latest
     environment:
       - SPARK_MODE=master
     ports:
@@ -83,7 +82,7 @@ services:
       - spark_master:/bitnami/spark
 
   spark-worker:
-    image: bitnami/spark:latest
+    image: custom-spark:latest
     depends_on:
       - spark-master
     environment:
@@ -97,7 +96,6 @@ services:
       - spark_workers:/bitnami/spark
 
 
-
 volumes:
   namenode_data:
   datanode_data1:
@@ -108,3 +106,5 @@ volumes:
 networks:
   default:
     driver: bridge
+
+    
