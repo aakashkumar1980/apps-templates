@@ -10,11 +10,24 @@ export numvCPU numWorkers calculatedWorkerMemory
 # Stop all containers
 docker-compose down
 
-# Remove all containers and data
-docker ps -aq | xargs -r docker stop; \
-docker ps -aq | xargs -r docker rm; \
-docker images -q | xargs -r docker rmi -f; \
+# CLEANUP
+# Stop all running containers
+docker ps -q | xargs -r docker stop
+# Remove all containers
+docker ps -aq | xargs -r docker rm
+# Force remove all images
+docker images -q | xargs -r docker rmi -f
+# Remove all volumes
 docker volume ls -q | xargs -r docker volume rm
+# Remove all stopped containers, unused networks, and dangling images
+docker system prune -f
+# Remove unused volumes
+docker volume prune -f
+# Remove unused networks
+docker network prune -f
+# Optionally, remove all unused images, not just dangling ones
+docker image prune -a -f
+
 
 find ./data/namenode_data -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
 find ./data/datanode_data1 -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
