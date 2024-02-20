@@ -5,7 +5,7 @@ USER root
 
 # Install PING and other network tools (like checkin the connection on ports to other servers) for debugging
 RUN apt-get update && \
-  apt-get install -y net-tools iproute2 iputils-ping
+  apt-get install -y net-tools iproute2 iputils-ping net-tools curl wget netcat  
 
 # Create a test workspace directory
 RUN mkdir -p /var/test-workspace
