@@ -9,6 +9,6 @@
     </property>
     <property>
         <name>yarn.resourcemanager.hostname</name>
-        <value>hadoop</value>
+        <value>resourcemanager</value>
     </property>
 </configuration>
