@@ -18,6 +18,7 @@ services:
       - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
       - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml      
 
+
   datanode1:
     image: apache/hadoop:3
     command: ["hdfs", "datanode"]
@@ -68,10 +69,41 @@ services:
 
 
 
+  #####################
+  ### SPARK CLUSTER ###
+  #####################
+  spark-master:
+    image: bitnami/spark:latest
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - spark_master:/bitnami/spark
+
+  spark-worker:
+    image: bitnami/spark:latest
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=${calculatedWorkerMemory}g
+      - SPARK_WORKER_CORES=${numvCPU}
+    deploy:
+      replicas: ${numWorkers}
+    volumes:
+      - spark_workers:/bitnami/spark
+
+
+
 volumes:
   namenode_data:
   datanode_data1:
   datanode_data2:
+  spark_master:
+  spark_workers:
 
 networks:
   default:
