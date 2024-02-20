@@ -18,7 +18,7 @@ services:
       - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
       - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml      
 
-  datanode:
+  datanode1:
     image: apache/hadoop:3
     command: ["hdfs", "datanode"]
     env_file:
@@ -26,9 +26,22 @@ services:
     depends_on:
       - namenode
     volumes:
-      - ./data/datanode_data:/hadoop/dfs/data
+      - ./data/datanode_data1:/hadoop/dfs/data
       - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
       - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml  
+
+  datanode2:
+    image: apache/hadoop:3
+    command: ["hdfs", "datanode"]
+    env_file:
+      - ./conf/config.properties
+    depends_on:
+      - namenode
+    volumes:
+      - ./data/datanode_data2:/hadoop/dfs/data
+      - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml 
+
 
   resourcemanager:
     image: apache/hadoop:3
@@ -53,11 +66,12 @@ services:
     depends_on:
       - resourcemanager
 
-      
+
 
 volumes:
   namenode_data:
-  datanode_data:
+  datanode_data1:
+  datanode_data2:
 
 networks:
   default:
