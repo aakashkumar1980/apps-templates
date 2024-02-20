@@ -72,7 +72,7 @@ services:
   ### SPARK CLUSTER ###
   #####################
   spark-master:
-    image: custom-spark:latest
+    image: custom-spark:v1
     environment:
       - SPARK_MODE=master
     ports:
@@ -82,7 +82,7 @@ services:
       - spark_master:/bitnami/spark
 
   spark-worker:
-    image: custom-spark:latest
+    image: custom-spark:v1
     depends_on:
       - spark-master
     environment:

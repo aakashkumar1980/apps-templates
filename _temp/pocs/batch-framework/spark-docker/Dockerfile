@@ -1,39 +1,14 @@
-FROM bitnami/spark:latest
+FROM bitnami/spark:3.3.4
 
 # Switch to the root user to perform installation tasks
 USER root
 
-RUN mkdir -p /var/lib/apt/lists/partial && \
-  chmod 755 /var/lib/apt/lists /var/lib/apt/lists/partial && \
-  apt-get clean && \
-  apt-get update
-
-# Install dependencies for Python installation
+# Install PING and other network tools (like checkin the connection on ports to other servers) for debugging
 RUN apt-get update && \
-  apt-get install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
-  libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
-  xz-utils tk-dev libffi-dev liblzma-dev python3-openssl git
+  apt-get install -y net-tools iproute2 iputils-ping
 
-# Install pyenv
-RUN curl https://pyenv.run | bash
-
-# Configure environment variables for PyEnv directly to ensure they are applied for all shell sessions
-ENV PYENV_ROOT="$HOME/.pyenv"
-ENV PATH="$PYENV_ROOT/bin:$PATH"
-
-# Initialize PyEnv and install Python 3.7.9
-RUN eval "$(pyenv init -)" && \
-  eval "$(pyenv virtualenv-init -)" && \
-  pyenv install 3.7.9 && \
-  pyenv global 3.7.9
-
-# Print the Python version to verify the installation
-RUN python --version
-
-# Install diagnostic tools
-RUN apt-get update && \
-  apt-get install -y net-tools iproute2
-
+# Create a test workspace directory
+RUN mkdir -p /var/test-workspace
 
 # Switch back to the original user (Bitnami containers typically use 1001)
 USER 1001
