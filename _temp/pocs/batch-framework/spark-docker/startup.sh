@@ -2,7 +2,7 @@
 
 numvCPU=2
 numMemoryGB=3
-numWorkers=5
+numWorkers=3
 
 executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
 calculatedWorkerMemory=$(echo "$executorMemoryGB" | bc)
