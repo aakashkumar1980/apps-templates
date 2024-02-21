@@ -20,8 +20,9 @@ def main():
         .config("spark.hadoop.fs.s3a.endpoint", "s3.amazonaws.com") \
         .getOrCreate()
 
-    bucket_name = "aakash-kumar-poc-batch-poc-test"
     prefix = ""
+    bucket_name = "aakash-kumar-poc-batch-poc-test"
+    hdfs_dest_path = "hdfs://namenode:9000/poc/file-download/"
     print(f"### Listing files in bucket: {bucket_name}, prefix: {prefix} ###")
 
     file_names = list_files_in_bucket(bucket_name, prefix)
@@ -34,6 +35,9 @@ def main():
         df = spark.read.csv(file_path)
         # Example processing (here, just show the first few lines)
         df.show()
+
+        print(f"### Writing file to HDFS: {hdfs_dest_path + file_path.split('/')[-1].replace(".csv", ".parquet")} ###")
+        df.write.mode("overwrite").parquet(hdfs_dest_path + file_path.split('/')[-1].replace(".csv", ".parquet"))
 
     print("##### Application finished #####")
     spark.stop()

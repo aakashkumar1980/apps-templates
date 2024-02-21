@@ -9,7 +9,8 @@ USER root
 RUN apt-get update && \
   apt-get install -y net-tools iproute2 iputils-ping net-tools curl wget telnet netcat-openbsd python3-pip && \
   pip3 install --upgrade pip && \
-  pip3 install boto3  
+  pip3 install boto3 && \
+  install_packages nano
 
 # Download and unpack Hadoop to get the client libraries
 RUN wget --no-check-certificate https://downloads.apache.org/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz -P /tmp/ && \
