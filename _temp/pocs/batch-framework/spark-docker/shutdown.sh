@@ -1,7 +1,7 @@
 #!/bin/bash
 
-numvCPU=2
-numMemoryGB=4
+numvCPU=4
+numMemoryGB=6
 numWorkers=1
 
 executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
@@ -32,4 +32,7 @@ docker image prune -a -f
 find ./data/namenode_data -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
 find ./data/datanode_data1 -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
 find ./data/datanode_data2 -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
+find ./data/spark_master -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
+find ./data/spark_workers -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
+find ./data/notebooks -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
 

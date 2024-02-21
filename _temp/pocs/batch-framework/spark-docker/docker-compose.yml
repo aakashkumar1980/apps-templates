@@ -17,7 +17,8 @@ services:
       - ./data/namenode_data:/hadoop/dfs/name
       - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
       - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml      
-
+    networks:
+      - spark_hadoop_network
 
   datanode1:
     image: apache/hadoop:3
@@ -30,6 +31,8 @@ services:
       - ./data/datanode_data1:/hadoop/dfs/data
       - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
       - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml  
+    networks:
+      - spark_hadoop_network
 
   datanode2:
     image: apache/hadoop:3
@@ -42,7 +45,8 @@ services:
       - ./data/datanode_data2:/hadoop/dfs/data
       - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
       - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml 
-
+    networks:
+      - spark_hadoop_network
 
   resourcemanager:
     image: apache/hadoop:3
@@ -55,6 +59,8 @@ services:
     volumes:
       - ./conf/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
       - ./conf/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+    networks:
+      - spark_hadoop_network
 
   nodemanager:
     image: apache/hadoop:3
@@ -66,6 +72,8 @@ services:
       - ./conf/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml      
     depends_on:
       - resourcemanager
+    networks:
+      - spark_hadoop_network
 
 
   #####################
@@ -80,6 +88,8 @@ services:
       - "7077:7077"
     volumes:
       - spark_master:/bitnami/spark
+    networks:
+      - spark_hadoop_network  
 
   spark-worker:
     image: custom-spark:v1
@@ -94,6 +104,27 @@ services:
       replicas: ${numWorkers}
     volumes:
       - spark_workers:/bitnami/spark
+    networks:
+      - spark_hadoop_network  
+
+
+  ########################
+  ### JUPYTER NOTEBOOK ###
+  ########################
+  # jupyter:
+  #   image: jupyter/pyspark-notebook:spark-3.3.2
+  #   # spark-3.4.0
+  #   ports:
+  #     - "8888:8888"
+  #   environment:
+  #     - JUPYTER_ENABLE_LAB=yes
+  #   command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''  
+  #   volumes:
+  #     - ./data/notebooks:/home/jovyan/work
+  #   depends_on:
+  #     - spark-master
+  #   networks:
+  #     - spark_hadoop_network
 
 
 volumes:
@@ -102,9 +133,10 @@ volumes:
   datanode_data2:
   spark_master:
   spark_workers:
+  #notebooks:
 
 networks:
-  default:
+  spark_hadoop_network:
     driver: bridge
 
     
