@@ -36,8 +36,8 @@ def main():
         # Example processing (here, just show the first few lines)
         df.show()
 
-        print(f"### Writing file to HDFS: {hdfs_dest_path + file_path.split('/')[-1].replace(".csv", ".parquet")} ###")
-        df.write.mode("overwrite").parquet(hdfs_dest_path + file_path.split('/')[-1].replace(".csv", ".parquet"))
+        print(f"### Writing file to HDFS: {hdfs_dest_path + file_path.split('/')[-1].replace('.csv', '.parquet')} ###")
+        df.write.mode("overwrite").parquet(hdfs_dest_path + file_path.split('/')[-1].replace('.csv', '.parquet'))
 
     print("##### Application finished #####")
     spark.stop()

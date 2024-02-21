@@ -30,8 +30,8 @@ COPY ./conf/hdfs-site.xml $HADOOP_HOME/etc/hadoop/hdfs-site.xml
 RUN chown -R 1001:1001 $HADOOP_HOME
 
 # Create a test workspace directory
-RUN mkdir -p /var/test-workspace && \
-  chown -R 1001:1001 /var/test-workspace
+RUN mkdir -p /var/poc-workspace && \
+  chown -R 1001:1001 /var/poc-workspace
 
 
 # Switch back to the default user
