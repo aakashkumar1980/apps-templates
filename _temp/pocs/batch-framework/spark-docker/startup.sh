@@ -8,8 +8,8 @@ numWorkers=1
 ##### STARTUP SCRIPT #####
 ##########################
 # compile the Dockerfile and create a custom image
-#docker build --no-cache -t custom-spark:v1 .
-docker build -t custom-spark:v1 .
+docker build --no-cache -t custom-spark:v1 .
+#docker build -t custom-spark:v1 .
 
 executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
 calculatedWorkerMemory=$(echo "$executorMemoryGB" | bc)
