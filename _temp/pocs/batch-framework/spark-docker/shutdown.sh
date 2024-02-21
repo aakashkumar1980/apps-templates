@@ -1,16 +1,22 @@
 #!/bin/bash
 
-numvCPU=4
-numMemoryGB=6
-numWorkers=6
+numvCPU=3
+numMemoryGB=4
+numWorkers=3
 
+###########################
+##### SHUTDOWN SCRIPT #####
+###########################
 executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
 calculatedWorkerMemory=$(echo "$executorMemoryGB" | bc)
 export numvCPU numWorkers calculatedWorkerMemory
 # Stop all containers
 docker-compose down
 
-# CLEANUP
+
+##########################
+##### CLEANUP SCRIPT #####
+##########################
 # Stop all running containers
 docker ps -q | xargs -r docker stop
 # Remove all containers
