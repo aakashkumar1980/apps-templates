@@ -35,9 +35,9 @@ docker network prune -f
 docker image prune -a -f
 
 
-find ./data/namenode_data -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
-find ./data/datanode_data1 -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
-find ./data/datanode_data2 -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
+find /mnt/spark_volume/poc/namenode_data -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
+find /mnt/spark_volume/poc/datanode_data1 -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
+find /mnt/spark_volume/poc/datanode_data2 -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
 find ./data/spark_master -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
 find ./data/spark_workers -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
 find ./data/notebooks -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +

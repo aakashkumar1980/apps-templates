@@ -14,7 +14,7 @@ services:
     environment:
       ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
     volumes:
-      - ./data/namenode_data:/hadoop/dfs/name
+      - /mnt/spark_volume/poc/namenode_data:/hadoop/dfs/name
       - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
       - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml      
     networks:
@@ -28,7 +28,7 @@ services:
     depends_on:
       - namenode
     volumes:
-      - ./data/datanode_data1:/hadoop/dfs/data
+      - /mnt/spark_volume/poc/datanode_data1:/hadoop/dfs/data
       - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
       - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml  
     networks:
@@ -42,7 +42,7 @@ services:
     depends_on:
       - namenode
     volumes:
-      - ./data/datanode_data2:/hadoop/dfs/data
+      - /mnt/spark_volume/poc/datanode_data2:/hadoop/dfs/data
       - ./conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
       - ./conf/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml 
     networks:

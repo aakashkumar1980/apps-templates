@@ -29,6 +29,12 @@ COPY ./conf/hdfs-site.xml $HADOOP_HOME/etc/hadoop/hdfs-site.xml
 # Ensure permissions are set correctly for the Spark user
 RUN chown -R 1001:1001 $HADOOP_HOME
 
+# Parquet-tools JAR
+RUN mkdir -p /opt/parquet-tools && \
+  curl -L https://repo1.maven.org/maven2/org/apache/parquet/parquet-tools/1.11.2/parquet-tools-1.11.2.jar -o /opt/parquet-tools/parquet-tools.jar
+# set the correct permissions (optional, depending on your security requirements)
+RUN chmod +x /opt/parquet-tools/parquet-tools.jar
+
 # Create a test workspace & temp directory
 RUN mkdir -p /var/poc-workspace && \
   chown -R 1001:1001 /var/poc-workspace

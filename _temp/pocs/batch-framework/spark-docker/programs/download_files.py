@@ -17,7 +17,7 @@ def list_files_in_bucket(bucket_name, prefix):
 def main():
     print(f"##### Starting the application: {os.environ['APP_NAME']} #####")
     spark = SparkSession.builder \
-        .appName("ReadFilesFromS3OneByOne") \
+        .appName(os.environ['APP_NAME']) \
         .config("spark.hadoop.fs.s3a.access.key", os.environ["AWS_ACCESS_KEY_ID"]) \
         .config("spark.hadoop.fs.s3a.secret.key", os.environ["AWS_SECRET_ACCESS_KEY"]) \
         .config("spark.hadoop.fs.s3a.endpoint", "s3.amazonaws.com") \
