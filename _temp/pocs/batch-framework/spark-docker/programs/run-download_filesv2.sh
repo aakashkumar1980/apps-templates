@@ -1,5 +1,9 @@
 #!/bin/bash
 
+numvCPU=4
+numMemoryGB=6
+numWorkers=10
+executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
 ###############################
 ##### EXECUTE THE PROGRAM #####
 ###############################
@@ -8,8 +12,18 @@ docker exec spark-docker-spark-master-1 bash -c '[ -e /var/poc-workspace/downloa
 docker cp ./download_filesv2.py spark-docker-spark-master-1:/var/poc-workspace
 # next, we will run the program to download the files from S3 to HDFS
 docker exec spark-docker-spark-master-1 /bin/bash -c "spark-submit \
-    --master spark://spark-master:7077 \
-    --conf spark.executorEnv.PYSPARK_PYTHON=/opt/bitnami/spark \
+  --master spark://spark-master:7077 \
+  --conf spark.executorEnv.PYSPARK_PYTHON=/opt/bitnami/spark \
+  --num-executors $numWorkers \
+  --executor-cores $((numvCPU-1)) \
+  --executor-memory ${executorMemoryGB}G \
+  --conf spark.executor.memoryOverhead=512M \
+  --conf spark.dynamicAllocation.enabled=false \
+  --conf spark.default.parallelism=$((numWorkers * (numvCPU-1))) \
+  --conf spark.sql.shuffle.partitions=$((numWorkers * (numvCPU-1))) \
+  --driver-memory 2G \
+
+
     /var/poc-workspace/download_filesv2.py"
 
 
