@@ -1,9 +1,16 @@
 #!/bin/bash
 
-numvCPU=4
-numMemoryGB=6
-numWorkers=10
 
+while IFS='=' read -r key value
+do
+  if [[ "$key" == "numvCPU" ]]; then
+    numvCPU="$value"
+  elif [[ "$key" == "numMemoryGB" ]]; then
+    numMemoryGB="$value"
+  elif [[ "$key" == "numWorkers" ]]; then
+    numWorkers="$value"
+  fi
+done < config.properties
 ###########################
 ##### SHUTDOWN SCRIPT #####
 ###########################
