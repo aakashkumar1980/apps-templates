@@ -22,8 +22,6 @@ docker exec spark-docker-spark-master-1 /bin/bash -c "spark-submit \
   --conf spark.default.parallelism=$((numWorkers * (numvCPU-1))) \
   --conf spark.sql.shuffle.partitions=$((numWorkers * (numvCPU-1))) \
   --driver-memory 2G \
-
-
     /var/poc-workspace/download_filesv2.py"
 
 
