@@ -29,9 +29,10 @@ COPY ./conf/hdfs-site.xml $HADOOP_HOME/etc/hadoop/hdfs-site.xml
 # Ensure permissions are set correctly for the Spark user
 RUN chown -R 1001:1001 $HADOOP_HOME
 
-# Create a test workspace directory
+# Create a test workspace & temp directory
 RUN mkdir -p /var/poc-workspace && \
   chown -R 1001:1001 /var/poc-workspace
+RUN mkdir -p /mnt/tmp && chmod a+w /mnt/tmp
 
 
 # Switch back to the default user

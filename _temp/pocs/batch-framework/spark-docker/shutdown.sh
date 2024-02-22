@@ -1,8 +1,8 @@
 #!/bin/bash
 
-numvCPU=3
-numMemoryGB=4
-numWorkers=3
+numvCPU=4
+numMemoryGB=6
+numWorkers=10
 
 ###########################
 ##### SHUTDOWN SCRIPT #####

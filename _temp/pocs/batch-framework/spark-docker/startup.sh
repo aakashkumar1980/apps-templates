@@ -2,7 +2,7 @@
 
 numvCPU=4
 numMemoryGB=6
-numWorkers=6
+numWorkers=10
 
 ##########################
 ##### STARTUP SCRIPT #####
