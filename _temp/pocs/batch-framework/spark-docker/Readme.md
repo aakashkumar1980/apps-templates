@@ -30,8 +30,8 @@ Files downloaded in HDFS FileSystem and stored in a parquet format.
 ![alt text](<_misc/image-5.png>)
 
 ### VIDEO
-["Regular" File Download](_misc/regular-download.webm) <br/>
-["Spark Batch Program" File Download](_misc/regular-download.webm)
+["Regular" File Download](_misc/regular-download.mp4) <br/>
+["Spark Batch Program" File Download](_misc/spring_batch_program.mp4)
 
 
 ### Program Code
