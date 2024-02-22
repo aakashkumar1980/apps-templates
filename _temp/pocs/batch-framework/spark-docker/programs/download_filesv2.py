@@ -15,7 +15,13 @@ def list_files_in_bucket(bucket_name, prefix):
     return files
 
 def create_spark_session():
-    spark = SparkSession.builder.appName(os.environ["APP_NAME"]).getOrCreate()
+    spark = SparkSession.builder \
+        .appName(os.environ['APP_NAME']) \
+        .config("spark.hadoop.fs.s3a.access.key", os.environ["AWS_ACCESS_KEY_ID"]) \
+        .config("spark.hadoop.fs.s3a.secret.key", os.environ["AWS_SECRET_ACCESS_KEY"]) \
+        .config("spark.hadoop.fs.s3a.endpoint", "s3.amazonaws.com") \
+        .config("spark.speculation", "true") \
+        .getOrCreate()
     sc = spark.sparkContext
 
     # dynamically fetch the "spark.executor.cores" configuration value
@@ -27,7 +33,6 @@ def create_spark_session():
     print(f"##### Setting S3A configurations: threadsMax={threadsMax}, connectionMaximum={connectionMaximum}")
 
     # Set essential S3 configurations
-    spark.conf.set("spark.speculation", "true")
     spark.conf.set("spark.hadoop.fs.s3a.logging.level", "DEBUG")
     spark.conf.set("spark.hadoop.fs.s3a.connection.ssl.enabled", "true")
     spark.conf.set("spark.hadoop.fs.s3a.path.style.access", "true")

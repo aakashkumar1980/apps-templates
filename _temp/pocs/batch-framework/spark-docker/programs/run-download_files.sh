@@ -3,6 +3,9 @@
 ###############################
 ##### EXECUTE THE PROGRAM #####
 ###############################
+# clean up the HDFS directory
+docker exec spark-docker-namenode-1 /bin/bash -c "hadoop fs -rm -r -f /poc/file-download/*"
+
 # copy the program file to the master node
 docker exec spark-docker-spark-master-1 bash -c '[ -e /var/poc-workspace/download_files.py ] && rm -rf /var/poc-workspace/download_files.py || echo "File does not exist, nothing to remove."'
 docker cp ./download_files.py spark-docker-spark-master-1:/var/poc-workspace
