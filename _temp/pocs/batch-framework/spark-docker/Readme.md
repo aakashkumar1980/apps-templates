@@ -15,17 +15,26 @@
 
 # PERFORMANCE METRICS
 
-## Regular Download
+## "Regular" File Download
 When the AWS S3 file is downloaded using a regular approach via. the browser with the same machine where the 'Spark Batch Program' is running it takes "50 mins+" to download the file (105 GB).
 ![alt text](_misc/image-3.png)
 
 <br/>
 
-## Spark Batch Program Download
+## "Spark Batch Program" File Download
 While if the AWS S3 files are downloaded by using the Spark Cluster then it takes only "2.8 minutes" to down both the files (110 GB)
 ![alt text](<_misc/image-4.png>)
+<br/>
+
+Files downloaded in HDFS FileSystem and stored in a parquet format.
+![alt text](<_misc/image-5.png>)
+
+### VIDEO
+["Regular" File Download](_misc/regular-download.webm) <br/>
+["Spark Batch Program" File Download](_misc/regular-download.webm)
 
 
+### Program Code
 In the below Spark Batch program, various spark and aws s3 optimizing arguments are passed to get the best performance.<br/> 
 [Spark Batch Program](programs/download_filesv2.py)
 
