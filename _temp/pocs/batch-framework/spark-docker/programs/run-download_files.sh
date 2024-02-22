@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+region=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/[a-zA-Z]$//')
+echo "Spark-Program Region: $region"
 ###############################
 ##### EXECUTE THE PROGRAM #####
 ###############################
