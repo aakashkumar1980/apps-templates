@@ -6,8 +6,8 @@
 ## SPARK BATCH PROGRAM
 ![alt text](<_misc/image-2.png>)
 
-> NOTE: AWS S3 & Spark Batch Program are into different regions as shown in the above snapshots. 
-
+<br/>
+<u>NOTE</u>: AWS S3 & Spark Batch Program are into different regions as shown in the above snapshots. 
 
 <br/>
 <br/>
