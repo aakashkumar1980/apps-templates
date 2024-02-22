@@ -15,6 +15,15 @@
 
 # PERFORMANCE METRICS
 
+<b>
+** SUMMARY ** <br/>
+Since "Spark Batch" downloads files parallel across the clusters therefore the performance is best and are highly scalable horizontally. For our sample the metrics are as follows.
+<br/><br/>
+- Performance gain (from 50 minutes to 3 minutes): <font size="5px"><u>1,567</u>%</font>. <br/>
+- Faster: <font size="5px"><u>15 times</u></font><br/>
+</b>
+<br/><br/>
+
 ## "Regular" File Download
 When the AWS S3 file is downloaded using a regular approach via. the browser with the same machine where the 'Spark Batch Program' is running it takes "50 mins+" to download the file (105 GB).
 ![alt text](_misc/image-3.png)
