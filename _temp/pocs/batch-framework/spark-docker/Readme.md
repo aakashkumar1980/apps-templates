@@ -19,7 +19,7 @@
 ** SUMMARY ** <br/>
 Since "Spark Batch" downloads files parallel across the clusters therefore the performance is best and are highly scalable horizontally. For our sample the metrics are as follows.
 <br/><br/>
-- Performance gain (from 50 minutes to 3 minutes, for a 100GB file download): <font size="5px"><u>1,567</u>%</font>. <br/>
+- Performance gain (from 50 minutes, using regular download TO 3 minutes, using spark cluster download, for a 100GB file): <font size="5px"><u>1,567</u>%</font>. <br/>
 - Faster: <font size="5px"><u>15 times</u></font><br/>
 </b>
 <br/><br/>
