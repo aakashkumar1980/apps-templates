@@ -25,7 +25,7 @@ Since "Spark Batch" downloads files parallel across the clusters therefore the p
 <br/><br/>
 
 ## "Regular" File Download
-When the AWS S3 file is downloaded using a regular approach via. the browser with the same machine (i.e. where the spark batch program' is running) takes "50 mins+" to download the file (105 GB).
+When the AWS S3 file is downloaded using a regular approach via. the browser within the same machine (i.e. where the spark batch program in is running) takes "50 mins+" to download the file (105 GB).
 ![alt text](_misc/image-3.png)
 
 <br/>
