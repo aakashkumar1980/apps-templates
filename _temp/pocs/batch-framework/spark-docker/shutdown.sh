@@ -17,30 +17,11 @@ done < config.properties
 executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
 calculatedWorkerMemory=$(echo "$executorMemoryGB" | bc)
 export numvCPU numWorkers calculatedWorkerMemory
-# Stop all containers
-docker-compose down
 
-
-##########################
-##### CLEANUP SCRIPT #####
-##########################
-# Stop all running containers
-docker ps -q | xargs -r docker stop
-# Remove all containers
-docker ps -aq | xargs -r docker rm
-# Force remove all images
-docker images -q | xargs -r docker rmi -f
-# Remove all volumes
-docker volume ls -q | xargs -r docker volume rm
-# Remove all stopped containers, unused networks, and dangling images
-docker system prune -f
-# Remove unused volumes
-docker volume prune -f
-# Remove unused networks
+# Stop & Clean all containers
+docker-compose down -v
 docker network prune -f
-# Optionally, remove all unused images, not just dangling ones
-docker image prune -a -f
-
+docker rmi apache/hadoop:3 custom-spark:v1
 
 find /mnt/spark_volume/poc/namenode_data -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +
 find /mnt/spark_volume/poc/datanode_data1 -mindepth 1 ! -name 'empty.txt' -exec rm -rf {} +

@@ -108,32 +108,12 @@ services:
       - spark_hadoop_network  
 
 
-  ########################
-  ### JUPYTER NOTEBOOK ###
-  ########################
-  # jupyter:
-  #   image: jupyter/pyspark-notebook:spark-3.3.2
-  #   # spark-3.4.0
-  #   ports:
-  #     - "8888:8888"
-  #   environment:
-  #     - JUPYTER_ENABLE_LAB=yes
-  #   command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''  
-  #   volumes:
-  #     - ./data/notebooks:/home/jovyan/work
-  #   depends_on:
-  #     - spark-master
-  #   networks:
-  #     - spark_hadoop_network
-
-
 volumes:
   namenode_data:
   datanode_data1:
   datanode_data2:
   spark_master:
   spark_workers:
-  #notebooks:
 
 networks:
   spark_hadoop_network:
