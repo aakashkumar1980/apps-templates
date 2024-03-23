@@ -1,11 +1,15 @@
 package com.aadityadesigners.tutorial.spring_reactive_validation;
 
 
+import com.aadityadesigners.tutorial.spring_reactive_validation.configurations.OfferRouter;
+import com.aadityadesigners.tutorial.spring_reactive_validation.handlers.OfferHandler;
 import com.aadityadesigners.tutorial.spring_reactive_validation.models.Offer;
 import com.aadityadesigners.tutorial.spring_reactive_validation.models.OfferConstruct;
 import com.aadityadesigners.tutorial.spring_reactive_validation.models.TermsAndConditions;
 import com.aadityadesigners.tutorial.spring_reactive_validation.service.OfferService;
 import com.aadityadesigners.tutorial.spring_reactive_validation.utils.ApiPathConstants;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -16,13 +20,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import com.aadityadesigners.tutorial.spring_reactive_validation.handlers.OfferHandler;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
 @WebFluxTest
-@Import({OfferHandler.class})
+@Import({OfferRouter.class, OfferHandler.class})
 public class OfferSetupTest {
 
   @Autowired
@@ -55,7 +54,11 @@ public class OfferSetupTest {
 
     Mockito.when(offerService.createOffer(Mockito.any(Offer.class))).thenReturn(offer);
 
-    webTestClient.post().uri(ApiPathConstants.OFFERS_SETUP)
+    /**
+     * curl -X POST -H "Content-Type: application/json" -d '{"id":"offer1","name":"Summer Sale","offerConstruct":{"type":"Discount","description":"Get 20% off on all products","keywords":["summer","sale","discount"]},"budget":5000,"status":"Active","startDate":"2024-03-23","endDate":"2024-04-23","targetAudience":["Young Adults"],"termsAndConditions":{"summary":"Terms apply","fullText":"Full terms and conditions text"}}
+     * ' http://localhost:8080/api/v1/offers/setup
+     */
+    webTestClient.post().uri(ApiPathConstants.OFFERS_SETUP_V1)
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(offer)
         .exchange()

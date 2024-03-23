@@ -9,14 +9,18 @@ version = '0.0.1-SNAPSHOT'
 java {
 	sourceCompatibility = '11'
 }
-
 repositories {
 	mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
+	// Spring WebFlux
+	implementation('org.springframework.boot:spring-boot-starter-webflux') {
+		exclude module: 'spring-boot-starter-logging'
+	}
+	// Log4j2
+	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testCompileOnly 'org.projectlombok:lombok'
@@ -25,6 +29,16 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
 	testImplementation 'org.mockito:mockito-core'
+}
+configurations {
+	all {
+		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+		exclude group: 'org.slf4j', module: 'log4j-to-slf4j'
+	}
+	testImplementation {
+		exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
+		exclude group: 'org.slf4j', module: 'log4j-to-slf4j'
+	}
 }
 
 tasks.named('test') {
