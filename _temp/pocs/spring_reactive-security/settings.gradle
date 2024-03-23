@@ -1,0 +1,4 @@
+rootProject.name = 'spring_reactive-security'
+ext {
+
+}
