@@ -2,10 +2,13 @@ $schema: http://json-schema.org/draft-07/schema#
 definitions:
   hashed:
     type: string
+    description: "A SHA-256 hashed value. It should be a 64-character long hexadecimal string."
     pattern: '^[a-f0-9]{64}$'
   tokenized:
     type: string
+    description: "A tokenized value. Allows for alphanumeric characters, hyphens, and underscores"
     pattern: '^[A-Za-z0-9-_]+$'
   encrypted:
     type: string
+    description: "An encrypted value. It should be a 64-character long hexadecimal string."
     pattern: '^[a-f0-9]{64}$'
