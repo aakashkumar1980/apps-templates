@@ -11,3 +11,10 @@ required:
   - promoCode
   - description
   - redemptionCode
+anyOf:
+  - properties:
+      promoCode:
+        pattern: "^PROMO_S1_.*"
+  - properties:
+      promoCode:
+        pattern: "^PROMO_S2_.*"

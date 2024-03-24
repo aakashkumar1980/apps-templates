@@ -5,18 +5,20 @@ properties:
     $ref: "../root/common-definitions.yml#/definitions/hashed"
   name:
     type: string
+    minLength: 1
+    maxLength: 100
   budget:
     type: number
+    maximum: 10000
   status:
     type: string
   startDate:
-    type: string
-    format: date
+    $ref: "../root/common-definitions.yml#/definitions/usaDate"
   endDate:
-    type: string
-    format: date
+    $ref: "../root/common-definitions.yml#/definitions/usaDate"
   targetAudience:
     type: array
+    minItems: 1
     items:
       type: string
   promotion:

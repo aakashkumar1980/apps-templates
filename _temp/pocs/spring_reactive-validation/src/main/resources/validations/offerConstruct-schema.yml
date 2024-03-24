@@ -9,6 +9,11 @@ properties:
     type: array
     items:
       type: string
+      enum:
+        - "summer"
+        - "sale"
+        - "discount"
+        - "promotion"
 required:
   - type
   - description
