@@ -1,0 +1,38 @@
+$schema: http://json-schema.org/draft-07/schema#
+type: object
+properties:
+  id:
+    $ref: "../root/common-definitions.yml#/definitions/hashed"
+  name:
+    type: string
+  budget:
+    type: number
+  status:
+    type: string
+  startDate:
+    type: string
+    format: date
+  endDate:
+    type: string
+    format: date
+  targetAudience:
+    type: array
+    items:
+      type: string
+  promotion:
+    $ref: promotion-schema.yml
+  offerConstruct:
+    $ref: offerConstruct-schema.yml
+  termsAndConditions:
+    $ref: termsAndConditions-schema.yml
+required:
+  - id
+  - name
+  - budget
+  - status
+  - startDate
+  - endDate
+  - targetAudience
+  - promotion
+  - offerConstruct
+  - termsAndConditions

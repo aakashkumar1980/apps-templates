@@ -9,14 +9,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class Offer {
-  private String id;
+  private String id; // hashed value
   private String name;
-  private OfferConstruct offerConstruct;
   private BigDecimal budget;
   private String status;
   private LocalDate startDate;
   private LocalDate endDate;
   private List<String> targetAudience;
+
+  private Promotion promotion;
+  private OfferConstruct offerConstruct;
   private TermsAndConditions termsAndConditions;
 
 }
