@@ -93,7 +93,7 @@ public class XssSanitizationFilter implements WebFilter {
         Map.Entry<String, JsonNode> field = fields.next();
         JsonNode value = field.getValue();
         if (value.isTextual()) {
-          // Sanitize textual values
+          // Sanitize text nodes by removing HTML and unwanted characters
           String sanitizedBody = Jsoup.clean(value.asText(), Safelist.none());
           sanitizedBody = UNWANTED_CHARS_PATTERN.matcher(sanitizedBody).replaceAll("");
           objectNode.put(field.getKey(), sanitizedBody);
