@@ -44,9 +44,9 @@ public class XssSanitizationFilterTest {
    */
   @Test
   public void testSanitizePlainJson() {
-    String jsonWithScript = "{\"id\":\"ab0c3a7cc79c2ad5ffaa2600c6de2fdff3409f07d50c06350d6cdef52bd3c4c9\",\"name\":\"Summer Sale\",\"budget\":5000,\"status\":\"Active\",\"startDate\":\"2024-03-24\",\"endDate\":\"2024-04-24\",\"targetAudience\":[\"Young Adults\"],\"promotion\":{\"promoCode\":\"abcd-efgh-ijkl-mnop\",\"description\":\"20% off on all products\",\"redemptionCode\":\"U2FsdGVkX1+8Jv3FZg+8WpR/3b9aaF7zFgxQeAGtztc=\"},\"offerConstruct\":{\"type\":\"Discount\",\"description\":\"Get 20% off on all products\",\"keywords\":[\"summer\",\"sale\",\"discount\"]},\"termsAndConditions\":{\"summary\":\"Terms apply\",\"fullText\":\"Full terms and conditions text\"}}";
+    String plainJson      = "{\"id\":\"ab0c3a7cc79c2ad5ffaa2600c6de2fdff3409f07d50c06350d6cdef52bd3c4c9\",\"name\":\"Summer Sale\",\"budget\":5000,\"status\":\"Active\",\"startDate\":\"2024-03-24\",\"endDate\":\"2024-04-24\",\"targetAudience\":[\"Young Adults\"],\"promotion\":{\"promoCode\":\"abcd-efgh-ijkl-mnop\",\"description\":\"20% off on all products\",\"redemptionCode\":\"U2FsdGVkX1+8Jv3FZg+8WpR/3b9aaF7zFgxQeAGtztc=\"},\"offerConstruct\":{\"type\":\"Discount\",\"description\":\"Get 20% off on all products\",\"keywords\":[\"summer\",\"sale\",\"discount\"]},\"termsAndConditions\":{\"summary\":\"Terms apply\",\"fullText\":\"Full terms and conditions text\"}}";
     String sanitizedJson  = "{\"id\":\"ab0c3a7cc79c2ad5ffaa2600c6de2fdff3409f07d50c06350d6cdef52bd3c4c9\",\"name\":\"Summer Sale\",\"budget\":5000,\"status\":\"Active\",\"startDate\":\"2024-03-24\",\"endDate\":\"2024-04-24\",\"targetAudience\":[\"Young Adults\"],\"promotion\":{\"promoCode\":\"abcd-efgh-ijkl-mnop\",\"description\":\"20% off on all products\",\"redemptionCode\":\"U2FsdGVkX1+8Jv3FZg+8WpR/3b9aaF7zFgxQeAGtztc=\"},\"offerConstruct\":{\"type\":\"Discount\",\"description\":\"Get 20% off on all products\",\"keywords\":[\"summer\",\"sale\",\"discount\"]},\"termsAndConditions\":{\"summary\":\"Terms apply\",\"fullText\":\"Full terms and conditions text\"}}";
-    String result = getFilteredValue(jsonWithScript);
+    String result = getFilteredValue(plainJson);
 
     // Verify that the request body was sanitized
     assertEquals(sanitizedJson, result);
@@ -57,9 +57,59 @@ public class XssSanitizationFilterTest {
    */
   @Test
   public void testSanitizeJsonWithScriptedCode() {
-    String jsonWithScript = "{\"key\":\"<script>alert('XSS');</script>\"}";
-    String sanitizedJson = "{\"key\":\"\"}";
+    String jsonWithScript ="{\n"
+        + "    \"name\": \"Summer <script>alert('XSS')</script> Sale\",\n"
+        + "    \"budget\": 5000,\n"
+        + "    \"status\": \"Active\",\n"
+        + "    \"targetAudience\": [\"Young Adults\"],\n"
+        + "    \"promotion\": {\n"
+        + "        \"promoCode\": \"abcd-<img src=x onerror=alert('XSS')>-efgh-ijkl-mnop\",\n"
+        + "        \"description\": \"20% off on all products <a href='javascript:alert(\\\"XSS\\\")'>Click here</a>\"\n"
+        + "    }\n"
+        + "}\n";
+    String sanitizedJson = "{"
+        + "\"name\":\"Summer  Sale\","
+        + "\"budget\":5000,"
+        + "\"status\":\"Active\","
+        + "\"targetAudience\":[\"Young Adults\"],"
+        + "\"promotion\":{"
+        + "\"promoCode\":\"abcd--efgh-ijkl-mnop\","
+        + "\"description\":\"20% off on all products Click here\""
+        + "}"
+        + "}";
+
     String result = getFilteredValue(jsonWithScript);
+
+    // Verify that the request body was sanitized
+    assertEquals(sanitizedJson, result);
+  }
+
+  /**
+   * Test that the filter sanitizes JSON input with special characters.
+   */
+  @Test
+  public void testSanitizeJsonWithSpecialCharacters() {
+    String jsonWithSpecialCharacters = "{\n"
+        + "    \"name\": \"Summer & Winter Sale > 50%\",\n"
+        + "    \"budget\": 5000,\n"
+        + "    \"status\": \"Active <script>alert('Special Characters')</script>\",\n"
+        + "    \"targetAudience\": [\"Young Adults\", \"Teens & Tweens\"],\n"
+        + "    \"promotion\": {\n"
+        + "        \"promoCode\": \"abcd-<img src=x onerror=alert('XSS')>-efgh-ijkl-mnop\",\n"
+        + "        \"description\": \"20% off on all products & get an extra 10% off with code '<>'\"\n"
+        + "    }\n"
+        + "}\n";
+    String sanitizedJson = "{"
+        + "\"name\":\"Summer &amp;amp; Winter Sale &amp;gt; 50%\","
+        + "\"budget\":5000,"
+        + "\"status\":\"Active\","
+        + "\"targetAudience\":[\"Young Adults\",\"Teens & Tweens\"],"
+        + "\"promotion\":{"
+        + "\"promoCode\":\"abcd--efgh-ijkl-mnop\","
+        + "\"description\":\"20% off on all products &amp;amp; get an extra 10% off with code '&amp;lt;&amp;gt;'\""
+        + "}"
+        + "}";
+    String result = getFilteredValue(jsonWithSpecialCharacters);
 
     // Verify that the request body was sanitized
     assertEquals(sanitizedJson, result);

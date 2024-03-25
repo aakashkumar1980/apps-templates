@@ -3,8 +3,14 @@ package com.aadityadesigners.tutorial.spring_reactive_security.filters;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.Map;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,13 +24,6 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.regex.Pattern;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-
 /**
  * A WebFilter that sanitizes JSON input to prevent XSS attacks and ensure valid JSON format.
  */
@@ -32,7 +31,6 @@ import org.jsoup.safety.Safelist;
 public class XssSanitizationFilter implements WebFilter {
 
   private static final Logger logger = LogManager.getLogger(XssSanitizationFilter.class);
-  private static final Pattern UNWANTED_CHARS_PATTERN = Pattern.compile("[<>{}\"'`;]");
   private static final ObjectMapper objectMapper = new ObjectMapper(); // ObjectMapper for JSON parsing
 
   /**
@@ -93,10 +91,10 @@ public class XssSanitizationFilter implements WebFilter {
         Map.Entry<String, JsonNode> field = fields.next();
         JsonNode value = field.getValue();
         if (value.isTextual()) {
-          // Sanitize text nodes by removing HTML and unwanted characters
-          String sanitizedBody = Jsoup.clean(value.asText(), Safelist.none());
-          sanitizedBody = UNWANTED_CHARS_PATTERN.matcher(sanitizedBody).replaceAll("");
-          objectNode.put(field.getKey(), sanitizedBody);
+          // Clean HTML using Jsoup and then escape HTML characters
+          String cleanedValue = Jsoup.clean(value.asText(), Safelist.none());
+          String escapedValue = StringEscapeUtils.escapeHtml4(cleanedValue);
+          objectNode.put(field.getKey(), escapedValue);
         } else {
           // Recursively sanitize nested nodes
           sanitizeJsonNode(value);
