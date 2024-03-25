@@ -63,7 +63,31 @@ public class OfferSetupTest {
     Mockito.when(offerService.createOffer(Mockito.any(Offer.class))).thenReturn(offer);
 
     /**
-     * curl -X POST -H "Content-Type: application/json" -d '{"id":"ab0c3a7cc79c2ad5ffaa2600c6de2fdff3409f07d50c06350d6cdef52bd3c4c9","name":"Summer Sale","budget":5000,"status":"Active","startDate":"2024-03-24","endDate":"2024-04-24","targetAudience":["Young Adults"],"promotion":{"promoCode":"abcd-efgh-ijkl-mnop","description":"20% off on all products","redemptionCode":"U2FsdGVkX1+8Jv3FZg+8WpR/3b9aaF7zFgxQeAGtztc="},"offerConstruct":{"type":"Discount","description":"Get 20% off on all products","keywords":["summer","sale","discount"]},"termsAndConditions":{"summary":"Terms apply","fullText":"Full terms and conditions text"}}' http://localhost:8080/api/v1/offers/setup
+     * curl -X POST -H "Content-Type: application/json" \
+     *      -d '{
+     *            "id": "ab0c3a7cc79c2ad5ffaa2600c6de2fdff3409f07d50c06350d6cdef52bd3c4c9",
+     *            "name": "Summer Sale",
+     *            "budget": 5000,
+     *            "status": "Active",
+     *            "startDate": "2024-03-24",
+     *            "endDate": "2024-04-24",
+     *            "targetAudience": ["Young Adults"],
+     *            "promotion": {
+     *                "promoCode": "abcd-efgh-ijkl-mnop",
+     *                "description": "20% off on all products",
+     *                "redemptionCode": "U2FsdGVkX1+8Jv3FZg+8WpR/3b9aaF7zFgxQeAGtztc="
+     *            },
+     *            "offerConstruct": {
+     *                "type": "Discount",
+     *                "description": "Get 20% off on all products",
+     *                "keywords": ["summer", "sale", "discount"]
+     *            },
+     *            "termsAndConditions": {
+     *                "summary": "Terms apply",
+     *                "fullText": "Full terms and conditions text"
+     *            }
+     *          }' \
+     *      http://localhost:8080/api/v1/offers/setup
      */
     webTestClient.post().uri(ApiPathConstants.OFFERS_SETUP_V1)
         .contentType(MediaType.APPLICATION_JSON)
