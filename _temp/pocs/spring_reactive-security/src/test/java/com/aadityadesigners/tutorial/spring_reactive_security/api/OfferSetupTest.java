@@ -1,4 +1,4 @@
-package com.aadityadesigners.tutorial.spring_reactive_security;
+package com.aadityadesigners.tutorial.spring_reactive_security.api;
 
 
 import com.aadityadesigners.tutorial.spring_reactive_security.configurations.OfferRouter;
