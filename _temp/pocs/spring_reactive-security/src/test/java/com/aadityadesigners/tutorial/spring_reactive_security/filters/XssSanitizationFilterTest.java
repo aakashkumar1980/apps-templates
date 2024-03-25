@@ -39,6 +39,9 @@ public class XssSanitizationFilterTest {
     when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Flux.empty().then());
   }
 
+  /**
+   * Test that the filter sanitizes JSON input.
+   */
   @Test
   public void testSanitizePlainJson() {
     String jsonWithScript = "{\"id\":\"ab0c3a7cc79c2ad5ffaa2600c6de2fdff3409f07d50c06350d6cdef52bd3c4c9\",\"name\":\"Summer Sale\",\"budget\":5000,\"status\":\"Active\",\"startDate\":\"2024-03-24\",\"endDate\":\"2024-04-24\",\"targetAudience\":[\"Young Adults\"],\"promotion\":{\"promoCode\":\"abcd-efgh-ijkl-mnop\",\"description\":\"20% off on all products\",\"redemptionCode\":\"U2FsdGVkX1+8Jv3FZg+8WpR/3b9aaF7zFgxQeAGtztc=\"},\"offerConstruct\":{\"type\":\"Discount\",\"description\":\"Get 20% off on all products\",\"keywords\":[\"summer\",\"sale\",\"discount\"]},\"termsAndConditions\":{\"summary\":\"Terms apply\",\"fullText\":\"Full terms and conditions text\"}}";
@@ -49,6 +52,9 @@ public class XssSanitizationFilterTest {
     assertEquals(sanitizedJson, result);
   }
 
+  /**
+   * Test that the filter sanitizes JSON input with scripted code.
+   */
   @Test
   public void testSanitizeJsonWithScriptedCode() {
     String jsonWithScript = "{\"key\":\"<script>alert('XSS');</script>\"}";
@@ -59,6 +65,12 @@ public class XssSanitizationFilterTest {
     assertEquals(sanitizedJson, result);
   }
 
+  /**
+   * Test that the filter sanitizes JSON input with unwanted characters.
+   *
+   * @param value the value to sanitize
+   * @return the sanitized value
+   */
   private String getFilteredValue(String value) {
     // Create a mock ServerHttpRequest with the given value
     ServerHttpRequest request = MockServerHttpRequest
