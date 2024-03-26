@@ -1,38 +1,40 @@
 package com.aadityadesigners.tutorial.spring_reactive_security.filters;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-/**
- * Test class for {@link SecurityHeadersFilter}.
- */
-@WebFluxTest
-@Import(SecurityHeadersFilter.class)
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilterChain;
+import reactor.core.publisher.Mono;
+
 public class SecurityHeadersFilterTest {
 
-  @Autowired
-  private WebTestClient webTestClient;
+  private SecurityHeadersFilter filter;
+  private WebFilterChain filterChain;
 
-  /**
-   * Test that security headers are present in the response.
-   */
+  @BeforeEach
+  public void setUp() {
+    filter = new SecurityHeadersFilter();
+    filterChain = mock(WebFilterChain.class);
+    when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+  }
+
   @Test
-  public void securityHeadersShouldBePresentInResponse() {
-    webTestClient.get().uri("/")
-        .accept(MediaType.APPLICATION_JSON)
-        .exchange()
-        .expectStatus().isOk()
-        .expectHeader().exists("X-Content-Type-Options")
-        .expectHeader().valueEquals("X-Content-Type-Options", "nosniff")
-        .expectHeader().exists("X-Frame-Options")
-        .expectHeader().valueEquals("X-Frame-Options", "DENY")
-        .expectHeader().exists("X-XSS-Protection")
-        .expectHeader().valueEquals("X-XSS-Protection", "1; mode=block")
-        .expectHeader().exists("Content-Security-Policy")
-        .expectHeader().valueEquals("Content-Security-Policy", "default-src 'self'");
+  public void testAddSecurityHeaders() {
+    MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+    filter.filter(exchange, filterChain).block();
+
+    HttpHeaders headers = exchange.getResponse().getHeaders();
+    assertEquals("nosniff", headers.getFirst("X-Content-Type-Options"));
+    assertEquals("DENY", headers.getFirst("X-Frame-Options"));
+    assertEquals("1; mode=block", headers.getFirst("X-XSS-Protection"));
+    assertEquals("default-src 'self'", headers.getFirst("Content-Security-Policy"));
   }
 }
