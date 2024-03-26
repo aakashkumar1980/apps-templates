@@ -8,6 +8,10 @@ import reactor.core.publisher.Mono;
 
 /**
  * A WebFilter that adds security headers to the response.
+ * - X-Content-Type-Options: Prevents browsers from MIME-sniffing a response away from the declared content-type.
+ * - X-Frame-Options: Provides clickjacking protection.
+ * - X-XSS-Protection: Enables the Cross-site scripting (XSS) filter built into most browsers.
+ * - Content-Security-Policy: Prevents a wide range of attacks, including Cross-site scripting and other code injection attacks.
  */
 @Component
 public class SecurityHeadersFilter implements WebFilter {

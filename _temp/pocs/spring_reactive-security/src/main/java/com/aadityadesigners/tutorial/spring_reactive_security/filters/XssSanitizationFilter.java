@@ -93,6 +93,7 @@ public class XssSanitizationFilter implements WebFilter {
         if (value.isTextual()) {
           // Clean HTML using Jsoup and then escape HTML characters
           String cleanedValue = Jsoup.clean(value.asText(), Safelist.none());
+          // Escape HTML characters using Apache Commons Text
           String escapedValue = StringEscapeUtils.escapeHtml4(cleanedValue);
           objectNode.put(field.getKey(), escapedValue);
         } else {

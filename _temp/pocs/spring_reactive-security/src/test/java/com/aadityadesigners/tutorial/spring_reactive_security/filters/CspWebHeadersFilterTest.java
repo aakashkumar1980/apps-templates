@@ -13,16 +13,16 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
- * Test class for {@link CspWebFilter}.
+ * Test class for {@link CspWebHeadersFilter}.
  */
-public class CspWebFilterTest {
+public class CspWebHeadersFilterTest {
 
-  private CspWebFilter filter;
+  private CspWebHeadersFilter filter;
   private WebFilterChain filterChain;
 
   @BeforeEach
   public void setUp() {
-    filter = new CspWebFilter();
+    filter = new CspWebHeadersFilter();
     filterChain = mock(WebFilterChain.class);
     when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
   }
