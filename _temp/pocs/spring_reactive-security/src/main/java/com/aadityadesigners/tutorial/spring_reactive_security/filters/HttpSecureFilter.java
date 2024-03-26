@@ -1,21 +1,19 @@
 package com.aadityadesigners.tutorial.spring_reactive_security.filters;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.http.ResponseCookie;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A WebFilter that adds the Secure and HttpOnly flags to all cookies in the response.
  * - Secure flag ensures that the cookie is only sent over HTTPS connections.
  * - HttpOnly flag ensures that the cookie is not accessible via JavaScript.
  */
-@Component
+//@Component
 public class HttpSecureFilter implements WebFilter {
 
   /**

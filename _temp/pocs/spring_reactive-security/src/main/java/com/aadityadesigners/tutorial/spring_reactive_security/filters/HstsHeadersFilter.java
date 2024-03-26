@@ -30,7 +30,7 @@ public class HstsHeadersFilter implements WebFilter {
     ServerHttpRequest request = exchange.getRequest();
     ServerHttpResponse response = exchange.getResponse();
 
-    if (request.getURI().getScheme().equals("https")) {
+    if (request.getURI().getScheme()!=null && request.getURI().getScheme().equals("https")) {
       response.getHeaders().add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     }
 
