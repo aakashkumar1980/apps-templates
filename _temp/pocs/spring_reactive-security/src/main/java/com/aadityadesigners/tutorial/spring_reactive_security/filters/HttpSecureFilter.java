@@ -3,6 +3,7 @@ package com.aadityadesigners.tutorial.spring_reactive_security.filters;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.ResponseCookie;
+import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -13,7 +14,7 @@ import reactor.core.publisher.Mono;
  * - Secure flag ensures that the cookie is only sent over HTTPS connections.
  * - HttpOnly flag ensures that the cookie is not accessible via JavaScript.
  */
-//@Component
+@Component
 public class HttpSecureFilter implements WebFilter {
 
   /**
@@ -42,7 +43,6 @@ public class HttpSecureFilter implements WebFilter {
           }));
 
           // Clear existing cookies and add updated cookies
-          exchange.getResponse().getCookies().clear();
           updatedCookies.forEach(cookie -> exchange.getResponse().addCookie(cookie));
         }));
   }
