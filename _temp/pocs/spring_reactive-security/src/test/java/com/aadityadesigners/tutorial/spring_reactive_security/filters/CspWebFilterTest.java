@@ -1,13 +1,11 @@
 package com.aadityadesigners.tutorial.spring_reactive_security.filters;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -15,29 +13,29 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
- * Test class for {@link SecurityHeadersFilter}.
+ * Test class for {@link CspWebFilter}.
  */
-public class SecurityHeadersFilterTest {
+public class CspWebFilterTest {
 
-  private SecurityHeadersFilter filter;
+  private CspWebFilter filter;
   private WebFilterChain filterChain;
 
   @BeforeEach
   public void setUp() {
-    filter = new SecurityHeadersFilter();
+    filter = new CspWebFilter();
     filterChain = mock(WebFilterChain.class);
     when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
   }
 
   @Test
-  public void testAddSecurityHeaders() {
+  public void testCspWebHeaders() {
     MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
     filter.filter(exchange, filterChain).block();
 
-    HttpHeaders headers = exchange.getResponse().getHeaders();
-    assertEquals("nosniff", headers.getFirst("X-Content-Type-Options"));
-    assertEquals("DENY", headers.getFirst("X-Frame-Options"));
-    assertEquals("1; mode=block", headers.getFirst("X-XSS-Protection"));
-    assertEquals("default-src 'self'", headers.getFirst("Content-Security-Policy"));
+    String cspHeader = exchange.getResponse().getHeaders().getFirst("Content-Security-Policy");
+    assert cspHeader != null;
+    assert cspHeader.contains("default-src 'self'");
+    assert cspHeader.contains("script-src 'self' 'unsafe-inline'");
+    assert cspHeader.contains("style-src 'self' 'unsafe-inline'");
   }
 }

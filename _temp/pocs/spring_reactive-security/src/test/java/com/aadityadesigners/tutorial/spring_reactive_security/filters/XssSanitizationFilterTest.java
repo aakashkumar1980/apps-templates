@@ -20,6 +20,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
+import reactor.core.publisher.Mono;
 
 /**
  * Test class for {@link XssSanitizationFilter}.
@@ -36,7 +37,8 @@ public class XssSanitizationFilterTest {
   public void setUp() {
     filter = new XssSanitizationFilter();
     filterChain = mock(WebFilterChain.class);
-    when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Flux.empty().then());
+    when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+    //when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Flux.empty().then());
   }
 
   /**
