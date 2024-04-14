@@ -1,9 +1,12 @@
 #!/bin/bash
 
+#!/bin/bash
+
+### SPARK SUBMIT (Configuration for an example cluster environment) ###
 # Configuration of machine resources
 totalNodes=5
 corePerNode=12
-memoryPerNode=48
+memoryPerNode=48 # Memory per node in GB
 
 # Optimization Rules:
 # - [per Node Level] Reserve 1 core and 1GB RAM for Hadoop/YARN/OS domains.
@@ -11,7 +14,6 @@ memoryPerNode=48
 # - [Executor Level] Assign 4 cores to each executor.
 # - [Executor Level] Subtract 10% of its calculated memory for memory overhead compensation.
 # Reservations
-executorCores=4   # Assigning 4 cores to each executor as per rule
 reservedCoresPerNode=1    # Reserved cores per node for system
 reservedMemoryPerNode=1   # Reserved memory per node in GB for system
 reservedCoresCluster=1    # Reserved cores at cluster level for YARN Application Manager
@@ -22,7 +24,9 @@ totalAvailableCores=$(echo "$totalNodes * $availableCoresPerNode - $reservedCore
 availableMemoryPerNode=$(echo "$memoryPerNode - $reservedMemoryPerNode" | bc)
 totalAvailableMemory=$(echo "$totalNodes * $availableMemoryPerNode - $reservedMemoryCluster" | bc)
 # Executor configurations
-numWorkers=6
+executorCores=4   # Assigning 4 cores to each executor as per rule
+executorsPerNode=$(echo "$availableCoresPerNode / $executorCores" | bc)
+numWorkers=$(echo "$totalNodes * $executorsPerNode" | bc)  # Total executors across the cluster
 executorMemoryGB=$(echo "0.9 * ($totalAvailableMemory / $numWorkers)" | bc | awk '{print int($1+0.5)}') # Subtracting 10% for memory overhead
 
 spark-submit --class com.aadityadesigners.poc.s3filesdownload.S3FileDownloadApp \
@@ -36,6 +40,7 @@ spark-submit --class com.aadityadesigners.poc.s3filesdownload.S3FileDownloadApp 
   --conf spark.sql.shuffle.partitions=$((numWorkers * executorCores)) \
   --driver-memory 2G \
   build/libs/app-1.0.0.jar
+
 
 
 
