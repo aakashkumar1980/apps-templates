@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
-# Spark Submit (TEST ON: M6A.8XLARGE | 32 vCPU | 128 GB Memory | 12.5 Gibps [1.56 GBps] Network)
-
 # Configuration of machine resources
 totalNodes=5
 corePerNode=12
