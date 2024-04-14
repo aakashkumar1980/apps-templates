@@ -26,18 +26,18 @@ totalAvailableMemory=$(echo "$totalNodes * $availableMemoryPerNode - $reservedMe
 # Executor configurations
 executorCores=4   # Assigning 4 cores to each executor as per rule
 executorsPerNode=$(echo "$availableCoresPerNode / $executorCores" | bc)
-numWorkers=$(echo "$totalNodes * $executorsPerNode" | bc)  # Total executors across the cluster
-executorMemoryGB=$(echo "0.9 * ($totalAvailableMemory / $numWorkers)" | bc | awk '{print int($1+0.5)}') # Subtracting 10% for memory overhead
+numExecutors=$(echo "$totalNodes * $executorsPerNode" | bc)  # Total executors across the cluster
+executorMemoryGB=$(echo "0.9 * ($totalAvailableMemory / $numExecutors)" | bc | awk '{print int($1+0.5)}') # Subtracting 10% for memory overhead
 
 spark-submit --class com.aadityadesigners.poc.s3filesdownload.S3FileDownloadApp \
   --master spark://ip-172-31-7-170.us-west-1.compute.internal:7077 \
-  --num-executors $numWorkers \
+  --num-executors $numExecutors \
   --executor-cores $executorCores \
   --executor-memory ${executorMemoryGB}G \
   --conf spark.executor.memoryOverhead=$(echo "0.1 * $executorMemoryGB" | bc | awk '{print int($1+0.5)}')M \
   --conf spark.dynamicAllocation.enabled=false \
-  --conf spark.default.parallelism=$((numWorkers * executorCores)) \
-  --conf spark.sql.shuffle.partitions=$((numWorkers * executorCores)) \
+  --conf spark.default.parallelism=$((numExecutors * executorCores)) \
+  --conf spark.sql.shuffle.partitions=$((numExecutors * executorCores)) \
   --driver-memory 2G \
   build/libs/app-1.0.0.jar
 
@@ -48,17 +48,17 @@ spark-submit --class com.aadityadesigners.poc.s3filesdownload.S3FileDownloadApp 
 # DEPRECATED #
 #numvCPU=4
 #numMemoryGB=6
-#numWorkers=6
+#numExecutors=6
 #executorMemoryGB=$(echo "0.75 * $numMemoryGB" | bc | awk '{print int($1+0.5)}')
 #spark-submit --class com.aadityadesigners.poc.s3filesdownload.S3FileDownloadApp \
 #  --master spark://ip-172-31-7-170.us-west-1.compute.internal:7077 \
-#  --num-executors $numWorkers \
+#  --num-executors $numExecutors \
 #  --executor-cores $((numvCPU-1)) \
 #  --executor-memory ${executorMemoryGB}G \
 #  --conf spark.executor.memoryOverhead=512M \
 #  --conf spark.dynamicAllocation.enabled=false \
-#  --conf spark.default.parallelism=$((numWorkers * (numvCPU-1))) \
-#  --conf spark.sql.shuffle.partitions=$((numWorkers * (numvCPU-1))) \
+#  --conf spark.default.parallelism=$((numExecutors * (numvCPU-1))) \
+#  --conf spark.sql.shuffle.partitions=$((numExecutors * (numvCPU-1))) \
 #  --driver-memory 2G \
 #  build/libs/app-1.0.0.jar
  
