@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
 ### SPARK SUBMIT (Configuration for an example cluster environment) ###
 # Configuration of machine resources
 totalNodes=5
