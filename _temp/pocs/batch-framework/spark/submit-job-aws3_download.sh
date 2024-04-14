@@ -4,7 +4,7 @@
 # Configuration of machine resources (SAMPLE VALUES HERE, Please update with actual values)
 totalNodes=3
 corePerNode=16
-memoryPerNode=48 # Memory per node in GB
+memoryPerNode=48
 
 # Optimization Rules:
 # - [Per Node Level] Reserve 1 core and 1GB RAM for Hadoop/YARN/OS domains.
