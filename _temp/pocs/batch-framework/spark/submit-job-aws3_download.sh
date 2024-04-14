@@ -20,11 +20,9 @@ reservedMemoryCluster=1   # Reserved memory at cluster level in GB for YARN Appl
 # Step 1: Calculate available cores and memory per node after per node reservations
 availableCoresPerNode=$(echo "$corePerNode - $reservedCoresPerNode" | bc)
 availableMemoryPerNode=$(echo "$memoryPerNode - $reservedMemoryPerNode" | bc)
-
 # Step 2: Calculate total resources available at cluster level before YARN manager reservations
 totalCoreCluster=$(echo "$totalNodes * $availableCoresPerNode" | bc)
 totalMemoryCluster=$(echo "$totalNodes * $availableMemoryPerNode" | bc)
-
 # Step 3: Subtract cluster level reservations for YARN Application Manager
 totalAvailableCores=$(echo "$totalCoreCluster - $reservedCoresCluster" | bc)
 totalAvailableMemory=$(echo "$totalMemoryCluster - $reservedMemoryCluster" | bc)
