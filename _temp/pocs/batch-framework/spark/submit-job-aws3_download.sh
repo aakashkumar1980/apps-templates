@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### SPARK SUBMIT (Configuration for an example cluster environment) ###
-# Configuration of machine resources
+# Configuration of machine resources (SAMPLE VALUES HERE, Please update with actual values)
 totalNodes=3
 corePerNode=16
 memoryPerNode=48 # Memory per node in GB
