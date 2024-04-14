@@ -11,6 +11,7 @@ memoryPerNode=48
 # - [Executor Level] Assign 4 cores to each executor.
 # - [Executor Level] Subtract 10% of its calculated memory for memory overhead compensation.
 # Reservations
+executorCores=4   # Assigning 4 cores to each executor as per rule
 reservedCoresPerNode=1    # Reserved cores per node for system
 reservedMemoryPerNode=1   # Reserved memory per node in GB for system
 reservedCoresCluster=1    # Reserved cores at cluster level for YARN Application Manager
@@ -22,7 +23,6 @@ availableMemoryPerNode=$(echo "$memoryPerNode - $reservedMemoryPerNode" | bc)
 totalAvailableMemory=$(echo "$totalNodes * $availableMemoryPerNode - $reservedMemoryCluster" | bc)
 # Executor configurations
 numWorkers=6
-executorCores=4   # Assigning 4 cores to each executor as per rule
 executorMemoryGB=$(echo "0.9 * ($totalAvailableMemory / $numWorkers)" | bc | awk '{print int($1+0.5)}') # Subtracting 10% for memory overhead
 
 spark-submit --class com.aadityadesigners.poc.s3filesdownload.S3FileDownloadApp \
