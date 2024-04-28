@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This script is a simple timer that counts down from the specified number of minutes.
+# It displays the elapsed time in MM:SS format and updates every 10 seconds.
+# The script takes the total sleep time in minutes as an argument.
+
 # Function to convert seconds to MM:SS format
 convert_to_mm_ss() {
     local total_seconds=$1
