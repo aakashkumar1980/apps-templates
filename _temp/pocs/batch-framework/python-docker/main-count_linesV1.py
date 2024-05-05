@@ -1,78 +1,52 @@
 import os
 import multiprocessing
 
-def count_lines(segment):
+def count_lines_in_chunk(chunk):
   """
-  Counts the number of lines in a list of lines.
+  Count the number of lines in a chunk of text.
 
-  Parameters:
-  segment (list): The list of lines in the file segment.
+  Args:
+      chunk (list): A chunk of text as a list of lines.
 
   Returns:
-  int: The number of lines in the list.
+      int: The number of lines in the chunk.
   """
-  return len(segment)
+  line_count = 0
+  for _ in chunk:
+    line_count += 1
+  return line_count
 
-def prepare_segment(segment_index, segment_size, file_path):
+def count_lines(filename):
   """
-  Reads a segment of the file and returns its content.
+  Count the total number of lines in a file using multiprocessing.
 
-  Parameters:
-  segment_index (int): The index of the segment.
-  segment_size (int): The size of each segment.
-  file_path (str): The path to the file.
+  Args:
+      filename (str): The path to the file.
 
   Returns:
-  list: The lines in the segment.
+      int: The total number of lines in the file.
   """
-  start_line = segment_index * segment_size
-  lines = []
-  with open(file_path, 'r') as file:
-    # Skip lines until reaching the start line of the segment
-    for _ in range(start_line):
-      file.readline()
-    # Read lines up to the segment size or end of file
-    for _ in range(segment_size):
-      line = file.readline().strip()
-      if not line:
-        break
-      lines.append(line)
-  return lines
+  total_lines = 0
+  chunk_size = 10000  # Adjust this value based on your system's memory and performance
+  with open(filename, 'r') as file:
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+    # Read the file in chunks
+    chunks = iter(lambda: file.readlines(chunk_size), [])
+    # Count lines in each chunk in parallel
+    results = pool.map(count_lines_in_chunk, chunks)
+    # Sum up the line counts from all chunks
+    total_lines = sum(results)
+    pool.close()
+    pool.join()
+  return total_lines
 
 if __name__ == "__main__":
-  # Define file paths
-  file_path = 'sample.txt'
+                      # 2000001
+  filename = "customers-8000000.csv"
+  if os.path.exists(filename):
+    num_lines = count_lines(filename)
+    print("Total number of lines:", num_lines)
+  else:
+    print("File not found.")
 
-  ### LINE COUNT ###
-  # Determine CPU count
-  cpu_count = multiprocessing.cpu_count()
-  print("CPU count:", cpu_count)
-
-  # Read all lines from the file
-  with open(file_path, 'r') as file:
-    all_lines = file.readlines()
-  total_lines = len(all_lines)
-
-  # Calculate segment size based on total number of lines
-  segment_size = total_lines // cpu_count
-
-  # Prepare file segments
-  segments = []
-  with multiprocessing.Pool(cpu_count) as pool:
-    segment_indexes = range(cpu_count)
-    results = [pool.apply_async(prepare_segment, (index, segment_size, file_path)) for index in segment_indexes]
-    for result in results:
-      segment = result.get()
-      segments.append(segment)
-
-  # Handle remainder lines
-  if total_lines % cpu_count != 0:
-    remainder_lines = all_lines[total_lines - total_lines % cpu_count:]
-    segments[-1].extend(remainder_lines)
-
-  # Start multiprocessing for line counting
-  with multiprocessing.Pool(cpu_count) as pool:
-    line_counts = pool.map(count_lines, segments)
-
-  total_lines = sum(line_counts)
-  print("Total lines:", total_lines)
+#%%
