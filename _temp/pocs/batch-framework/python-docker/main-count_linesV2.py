@@ -20,14 +20,16 @@ def count_lines(filename):
     chunk_size = 1000
     with open(filename, 'r') as file:
       pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-      chunks = iter(lambda: file.readlines(chunk_size), [])
-      results = pool.map(count_lines_in_chunk, chunks)
+      results = pool.imap_unordered(count_lines_in_chunk, iter(lambda: file.readlines(chunk_size), []))
       total_lines = sum(results)
       pool.close()
       pool.join()
     return total_lines
 
+#################
+### MAIN CODE ###
+#################
 if __name__ == "__main__":
-  filename = "./_data/sample.txt"
+  filename = "./_data/customers-100_json.txt"
   num_lines = count_lines(filename)
   print("Total number of lines:", num_lines)
