@@ -27,7 +27,7 @@ def count_lines(filename):
       int: The total number of lines in the file.
   """
   total_lines = 0
-  chunk_size = 10000  # Adjust this value based on your system's memory and performance
+  chunk_size = 1000  # Adjust this value based on your system's memory and performance
   with open(filename, 'r') as file:
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     # Read the file in chunks
@@ -42,7 +42,7 @@ def count_lines(filename):
 
 if __name__ == "__main__":
                       # 2000001
-  filename = "customers-8000000.csv"
+  filename = "sample.txt"
   if os.path.exists(filename):
     num_lines = count_lines(filename)
     print("Total number of lines:", num_lines)
