@@ -28,6 +28,6 @@ def count_lines(filename):
     return total_lines
 
 if __name__ == "__main__":
-  filename = "./_data/customers-100.json"  # Example filename
+  filename = "./_data/sample.txt"
   num_lines = count_lines(filename)
   print("Total number of lines:", num_lines)
