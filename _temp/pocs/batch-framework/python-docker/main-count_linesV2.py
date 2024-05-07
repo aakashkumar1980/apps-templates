@@ -71,6 +71,6 @@ if __name__ == "__main__":
 
 
 # SUMMARY (45 GB File) #
-## - CPU: 2 cores |  4 vCPU (90% usage) -> 20 minutes
-## - CPU: 8 cores | 16 vCPU (25% usage) -> 10 minutes
+## -  CPU: 2 cores |  4 vCPU (90% usage) -> 20 minutes
+## - *CPU: 8 cores | 16 vCPU (25% usage) -> 10 minutes
 
