@@ -33,6 +33,7 @@ def count_lines(filename):
 #################
 if __name__ == "__main__":
   filename = "./_data/customers-256000000.csv"
+  print("Counting lines in file:", filename)
   start_time = time.time()
   num_lines = count_lines(filename)
   end_time = time.time()
