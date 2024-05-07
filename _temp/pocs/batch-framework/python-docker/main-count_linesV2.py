@@ -42,12 +42,22 @@ if __name__ == "__main__":
   print("Total number of lines:", num_lines)
 
   ## RESULTS:
-  # File: customers-64000000.csv (11.2GB Size)
-  # CPU: 4 cores (50% usage)
-  # RAM: 1.4 GB usage
-  # Execution time (MM:HH:SS): 00:05:23
+  ## File: customers-64000000.csv (11.2GB Size)
+  ### CPU: 2 cores | 4 vCPU (50% usage)
+  #### RAM: 1.4 GB usage
+  #### Execution time (MM:HH:SS): 00:05:23
 
-  # File: customers-128000000.csv (22.4GB Size)
-  # CPU: 4 cores (60% usage)
-  # RAM: 1.5GB usage
-  # Execution time (MM:HH:SS): 00:10:24
+  ### CPU: 8 cores | 16 vCPU (20% usage)
+  #### RAM: 5.7 GB usage
+  #### Execution time (MM:HH:SS): 00:02:34
+
+
+
+  ## File: customers-128000000.csv (22.4GB Size)
+  ### CPU: 2 cores | 4 vCPU (60% usage)
+  #### RAM: 1.5 GB usage
+  #### Execution time (MM:HH:SS): 00:10:24
+
+  ### CPU: 8 cores | 16 vCPU (25% usage)
+  #### RAM: 5.5 GB usage
+  #### Execution time (MM:HH:SS): 00:04:57
