@@ -32,7 +32,7 @@ def count_lines(filename):
 ### MAIN CODE ###
 #################
 if __name__ == "__main__":
-  filename = "./_data/customers-128000000.csv"
+  filename = "./_data/customers-256000000.csv"
   start_time = time.time()
   num_lines = count_lines(filename)
   end_time = time.time()
@@ -41,23 +41,35 @@ if __name__ == "__main__":
   print("Execution time:", time.strftime('%H:%M:%S', time.gmtime(end_time - start_time)))
   print("Total number of lines:", num_lines)
 
-  ## RESULTS:
-  ## File: customers-64000000.csv (11.2GB Size)
+
+
+
+# RESULTS #:
+  ## File: customers-64000000.csv (11.2 GB Size)
   ### CPU: 2 cores | 4 vCPU (50% usage)
   #### RAM: 1.4 GB usage
   #### Execution time (MM:HH:SS): 00:05:23
-
+  #
   ### CPU: 8 cores | 16 vCPU (20% usage)
   #### RAM: 5.7 GB usage
   #### Execution time (MM:HH:SS): 00:02:34
 
-
-
-  ## File: customers-128000000.csv (22.4GB Size)
+  ## File: customers-128000000.csv (22.4 GB Size)
   ### CPU: 2 cores | 4 vCPU (60% usage)
   #### RAM: 1.5 GB usage
   #### Execution time (MM:HH:SS): 00:10:24
-
+  #
   ### CPU: 8 cores | 16 vCPU (25% usage)
   #### RAM: 5.5 GB usage
   #### Execution time (MM:HH:SS): 00:04:57
+
+  ## File: customers-256000000.csv (44.7 GB size)
+  ### CPU: 8 cores | 16 vCPU (25% usage)
+  #### RAM: 5.6 GB usage
+  #### Execution time (MM:HH:SS): 00:09:30
+
+
+# SUMMARY (45 GB File) #
+## - CPU: 2 cores |  4 vCPU (90% usage) -> 20 minutes
+## - CPU: 8 cores | 16 vCPU (25% usage) -> 10 minutes
+
