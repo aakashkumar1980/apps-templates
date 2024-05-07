@@ -42,7 +42,7 @@ def count_lines(filename):
 
 if __name__ == "__main__":
                       # 2000001
-  filename = "sample.txt"
+  filename = "sample.csv"
   if os.path.exists(filename):
     num_lines = count_lines(filename)
     print("Total number of lines:", num_lines)

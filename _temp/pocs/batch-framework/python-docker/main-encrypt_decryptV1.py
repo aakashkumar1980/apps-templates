@@ -45,7 +45,7 @@ def decrypt_file_segment(segment, key):
 
 if __name__ == "__main__":
   # Define file paths
-  file_path = 'sample.txt'
+  file_path = 'sample.csv'
   public_key_path = 'public.pem'
   private_key_path = 'private.pem'
   private_key_password = 'apple26j'

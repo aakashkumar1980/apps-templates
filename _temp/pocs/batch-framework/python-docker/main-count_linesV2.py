@@ -1,3 +1,5 @@
+from datetime import time
+
 import dask.dataframe as dd
 import multiprocessing
 
@@ -30,6 +32,11 @@ def count_lines(filename):
 ### MAIN CODE ###
 #################
 if __name__ == "__main__":
-  filename = "./_data/customers-100_json.txt"
+  filename = "./_data/customers-32000000.csv"
+  start_time = time.time()
   num_lines = count_lines(filename)
+  end_time = time.time()
+
+  # print the execution time in hh:mm:ss format
+  print("Execution time:", time.strftime('%H:%M:%S', time.gmtime(end_time - start_time)))
   print("Total number of lines:", num_lines)
