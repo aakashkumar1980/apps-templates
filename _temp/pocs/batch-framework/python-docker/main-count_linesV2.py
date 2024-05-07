@@ -32,7 +32,7 @@ def count_lines(filename):
 ### MAIN CODE ###
 #################
 if __name__ == "__main__":
-  filename = "./_data/customers-64000000.csv"
+  filename = "./_data/customers-128000000.csv"
   start_time = time.time()
   num_lines = count_lines(filename)
   end_time = time.time()
@@ -46,3 +46,8 @@ if __name__ == "__main__":
   # CPU: 4 cores (50% usage)
   # RAM: 1.4 GB usage
   # Execution time (MM:HH:SS): 00:05:23
+
+  # File: customers-128000000.csv (22.4GB Size)
+  # CPU: 4 cores (60% usage)
+  # RAM: 1.5GB usage
+  # Execution time (MM:HH:SS): 00:10:24
