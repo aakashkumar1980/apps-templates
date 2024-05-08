@@ -38,16 +38,18 @@ public class MainCountLinesV1 {
 }
 
 /**
-   ## File: customers-256000000.csv (44.7 GB size)
-   ### CPU: 4 cores | 8 vCPU (30% usage)
-   #### RAM: 2.9 GB usage
-   #### Execution time (MM:HH:SS): 00:05:59
-   #
-   ### CPU: 8 cores | 16 vCPU (10% usage)
-   #### RAM: 1.2 GB usage
-   #### Execution time (MM:HH:SS): 00:05:18
+  # RESULTS #:
+    ## File: customers-256000000.csv (44.7 GB size)
+    ### CPU: 4 cores | 8 vCPU (% usage)
+    #### RAM:
+    #### Execution time (MM:HH:SS):
+    #
+    ### CPU: 8 cores | 16 vCPU (% usage)
+    #### RAM:
+    #### Execution time (MM:HH:SS):
+
 
   # SUMMARY (45 GB File) #
-  ## - *CPU: 4 cores |  8 vCPU (30% usage) -> 6 minutes
-  ## -  CPU: 8 cores | 16 vCPU (10% usage) -> 5 minutes
+  ## - CPU: 4 cores |  8 vCPU (% usage) ->
+  ## - CPU: 8 cores | 16 vCPU (% usage) ->
  */

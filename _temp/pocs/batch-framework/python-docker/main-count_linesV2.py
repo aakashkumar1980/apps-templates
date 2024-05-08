@@ -14,7 +14,8 @@ def count_lines(filename):
     df = dd.read_json(filename, lines=False)
     return len(df)
   elif filename.endswith('.csv'):
-    df = dd.read_csv(filename, delimiter=',')
+    #df = dd.read_csv(filename, delimiter=',')
+    df = dd.read_csv(filename, delimiter=',', blocksize="100MB", usecols=['Index'], dtype={'Index': 'int64'})
     return len(df)
   else:
     total_lines = 0
@@ -46,31 +47,17 @@ if __name__ == "__main__":
 
 
 # RESULTS #:
-  ## File: customers-64000000.csv (11.2 GB Size)
-  ### CPU: 2 cores | 4 vCPU (50% usage)
-  #### RAM: 1.4 GB usage
-  #### Execution time (MM:HH:SS): 00:05:23
-  #
-  ### CPU: 8 cores | 16 vCPU (20% usage)
-  #### RAM: 5.7 GB usage
-  #### Execution time (MM:HH:SS): 00:02:34
-
-  ## File: customers-128000000.csv (22.4 GB Size)
-  ### CPU: 2 cores | 4 vCPU (60% usage)
-  #### RAM: 1.5 GB usage
-  #### Execution time (MM:HH:SS): 00:10:24
-  #
-  ### CPU: 8 cores | 16 vCPU (25% usage)
-  #### RAM: 5.5 GB usage
-  #### Execution time (MM:HH:SS): 00:04:57
-
   ## File: customers-256000000.csv (44.7 GB size)
-  ### CPU: 8 cores | 16 vCPU (25% usage)
-  #### RAM: 5.6 GB usage
-  #### Execution time (MM:HH:SS): 00:09:30
+  ### CPU: 4 cores | 8 vCPU (% usage)
+  #### RAM:
+  #### Execution time (MM:HH:SS):  
+  #
+  ### CPU: 8 cores | 16 vCPU (% usage)
+  #### RAM:
+  #### Execution time (MM:HH:SS):
 
 
 # SUMMARY (45 GB File) #
-## -  CPU: 2 cores |  4 vCPU (90% usage) -> 20 minutes
-## - *CPU: 8 cores | 16 vCPU (25% usage) -> 10 minutes
+## - CPU: 4 cores |  8 vCPU (% usage) ->
+## - CPU: 8 cores | 16 vCPU (% usage) ->
 
