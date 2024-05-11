@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-public class MainCountLinesV1 {
+public class CountLinesV1 {
 
     public static long countLines(String filename) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
