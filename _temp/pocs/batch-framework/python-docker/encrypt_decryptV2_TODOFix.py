@@ -14,15 +14,23 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file):
         if not chunk:
           break
 
-        # Process the chunk in batches
-        for i in range(0, len(chunk), chunk_size):
-          batch_chunk = chunk[i:i + chunk_size]
+        # Spawn subprocesses for parallel encryption
+        processes = []
+        for _ in range(min(num_processes, len(chunk) // chunk_size + 1)):
+          batch_chunk = input_stream.read(chunk_size)
+          if not batch_chunk:
+            break
           process = subprocess.Popen(['gpg', '--batch', '--recipient-file', public_key_file, '--output', '-', '--encrypt'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+          processes.append((process, batch_chunk))
+
+        # Collect output from subprocesses
+        for process, batch_chunk in processes:
           output, _ = process.communicate(input=batch_chunk)
           output_stream.write(output)
 
+
 if __name__ == "__main__":
-  input_file = './_data/customers-256000000.csv'
+  input_file = './_data/sample.csv'
   output_file = input_file + '.gpg'
   public_key_file = './_data/pgp_public_key.asc'
   start_time = time.time()

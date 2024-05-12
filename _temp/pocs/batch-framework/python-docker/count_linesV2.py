@@ -31,8 +31,8 @@ if __name__ == "__main__":
   #### RAM: 2.1 GB
   #### Execution time (MM:HH:SS): 00:05:04
   #
-  ### CPU: 8 cores | 16 vCPU (% usage)
-  #### RAM:
-  #### Execution time (MM:HH:SS):
+  ### CPU: 8 cores | 16 vCPU (50% usage)
+  #### RAM: 3.9 GB
+  #### Execution time (MM:HH:SS): 00:05:47
 
 
