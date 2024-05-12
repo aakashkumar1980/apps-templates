@@ -4,9 +4,9 @@ import subprocess
 import tempfile
 
 chunk_size=1024*1024 # 1MB
-def encrypt_file_with_gpg(input_file, output_file, public_key_file, chunk_size=chunk_size):
+def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, chunk_size=chunk_size):
   with open(input_file, 'rb') as input_stream:
-    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+    with tempfile.NamedTemporaryFile(delete=False, dir=temp_dir) as temp_file:
       while True:
         # Read a chunk of data from the input file
         chunk = input_stream.read(chunk_size)
@@ -17,8 +17,8 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, chunk_size=c
         temp_file.write(chunk)
 
     # Use subprocess to call gpg for encryption
+    print('Encrypting file...')
     subprocess.run(['gpg', '--batch', '--recipient-file', public_key_file, '--output', output_file, '--encrypt', temp_file.name])
-
     # Remove the temporary file
     os.remove(temp_file.name)
 
@@ -32,12 +32,13 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, chunk_size=c
 #################
 ### MAIN CODE ###
 #################
+temp_dir = '/mnt/ebs_volume/tmp'
 if __name__ == "__main__":
-  input_file = './_data/sample.csv'
+  input_file = './_data/customers-256000000.csv'
   output_file = input_file + '.gpg'
   public_key_file = './_data/pgp_public_key.asc'
   start_time = time.time()
-  encrypt_file_with_gpg(input_file, output_file, public_key_file)
+  encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir)
   end_time = time.time()
 
   print("Execution time:", time.strftime('%H:%M:%S', time.gmtime(end_time - start_time)))
