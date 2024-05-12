@@ -1,20 +1,17 @@
 import time
-import subprocess
+import gnupg
 
 def encrypt_file_with_gpg(input_file, output_file, public_key_file):
+  gpg = gnupg.GPG()
+  with open(public_key_file, 'rb') as key_file:
+    recipients = gpg.import_keys(key_file.read())
   with open(input_file, 'rb') as input_stream:
-    with open(output_file, 'wb') as output_stream:
-      command = [
-        'gpg',
-        '--batch',
-        '--recipient-file', public_key_file,
-        '--output', '-',
-        '--encrypt'
-      ]
-      subprocess.run(command, stdin=input_stream, stdout=output_stream, check=True)
+    encrypted_data = gpg.encrypt_file(input_stream, recipients=recipients.fingerprints, armor=False, output=output_file)
+  if not encrypted_data.ok:
+    raise Exception(f"Encryption failed: {encrypted_data.status}")
 
 if __name__ == "__main__":
-  input_file = './_data/customers-256000000.csv'
+  input_file = './_data/sample.csv'
   output_file = input_file + '.gpg'
   public_key_file = './_data/pgp_public_key.asc'
   start_time = time.time()
