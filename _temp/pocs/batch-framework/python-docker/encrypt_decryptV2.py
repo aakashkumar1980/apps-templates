@@ -6,7 +6,7 @@ import tempfile
 chunk_size=1024*1024 # 1MB
 def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, chunk_size=chunk_size):
   with open(input_file, 'rb') as input_stream:
-    with tempfile.NamedTemporaryFile(delete=False, dir=temp_dir) as temp_file:
+    with tempfile.NamedTemporaryFile(delete=True, dir=temp_dir) as temp_file:
       while True:
         # Read a chunk of data from the input file
         chunk = input_stream.read(chunk_size)
@@ -14,13 +14,16 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, ch
           break
 
         # Write the chunk to the temporary file
+        print('Writing chunk to temporary file...')
         temp_file.write(chunk)
 
-    # Use subprocess to call gpg for encryption
-    print('Encrypting file...')
-    subprocess.run(['gpg', '--batch', '--recipient-file', public_key_file, '--output', output_file, '--encrypt', temp_file.name])
-    # Remove the temporary file
-    os.remove(temp_file.name)
+      # After writing the entire file, move the file pointer to the beginning
+      temp_file.seek(0)
+
+      # Use subprocess to call gpg for encryption
+      print('Encrypting file...')
+      subprocess.run(['gpg', '--batch', '--recipient-file', public_key_file, '--output', output_file, '--encrypt', temp_file.name])
+
 
 
 
@@ -34,7 +37,7 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, ch
 #################
 temp_dir = '/mnt/ebs_volume/tmp'
 if __name__ == "__main__":
-  input_file = './_data/customers-256000000.csv'
+  input_file = './_data/sample.csv'
   output_file = input_file + '.gpg'
   public_key_file = './_data/pgp_public_key.asc'
   start_time = time.time()
