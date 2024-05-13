@@ -1,10 +1,17 @@
 import time
-import subprocess
+import gnupg
 import tempfile
 
-#chunk_size=1024*1024 # 1MB
-chunk_size=1024 * 1024 * 1024 # 1GB
+# Chunk size for reading the file
+chunk_size = 1024 * 1024 * 1024  # 1GB
 def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, chunk_size=chunk_size):
+  # Initialize GPG
+  gpg = gnupg.GPG(verbose=True)
+  # Import the recipient's public key and extract fingerprints
+  with open(public_key_file, 'rb') as key_file:
+    recipients = gpg.import_keys(key_file.read())
+  recipient_fingerprints = recipients.fingerprints
+
   with open(input_file, 'rb') as input_stream:
     with tempfile.NamedTemporaryFile(delete=True, dir=temp_dir) as temp_file:
       while True:
@@ -19,9 +26,11 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, ch
       # After writing the entire file, move the file pointer to the beginning
       temp_file.seek(0)
 
-      # Use subprocess to call gpg for encryption
+      # Encrypt the temporary file
       print('Encrypting file...')
-      subprocess.run(['gpg', '--batch', '--recipient-file', public_key_file, '--output', output_file, '--encrypt', temp_file.name])
+      encrypted_data = gpg.encrypt_file(temp_file.name, recipients=recipient_fingerprints, output=output_file)
+      if not encrypted_data.ok:
+        print("Encryption failed:", encrypted_data.status)
 
 
 
@@ -47,7 +56,7 @@ if __name__ == "__main__":
 
 
 # RESULTS #:
-## File: customers-256000000.csv (44.7 GB size -> 21 GB encrypted)
+## File: customers-256000000.csv (44.7 GB size -> 28.5 GB encrypted)
 ### CPU: 4 cores | 8 vCPU (% usage)
 #### RAM:
-#### Execution time (MM:HH:SS): 00:40:31
+#### Execution time (MM:HH:SS): 00:43:57
