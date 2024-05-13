@@ -65,4 +65,13 @@ if __name__ == "__main__":
 #
 ### CPU: 8 cores | 16 vCPU (% usage)
 #### RAM:
-#### Execution time (MM:HH:SS):
+#### Execution time (MM:HH:SS): 00:41:19
+
+# VERIFICATION #
+# $ gpg --decrypt ./_data/customers-256000000.csv.gpg > ./_data/decrypted_customers.csv
+#
+# $ sed -n '6666{p;q;}' ./_data/customers-256000000.csv
+# $ sed -n '6666{p;q;}' ./_data/decrypted_customers.csv
+#
+# $ tail -n 6666 ./_data/customers-256000000.csv | head -n 1
+# $ tail -n 6666 ./_data/decrypted_customers.csv | head -n 1
