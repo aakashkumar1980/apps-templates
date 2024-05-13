@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 
 #chunk_size=1024*1024 # 1MB
-chunk_size=1024 * 1024 * 1024 # 1GB
+chunk_size=1024 * 1024 * 100 # 100MB
 def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, chunk_size=chunk_size):
   with open(input_file, 'rb') as input_stream:
     with tempfile.NamedTemporaryFile(delete=True, dir=temp_dir) as temp_file:

@@ -3,10 +3,11 @@ import gnupg
 import tempfile
 
 # Chunk size for reading the file
-chunk_size = 1024 * 1024 * 1024  # 1GB
+chunk_size = 1024 * 1024 * 100  # 100MB
 def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, chunk_size=chunk_size):
   # Initialize GPG
   gpg = gnupg.GPG(verbose=True)
+
   # Import the recipient's public key and extract fingerprints
   with open(public_key_file, 'rb') as key_file:
     recipients = gpg.import_keys(key_file.read())
