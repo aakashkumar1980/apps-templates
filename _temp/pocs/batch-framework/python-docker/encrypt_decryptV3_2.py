@@ -68,7 +68,7 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, ch
 # Main code
 temp_dir = '/mnt/ebs_volume/tmp'
 if __name__ == "__main__":
-  input_file = './_data/customers-256000000.csv'
+  input_file = './_data/sample.csv'
   output_file = input_file + '.gpg'
   public_key_file = './_data/pgp_public_key.asc'
   start_time = time.time()
@@ -80,6 +80,6 @@ if __name__ == "__main__":
 
 # RESULTS #:
 ## File: customers-256000000.csv (44.7 GB size ->  GB encrypted)
-### CPU: 4 cores | 8 vCPU (90% usage)
-#### RAM: 10.9 GB -
+### CPU: 8 cores | 16 vCPU (% usage)
+#### RAM:
 #### Execution time (MM:HH:SS):
