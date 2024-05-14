@@ -63,6 +63,13 @@ if __name__ == "__main__":
 #### RAM:
 #### Execution time (MM:HH:SS): 00:43:57
 #
+# IO2 Volume: 6000 IOPS
+# Test ($ sudo fio /mnt/ebs_volume/tmp/fio_test.fio) -> IOPS: 3049  | 12.5 MB/s
+### CPU: 4 cores | 8 vCPU (% usage)
+#### RAM:
+#### Execution time (MM:HH:SS):
+#
+#
 ### CPU: 8 cores | 16 vCPU (% usage)
 #### RAM:
 #### Execution time (MM:HH:SS): 00:41:19
