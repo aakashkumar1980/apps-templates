@@ -19,7 +19,7 @@ public class CountLinesV1 {
     }
 
     public static void main(String[] args) {
-        String filename = "./_data/customers-256000000.csv";
+        String filename = "/mnt/ebs_volume/tmp/_data/customers-256000000.csv";
         try {
             System.out.println("Counting lines in file: " + filename);
             long startTime = System.currentTimeMillis();
@@ -40,11 +40,7 @@ public class CountLinesV1 {
 /**
   # RESULTS #:
     ## File: customers-256000000.csv (44.7 GB size)
-    ### CPU: 4 cores | 8 vCPU (40% usage)
-    #### RAM: 2.4 GB
-    #### Execution time (MM:HH:SS): 00:03:47
-    #
-    ### CPU: 8 cores | 16 vCPU (% usage)
-    #### RAM:
-    #### Execution time (MM:HH:SS):
+    ### CPU: 4 cores | 8 vCPU (20% usage)
+    #### RAM: 2.2 GB (30% usage)
+    #### Execution time (MM:HH:SS): 00:05:40
  */
