@@ -4,6 +4,7 @@ import tempfile
 
 # Chunk size for reading the file
 chunk_size = 1024 * 1024 * 10  # 10 MB
+
 def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, chunk_size=chunk_size):
   # Initialize GPG
   gpg = gnupg.GPG(verbose=True)
@@ -29,11 +30,10 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, ch
 
       # Encrypt the temporary file
       print('Encrypting file...')
-      encrypted_data = gpg.encrypt_file(temp_file.name, recipients=recipient_fingerprints, output=output_file)
-      if not encrypted_data.ok:
-        print("Encryption failed:", encrypted_data.status)
-
-
+      with open(temp_file.name, 'rb') as temp_file_stream:
+        encrypted_data = gpg.encrypt_file(temp_file_stream, recipients=recipient_fingerprints, output=output_file)
+        if not encrypted_data.ok:
+          print("Encryption failed:", encrypted_data.status)
 
 # USAGE:
 # to generate a PGP key, run the following command:
@@ -47,7 +47,6 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, ch
 #################
 temp_dir = '/mnt/ebs_volume/tmp/_data'
 if __name__ == "__main__":
-  #input_file = '/mnt/ebs_volume/tmp/_data/customers-256000000.csv'
   input_file = '/mnt/ebs_volume/tmp/_data/customers-8000000.csv'
   output_file = input_file + '.gpg'
   public_key_file = '/mnt/ebs_volume/tmp/_data/pgp_public_key.asc'
@@ -62,15 +61,3 @@ if __name__ == "__main__":
 ## File: customers-8000000.csv (1.4 GB size ->  980 MB encrypted)
 ### CPU: 16 cores | 32 vCPU (% usage)
 #### RAM:
-#### Execution time (MM:HH:SS): 00:01:08
-
-
-
-# VERIFICATION #
-# $ gpg --decrypt ./_data/customers-256000000.csv.gpg > ./_data/decrypted_customers.csv
-#
-# $ sed -n '6666{p;q;}' /mnt/ebs_volume/tmp/_data/customers-256000000.csv
-# $ sed -n '6666{p;q;}' /mnt/ebs_volume/tmp/_data/decrypted_customers.csv
-#
-# $ tail -n 6666 /mnt/ebs_volume/tmp/_data/customers-256000000.csv | head -n 1
-# $ tail -n 6666 /mnt/ebs_volume/tmp/_data/decrypted_customers.csv | head -n 1
