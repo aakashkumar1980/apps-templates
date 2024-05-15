@@ -1,39 +1,52 @@
 import time
 import gnupg
 import tempfile
+import os
 
-# Chunk size for reading the file
-chunk_size = 1024 * 1024 * 10  # 10 MB
+# Adjusted chunk size for reading the file (considering available memory)
+chunk_size = 1024 * 1024 * 50  # 50 MB
 
 def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, chunk_size=chunk_size):
   # Initialize GPG
   gpg = gnupg.GPG(verbose=True)
 
   # Import the recipient's public key and extract fingerprints
-  with open(public_key_file, 'rb') as key_file:
-    recipients = gpg.import_keys(key_file.read())
-  recipient_fingerprints = recipients.fingerprints
+  try:
+    with open(public_key_file, 'rb') as key_file:
+      recipients = gpg.import_keys(key_file.read())
+    recipient_fingerprints = recipients.fingerprints
+    if not recipient_fingerprints:
+      raise ValueError("No valid fingerprints found in the public key file.")
+  except Exception as e:
+    print(f"Failed to import public key: {e}")
+    return
 
-  with open(input_file, 'rb') as input_stream:
-    with tempfile.NamedTemporaryFile(delete=True, dir=temp_dir) as temp_file:
-      while True:
-        # Read a chunk of data from the input file
-        chunk = input_stream.read(chunk_size)
-        if not chunk:
-          break
+  try:
+    with open(input_file, 'rb') as input_stream:
+      with tempfile.NamedTemporaryFile(delete=False, dir=temp_dir) as temp_file:
+        while True:
+          # Read a chunk of data from the input file
+          chunk = input_stream.read(chunk_size)
+          if not chunk:
+            break
+          # Write the chunk to the temporary file
+          temp_file.write(chunk)
 
-        # Write the chunk to the temporary file
-        temp_file.write(chunk)
-
-      # After writing the entire file, move the file pointer to the beginning
-      temp_file.seek(0)
-
-      # Encrypt the temporary file
-      print('Encrypting file...')
-      with open(temp_file.name, 'rb') as temp_file_stream:
-        encrypted_data = gpg.encrypt_file(temp_file_stream, recipients=recipient_fingerprints, output=output_file)
-        if not encrypted_data.ok:
-          print("Encryption failed:", encrypted_data.status)
+        # Ensure the temporary file is closed before re-opening for reading
+        temp_file.close()
+        print('Encrypting file...')
+        with open(temp_file.name, 'rb') as temp_file_stream:
+          encrypted_data = gpg.encrypt_file(temp_file_stream, recipients=recipient_fingerprints, output=output_file)
+          if not encrypted_data.ok:
+            print("Encryption failed:", encrypted_data.status)
+            os.remove(temp_file.name)
+            return
+  except Exception as e:
+    print(f"Failed to encrypt file: {e}")
+  finally:
+    # Cleanup the temporary file
+    if os.path.exists(temp_file.name):
+      os.remove(temp_file.name)
 
 # USAGE:
 # to generate a PGP key, run the following command:
@@ -47,7 +60,7 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, ch
 #################
 temp_dir = '/mnt/ebs_volume/tmp/_data'
 if __name__ == "__main__":
-  input_file = '/mnt/ebs_volume/tmp/_data/customers-128000000.csv'
+  input_file = '/mnt/ebs_volume/tmp/_data/customers-8000000.csv'
   output_file = input_file + '.gpg'
   public_key_file = '/mnt/ebs_volume/tmp/_data/pgp_public_key.asc'
   start_time = time.time()
@@ -57,8 +70,9 @@ if __name__ == "__main__":
   print("Execution time:", time.strftime('%H:%M:%S', time.gmtime(end_time - start_time)))
 
 
+
 # RESULTS #:
-## File: customers-128000000.csv (22.4 GB size ->   encrypted)
+## File: customers-8000000.csv (1.4 GB size ->   encrypted)
 #### CPU: 16 cores | 32 vCPU (% usage)
 #### RAM:
-#### Execution time:
+#### Time:
