@@ -3,7 +3,7 @@ import gnupg
 import tempfile
 
 # Chunk size for reading the file
-chunk_size = 1024 * 1024 * 100  # 100MB
+chunk_size = 1024 * 1024 * 10  # 10 MB
 def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, chunk_size=chunk_size):
   # Initialize GPG
   gpg = gnupg.GPG(verbose=True)
@@ -45,9 +45,10 @@ def encrypt_file_with_gpg(input_file, output_file, public_key_file, temp_dir, ch
 #################
 ### MAIN CODE ###
 #################
-temp_dir = '/mnt/ebs_volume/tmp'
+temp_dir = '/mnt/ebs_volume/tmp/_data'
 if __name__ == "__main__":
-  input_file = '/mnt/ebs_volume/tmp/_data/customers-256000000.csv'
+  #input_file = '/mnt/ebs_volume/tmp/_data/customers-256000000.csv'
+  input_file = '/mnt/ebs_volume/tmp/_data/customers-8000000.csv'
   output_file = input_file + '.gpg'
   public_key_file = '/mnt/ebs_volume/tmp/_data/pgp_public_key.asc'
   start_time = time.time()
@@ -58,27 +59,18 @@ if __name__ == "__main__":
 
 
 # RESULTS #:
-## File: customers-256000000.csv (44.7 GB size -> 28.5 GB encrypted)
-### CPU: 4 cores | 8 vCPU (% usage)
+## File: customers-8000000.csv (1.4 GB size ->  980 MB encrypted)
+### CPU: 16 cores | 32 vCPU (% usage)
 #### RAM:
-#### Execution time (MM:HH:SS): 00:43:57
-#
-# IO2 Volume: 6000 IOPS
-# Test ($ sudo fio /mnt/ebs_volume/tmp/fio_test.fio) -> IOPS: 3049  | 12.5 MB/s
-### CPU: 4 cores | 8 vCPU (% usage)
-#### RAM:
-#### Execution time (MM:HH:SS):
-#
-#
-### CPU: 8 cores | 16 vCPU (% usage)
-#### RAM:
-#### Execution time (MM:HH:SS): 00:41:19
+#### Execution time (MM:HH:SS): 00:01:08
+
+
 
 # VERIFICATION #
 # $ gpg --decrypt ./_data/customers-256000000.csv.gpg > ./_data/decrypted_customers.csv
 #
-# $ sed -n '6666{p;q;}' ./_data/customers-256000000.csv
-# $ sed -n '6666{p;q;}' ./_data/decrypted_customers.csv
+# $ sed -n '6666{p;q;}' /mnt/ebs_volume/tmp/_data/customers-256000000.csv
+# $ sed -n '6666{p;q;}' /mnt/ebs_volume/tmp/_data/decrypted_customers.csv
 #
-# $ tail -n 6666 ./_data/customers-256000000.csv | head -n 1
-# $ tail -n 6666 ./_data/decrypted_customers.csv | head -n 1
+# $ tail -n 6666 /mnt/ebs_volume/tmp/_data/customers-256000000.csv | head -n 1
+# $ tail -n 6666 /mnt/ebs_volume/tmp/_data/decrypted_customers.csv | head -n 1
