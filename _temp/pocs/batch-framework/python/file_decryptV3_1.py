@@ -62,3 +62,11 @@ if __name__ == "__main__":
   end_time = time.time()
 
   print("Execution time:", time.strftime('%H:%M:%S', time.gmtime(end_time - start_time)))
+
+
+
+# RESULTS #:
+## File: customers-128000000.csv.gpg ( GB size -> GB decrypted)
+#### CPU: 16 cores | 32 vCPU (% usage)
+#### RAM:
+#### Time:
