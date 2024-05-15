@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
 
 # RESULTS #:
-## File: customers-128000000.csv (22.4 GB size ->   GB encrypted)
-#### CPU: 16 cores | 32 vCPU (% usage)
+## File: customers-128000000.csv (22.4 GB size -> 14.2 GB encrypted)
+#### CPU: 16 cores | 32 vCPU (5% usage)
 #### RAM:
-#### Time:
+#### Time: 00:17:25

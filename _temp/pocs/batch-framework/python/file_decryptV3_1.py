@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
 
 # RESULTS #:
-## File: customers-128000000.csv.gpg ( GB size ->   GB decrypted)
+## File: customers-128000000.csv.gpg (14.2 GB size -> 22.4 GB decrypted)
 #### CPU: 16 cores | 32 vCPU (% usage)
 #### RAM:
-#### Time:
+#### Time: 00:05:19
