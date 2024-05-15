@@ -114,8 +114,8 @@ public class FileEncryptorV1 {
  * # RESULTS #:
  * ## File: customers-2000000.csv (350 MB size ->  223 MB encrypted)
  * ### CPU: 4 cores | 8 vCPU (10% usage)
- * #### RAM: 7.1 GB -
- * #### Execution time (MM:HH:SS): 0 hours 11 minutes 10 seconds
+ * #### RAM: 0.5 GB
+ * #### Execution time (MM:HH:SS): 0 hours 11 minutes 16 seconds
  *
  *
  */
