@@ -53,7 +53,7 @@ def decrypt_file_with_gpg(encrypted_file, output_file, private_key_file, passphr
 #################
 temp_dir = '/mnt/ebs_volume/tmp/_data'
 if __name__ == "__main__":
-  encrypted_file = '/mnt/ebs_volume/tmp/_data/customers-32000000.csv.gpg'
+  encrypted_file = '/mnt/ebs_volume/tmp/_data/customers-128000000.csv.gpg'
   output_file = encrypted_file.replace('.csv.gpg', '_decrypted.csv')
   private_key_file = '/mnt/ebs_volume/tmp/_data/pgp_private_key.asc'
   passphrase = 'apple26j'
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
 
 # RESULTS #:
-## File: customers-32000000.csv.gpg ( GB size ->   GB decrypted)
+## File: customers-128000000.csv.gpg ( GB size ->   GB decrypted)
 #### CPU: 16 cores | 32 vCPU (% usage)
 #### RAM:
 #### Time:
