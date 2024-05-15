@@ -52,8 +52,15 @@ class FileComparator:
       print()
 
 # Example usage
-raw_file_path = '/mnt/ebs_volume/tmp/_data/customers-8000000.csv'
+raw_file_path = '/mnt/ebs_volume/tmp/_data/customers-32000000.csv'
 decrypted_file_path = raw_file_path.replace('.csv', '_decrypted.csv')
 
 comparator = FileComparator(raw_file_path, decrypted_file_path)
 comparator.compare_files()
+
+
+# RESULTS #:
+## File: customers-32000000.csv & customers-32000000_decrypted.csv
+#### CPU: 16 cores | 32 vCPU (% usage)
+#### RAM:
+#### Time:
