@@ -47,7 +47,9 @@ public class FileEncryptorV1 {
   @Builder.Default
   private boolean withIntegrityCheck = true;
   @Builder.Default
-  private int bufferSize = 1 << 16;
+  private int bufferSize = 100 * 1024 * 1024; // 100 MB buffer size
+  //private int bufferSize = 1 << 16;
+
 
 
   public void encrypt(OutputStream encryptOut, InputStream clearIn, long length, InputStream publicKeyIn)
@@ -75,35 +77,14 @@ public class FileEncryptorV1 {
     encryptOut.close();
   }
 
-  public byte[] encrypt(byte[] clearData, InputStream pubicKeyIn) throws PGPException, IOException {
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(clearData);
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    encrypt(outputStream, inputStream, clearData.length, pubicKeyIn);
-    return outputStream.toByteArray();
-  }
-
-  public InputStream encrypt(InputStream clearIn, long length, InputStream publicKeyIn)
-      throws IOException, PGPException {
-    File tempFile = File.createTempFile("pgp-", "-encrypted");
-    encrypt(Files.newOutputStream(tempFile.toPath()), clearIn, length, publicKeyIn);
-    return Files.newInputStream(tempFile.toPath());
-  }
-
-  public byte[] encrypt(byte[] clearData, String publicKeyStr) throws PGPException, IOException {
-    return encrypt(clearData, IOUtils.toInputStream(publicKeyStr, Charset.defaultCharset()));
-  }
-
-  public InputStream encrypt(InputStream clearIn, long length, String publicKeyStr) throws IOException, PGPException {
-    return encrypt(clearIn, length, IOUtils.toInputStream(publicKeyStr, Charset.defaultCharset()));
-  }
-
 
   public static void main(String[] args) {
-    //String inputFilePath = "/mnt/ebs_volume/tmp/_data/customers-256000000.csv";
-    String inputFilePath = "/mnt/ebs_volume/PrivateLearningV2.1/apps/apps-templates/_temp/pocs/batch-framework/python-docker/_data/sample.csv";
+    String inputFilePath = "/mnt/ebs_volume/tmp/_data/customers-2000000.csv";
+    //String inputFilePath = "/mnt/ebs_volume/PrivateLearningV2.1/apps/apps-templates/_temp/pocs/batch-framework/python-docker/_data/sample.csv";
     String publicKeyFilePath = "/mnt/ebs_volume/tmp/_data/pgp_public_key.asc";
     String outputFilePath = inputFilePath+".pgp";
 
+    long startTime = System.currentTimeMillis();
     FileEncryptorV1 fileEncryptorV1 = FileEncryptorV1.builder()
         .armor(true)
         .compressionAlgorithm(CompressionAlgorithmTags.ZIP)
@@ -120,7 +101,21 @@ public class FileEncryptorV1 {
     } catch (IOException | PGPException e) {
       e.printStackTrace();
     }
+    long endTime = System.currentTimeMillis();
+    // total time in HH:MM:SS format
+    long totalTime = endTime - startTime;
+    System.out.println("Total time taken: " + ((totalTime / (1000 * 60 * 60)) % 24) + " hours " + ((totalTime / (1000 * 60)) % 60) + " minutes " + ((totalTime / 1000) % 60) + " seconds");
 
   }
 
 }
+
+/**
+ * # RESULTS #:
+ * ## File: customers-2000000.csv (350 MB size ->  223 MB encrypted)
+ * ### CPU: 4 cores | 8 vCPU (10% usage)
+ * #### RAM: 7.1 GB -
+ * #### Execution time (MM:HH:SS): 0 hours 11 minutes 10 seconds
+ *
+ *
+ */
