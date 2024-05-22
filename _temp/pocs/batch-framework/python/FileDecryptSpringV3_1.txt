@@ -1,0 +1,92 @@
+import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.operator.jcajce.JcePGPContentVerifierBuilderProvider;
+import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactoryBuilder;
+import org.springframework.stereotype.Service;
+
+import java.io.*;
+import java.security.NoSuchProviderException;
+import java.security.Security;
+import java.util.Iterator;
+
+@Service
+public class PgpDecryptionService {
+    public void decryptFile(String inputFilePath, String outputFilePath, String privateKeyFilePath, char[] passPhrase) throws IOException, PGPException, NoSuchProviderException {
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+
+        InputStream in = new BufferedInputStream(new FileInputStream(inputFilePath));
+        InputStream keyIn = new BufferedInputStream(new FileInputStream(privateKeyFilePath));
+        decryptFile(in, keyIn, passPhrase, new FileOutputStream(outputFilePath));
+        in.close();
+        keyIn.close();
+    }
+
+    private static void decryptFile(InputStream in, InputStream keyIn, char[] passwd, OutputStream out) throws IOException, NoSuchProviderException, PGPException {
+        in = PGPUtil.getDecoderStream(in);
+
+        PGPObjectFactory pgpF = new PGPObjectFactory(in, new JcaKeyFingerprintCalculator());
+        PGPEncryptedDataList enc;
+
+        Object o = pgpF.nextObject();
+        if (o instanceof PGPEncryptedDataList) {
+            enc = (PGPEncryptedDataList) o;
+        } else {
+            enc = (PGPEncryptedDataList) pgpF.nextObject();
+        }
+
+        Iterator it = enc.getEncryptedDataObjects();
+        PGPPrivateKey sKey = null;
+        PGPPublicKeyEncryptedData pbe = null;
+
+        while (sKey == null && it.hasNext()) {
+            pbe = (PGPPublicKeyEncryptedData) it.next();
+            sKey = findPrivateKey(keyIn, pbe.getKeyID(), passwd);
+        }
+
+        if (sKey == null) {
+            throw new IllegalArgumentException("Secret key for message not found.");
+        }
+
+        InputStream clear = pbe.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder().setProvider("BC").build(sKey));
+
+        PGPObjectFactory plainFact = new PGPObjectFactory(clear, new JcaKeyFingerprintCalculator());
+
+        Object message = plainFact.nextObject();
+
+        if (message instanceof PGPCompressedData) {
+            PGPCompressedData cData = (PGPCompressedData) message;
+            PGPObjectFactory pgpFact = new PGPObjectFactory(cData.getDataStream(), new JcaKeyFingerprintCalculator());
+
+            message = pgpFact.nextObject();
+        }
+
+        if (message instanceof PGPLiteralData) {
+            PGPLiteralData ld = (PGPLiteralData) message;
+            InputStream unc = ld.getInputStream();
+            int ch;
+            while ((ch = unc.read()) >= 0) {
+                out.write(ch);
+            }
+        } else if (message instanceof PGPOnePassSignatureList) {
+            throw new PGPException("Encrypted message contains a signed message - not literal data.");
+        } else {
+            throw new PGPException("Message is not a simple encrypted file - type unknown.");
+        }
+
+        if (pbe.isIntegrityProtected()) {
+            if (!pbe.verify()) {
+                throw new PGPException("Message failed integrity check");
+            }
+        }
+    }
+
+    private static PGPPrivateKey findPrivateKey(InputStream keyIn, long keyID, char[] pass) throws IOException, PGPException {
+        PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(PGPUtil.getDecoderStream(keyIn), new JcaKeyFingerprintCalculator());
+
+        PGPSecretKey pgpSecKey = pgpSec.getSecretKey(keyID);
+        if (pgpSecKey == null) {
+            return null;
+        }
+
+        return pgpSecKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(pass));
+    }
+}
