@@ -90,3 +90,95 @@ public class PgpDecryptionService {
         return pgpSecKey.extractPrivateKey(new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(pass));
     }
 }
+
+
+
+serviceV2
+---------
+import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.operator.jcajce.*;
+import org.springframework.stereotype.Service;
+import java.io.*;
+import java.util.zip.GZIPInputStream;
+
+@Service
+public class PgpDecryptionService {
+    public void decryptFile(String inputFilePath, String outputFilePath, String privateKeyFilePath, char[] password) throws IOException, PGPException {
+        PGPPrivateKey privateKey = readPrivateKey(privateKeyFilePath, password);
+        File decryptedFile = decryptToTempFile(inputFilePath, privateKey);
+        decompressFile(decryptedFile, outputFilePath);
+    }
+
+    private PGPPrivateKey readPrivateKey(String privateKeyFilePath, char[] password) throws IOException, PGPException {
+        InputStream keyIn = new BufferedInputStream(new FileInputStream(privateKeyFilePath));
+        PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(
+            PGPUtil.getDecoderStream(keyIn), new JcaKeyFingerprintCalculator());
+        
+        Iterator<PGPSecretKeyRing> keyRingIter = pgpSec.getKeyRings();
+        while (keyRingIter.hasNext()) {
+            PGPSecretKeyRing keyRing = keyRingIter.next();
+            Iterator<PGPSecretKey> keyIter = keyRing.getSecretKeys();
+            while (keyIter.hasNext()) {
+                PGPSecretKey key = keyIter.next();
+                if (key.isPrivateKey()) {
+                    PGPPrivateKey privateKey = key.extractPrivateKey(
+                        new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(password));
+                    if (privateKey != null) {
+                        return privateKey;
+                    }
+                }
+            }
+        }
+        throw new IllegalArgumentException("Valid private key not found in the file.");
+    }
+
+    private File decryptToTempFile(String inputFilePath, PGPPrivateKey privateKey) throws IOException, PGPException {
+        File tempFile = File.createTempFile("decrypted", null);
+        InputStream in = new BufferedInputStream(new FileInputStream(inputFilePath));
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(tempFile));
+        PGPPublicKeyEncryptedData pbe = findEncryptedDataObject(in);
+        
+        InputStream clear = pbe.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder().setProvider("BC").build(privateKey));
+        byte[] buffer = new byte[4096];
+        int len;
+        while ((len = clear.read(buffer)) > 0) {
+            out.write(buffer, 0, len);
+        }
+        out.close();
+        in.close();
+        System.out.println("Decryption completed, temporary file size: " + tempFile.length());
+        return tempFile;
+    }
+
+    private PGPPublicKeyEncryptedData findEncryptedDataObject(InputStream in) throws IOException, PGPException {
+        PGPObjectFactory pgpF = new PGPObjectFactory(in, new JcaKeyFingerprintCalculator());
+        PGPEncryptedDataList enc = null;
+        Object object = pgpF.nextObject();
+        if (object instanceof PGPEncryptedDataList) {
+            enc = (PGPEncryptedDataList) object;
+        } else if (object instanceof PGPCompressedData) {
+            enc = (PGPEncryptedDataList) ((PGPCompressedData) object).getDataStream();
+        }
+
+        if (enc == null) throw new PGPException("No encrypted data found.");
+        
+        Iterator<PGPEncryptedData> it = enc.getEncryptedDataObjects();
+        if (!it.hasNext()) throw new PGPException("No encrypted data object found.");
+
+        return (PGPPublicKeyEncryptedData) it.next();
+    }
+
+    private void decompressFile(File inputFile, String outputFilePath) throws IOException {
+        try (GZIPInputStream gzipIn = new GZIPInputStream(new FileInputStream(inputFile));
+             FileOutputStream out = new FileOutputStream(outputFilePath)) {
+            byte[] buffer = new byte[4096];
+            int len;
+            while ((len = gzipIn.read(buffer)) > 0) {
+                out.write(buffer, 0, len);
+            }
+        }
+        System.out.println("Decompression completed, output file size: " + new File(outputFilePath).length());
+    }
+}
+
+
