@@ -85,3 +85,82 @@ public class EncryptionController {
         }
     }
 }
+
+
+serviceV2
+---------
+import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.operator.jcajce.*;
+import org.springframework.stereotype.Service;
+import java.io.*;
+import java.util.zip.GZIPOutputStream;
+
+@Service
+public class PgpEncryptionService {
+    public void encryptFile(String inputFilePath, String outputFilePath, String publicKeyFilePath) throws IOException, PGPException {
+        PGPPublicKey encKey = readPublicKey(publicKeyFilePath);
+        File compressedFile = compressFile(inputFilePath);
+        encryptAndWriteFile(compressedFile, outputFilePath, encKey);
+    }
+
+    private File compressFile(String inputFilePath) throws IOException {
+        File outputFile = new File(inputFilePath + ".gz");
+        try (FileInputStream fis = new FileInputStream(inputFilePath);
+             FileOutputStream fos = new FileOutputStream(outputFile);
+             GZIPOutputStream gzipOS = new GZIPOutputStream(fos)) {
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = fis.read(buffer)) != -1) {
+                gzipOS.write(buffer, 0, len);
+            }
+        }
+        System.out.println("Compression completed, file size: " + outputFile.length());
+        return outputFile;
+    }
+
+    private void encryptAndWriteFile(File inputFile, String outputFilePath, PGPPublicKey encKey) throws IOException, PGPException {
+        if (inputFile.length() == 0) {
+            throw new IOException("Compressed file is empty, cannot encrypt.");
+        }
+        
+        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFilePath));
+             FileInputStream fis = new FileInputStream(inputFile)) {
+            PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(
+                    new JcePGPDataEncryptorBuilder(PGPEncryptedData.CAST5)
+                            .setWithIntegrityPacket(true)
+                            .setSecureRandom(new SecureRandom())
+                            .setProvider("BC"));
+            encGen.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(encKey).setProvider("BC"));
+            OutputStream cOut = encGen.open(out, new byte[4096]);
+            byte[] buf = new byte[4096];
+            int len;
+            while ((len = fis.read(buf)) > 0) {
+                cOut.write(buf, 0, len);
+            }
+            cOut.close();
+        }
+        System.out.println("Encryption completed, output file size: " + new File(outputFilePath).length());
+    }
+
+    private PGPPublicKey readPublicKey(String publicKeyFilePath) throws IOException, PGPException {
+        try (InputStream keyIn = new FileInputStream(publicKeyFilePath)) {
+            PGPPublicKeyRingCollection pgpPub = new PGPPublicKeyRingCollection(PGPUtil.getDecoderStream(keyIn), new JcaKeyFingerprintCalculator());
+            Iterator<PGPPublicKeyRing> keyRingIter = pgpPub.getKeyRings();
+            while (keyRingIter.hasNext()) {
+                PGPPublicKeyRing keyRing = keyRingIter.next();
+                Iterator<PGPPublicKey> keyIter = keyRing.getPublicKeys();
+                while (keyIter.hasNext()) {
+                    PGPPublicKey key = keyIter.next();
+                    if (key.isEncryptionKey()) {
+                        return key;
+                    }
+                }
+            }
+        }
+        throw new IllegalArgumentException("Valid encryption key not found in public key file.");
+    }
+}
+
+
+
+
