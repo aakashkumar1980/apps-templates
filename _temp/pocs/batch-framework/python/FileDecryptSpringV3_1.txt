@@ -181,4 +181,95 @@ public class PgpDecryptionService {
     }
 }
 
+serviceV3
+---------
+import org.bouncycastle.openpgp.*;
+import org.bouncycastle.openpgp.operator.jcajce.*;
+import org.springframework.stereotype.Service;
+import java.io.*;
+import java.util.zip.GZIPInputStream;
+import java.security.Security;
+
+@Service
+public class PgpDecryptionService {
+    static {
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+    }
+
+    public void decryptFile(String inputFilePath, String outputFilePath, String privateKeyFilePath, char[] password) throws IOException, PGPException {
+        PGPPrivateKey privateKey = readPrivateKey(privateKeyFilePath, password);
+        // Decrypt to a stream
+        ByteArrayOutputStream decryptedData = decryptToStream(inputFilePath, privateKey);
+        // Decompress the decrypted data
+        decompressData(decryptedData, new File(outputFilePath));
+    }
+
+    private PGPPrivateKey readPrivateKey(String privateKeyFilePath, char[] password) throws IOException, PGPException {
+        InputStream keyIn = new BufferedInputStream(new FileInputStream(privateKeyFilePath));
+        PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(
+            PGPUtil.getDecoderStream(keyIn), new JcaKeyFingerprintCalculator());
+
+        Iterator<PGPSecretKeyRing> keyRingIter = pgpSec.getKeyRings();
+        while (keyRingIter.hasNext()) {
+            PGPSecretKeyRing keyRing = keyRingIter.next();
+            Iterator<PGPSecretKey> keyIter = keyRing.getSecretKeys();
+            while (keyIter.hasNext()) {
+                PGPSecretKey key = keyIter.next();
+                if (key.isPrivateKey()) {
+                    PGPPrivateKey privateKey = key.extractPrivateKey(
+                        new JcePBESecretKeyDecryptorBuilder().setProvider("BC").build(password));
+                    if (privateKey != null) {
+                        return privateKey;
+                    }
+                }
+            }
+        }
+        throw new IllegalArgumentException("Valid private key not found in the file.");
+    }
+
+    private ByteArrayOutputStream decryptToStream(String inputFilePath, PGPPrivateKey privateKey) throws IOException, PGPException {
+        InputStream in = new BufferedInputStream(new FileInputStream(inputFilePath));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PGPObjectFactory pgpF = new PGPObjectFactory(in, new JcaKeyFingerprintCalculator());
+        PGPEncryptedDataList enc = null;
+        Object object = pgpF.nextObject();
+        if (object instanceof PGPEncryptedDataList) {
+            enc = (PGPEncryptedDataList) object;
+        } else {
+            throw new PGPException("Malformed encrypted data found.");
+        }
+
+        PGPPublicKeyEncryptedData pbe = (PGPPublicKeyEncryptedData) enc.getEncryptedDataObjects().next();
+        InputStream clear = pbe.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder().setProvider("BC").build(privateKey));
+
+        byte[] buffer = new byte[4096];
+        int len;
+        while ((len = clear.read(buffer)) > 0) {
+            out.write(buffer, 0, len);
+        }
+
+        if (pbe.isIntegrityProtected() && !pbe.verify()) {
+            throw new PGPException("Data integrity check failed.");
+        }
+        System.out.println("Decryption and integrity check complete.");
+        in.close();
+        return out;
+    }
+
+    private void decompressData(ByteArrayOutputStream data, File outputFile) throws IOException {
+        byte[] byteData = data.toByteArray();
+        InputStream bin = new ByteArrayInputStream(byteData);
+        GZIPInputStream gzipIn = new GZIPInputStream(bin);
+        OutputStream out = new FileOutputStream(outputFile);
+
+        byte[] buffer = new byte[4096];
+        int len;
+        while ((len = gzipIn.read(buffer)) > 0) {
+            out.write(buffer, 0, len);
+        }
+        out.close();
+        System.out.println("Decompression completed, output file size: " + outputFile.length());
+    }
+}
+
 
