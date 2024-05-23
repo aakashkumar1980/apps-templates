@@ -1,0 +1,37 @@
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class MD5HashExample {
+
+    public static void main(String[] args) {
+        String filePath = "path/to/your/file.txt";
+        
+        try {
+            BigInteger md5NumericalValue = getMD5ChecksumAsNumber(filePath);
+            System.out.println("MD5 Hash Numerical Value: " + md5NumericalValue);
+        } catch (IOException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static BigInteger getMD5ChecksumAsNumber(String filePath) throws IOException, NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        try (FileInputStream fis = new FileInputStream(filePath)) {
+            byte[] dataBytes = new byte[1024];
+            int bytesRead;
+
+            while ((bytesRead = fis.read(dataBytes)) != -1) {
+                md.update(dataBytes, 0, bytesRead);
+            }
+        }
+
+        byte[] mdBytes = md.digest();
+
+        // Convert the byte array to a BigInteger
+        BigInteger mdNumber = new BigInteger(1, mdBytes); // The "1" indicates a positive number
+        return mdNumber;
+    }
+}
