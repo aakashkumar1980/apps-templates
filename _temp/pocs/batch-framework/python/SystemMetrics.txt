@@ -1,0 +1,84 @@
+import org.springframework.stereotype.Service;
+import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
+import oshi.hardware.GlobalMemory;
+import oshi.hardware.HWDiskStore;
+import oshi.hardware.HWPartition;
+import oshi.software.os.OSFileStore;
+import oshi.software.os.OperatingSystem;
+
+@Service
+public class SystemMetricsService {
+
+    private final SystemInfo si = new SystemInfo();
+
+    public long getVolumeSize() {
+        OperatingSystem os = si.getOperatingSystem();
+        for (OSFileStore store : os.getFileSystem().getFileStores()) {
+            if (store.getMount().equals("/desired/mount/point")) { // Specify your mount point here
+                return store.getTotalSpace();
+            }
+        }
+        return -1;
+    }
+
+    public double getDiskUsagePercentage() {
+        OperatingSystem os = si.getOperatingSystem();
+        for (OSFileStore store : os.getFileSystem().getFileStores()) {
+            long totalSpace = store.getTotalSpace();
+            long usableSpace = store.getUsableSpace();
+            double usagePercentage = 100.0 - ((double) usableSpace / totalSpace * 100.0);
+            return usagePercentage;
+        }
+        return 0.0;
+    }
+
+    public double getCpuUsage() {
+        CentralProcessor processor = si.getHardware().getProcessor();
+        double[] load = processor.getSystemLoadAverage(1);
+        return load[0];
+    }
+
+    public double getRamUsage() {
+        GlobalMemory memory = si.getHardware().getMemory();
+        long totalMemory = memory.getTotal();
+        long availableMemory = memory.getAvailable();
+        double usedMemoryPercentage = 100.0 - ((double) availableMemory / totalMemory * 100.0);
+        return usedMemoryPercentage;
+    }
+}
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class SystemMetricsController {
+
+    @Autowired
+    private SystemMetricsService metricsService;
+
+    @GetMapping("/volumeSize")
+    public long getVolumeSize() {
+        return metricsService.getVolumeSize();
+    }
+
+    @GetMapping("/diskUsage")
+    public double getDiskUsage() {
+        return metricsService.getDiskUsagePercentage();
+    }
+
+    @GetMapping("/cpuUsage")
+    public double getCpuUsage() {
+        return metricsService.getCpuUsage();
+    }
+
+    @GetMapping("/ramUsage")
+    public double getRamUsage() {
+        return metricsService.getRamUsage();
+    }
+}
+
+
