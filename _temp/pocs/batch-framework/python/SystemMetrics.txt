@@ -82,3 +82,27 @@ public class SystemMetricsController {
 }
 
 
+import org.springframework.stereotype.Service;
+
+@Service
+public class SystemMetricsService {
+
+    public int getTotalCpuCores() {
+        return Runtime.getRuntime().availableProcessors();
+    }
+
+    public double getTotalRamInGB() {
+        long totalMemoryInBytes = Runtime.getRuntime().totalMemory();
+        return totalMemoryInBytes / 1073741824.0; // Convert bytes to gigabytes
+    }
+
+    public double getFreeRamInGB() {
+        long freeMemoryInBytes = Runtime.getRuntime().freeMemory();
+        return freeMemoryInBytes / 1073741824.0; // Convert bytes to gigabytes
+    }
+
+    public double getMaxRamInGB() {
+        long maxMemoryInBytes = Runtime.getRuntime().maxMemory();
+        return maxMemoryInBytes / 1073741824.0; // Convert bytes to gigabytes
+    }
+}
