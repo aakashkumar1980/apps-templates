@@ -1,0 +1,107 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+public class FileSplitter {
+    private static final long MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB in bytes
+
+    public static void main(String[] args) {
+        String inputFilePath = "path/to/largefile.txt";
+        String outputDir = "path/to/output/directory";
+        
+        try {
+            Files.createDirectories(Paths.get(outputDir));
+            splitFile(inputFilePath, outputDir);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void splitFile(String inputFilePath, String outputDir) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFilePath))) {
+            String line;
+            int filePart = 1;
+            long currentFileSize = 0;
+            BufferedWriter writer = createWriter(outputDir, filePart);
+
+            while ((line = reader.readLine()) != null) {
+                if (currentFileSize + line.getBytes().length > MAX_FILE_SIZE) {
+                    writer.close();
+                    filePart++;
+                    writer = createWriter(outputDir, filePart);
+                    currentFileSize = 0;
+                }
+
+                writer.write(line);
+                writer.newLine();
+                currentFileSize += line.getBytes().length;
+            }
+
+            writer.close();
+        }
+    }
+
+    private static BufferedWriter createWriter(String outputDir, int part) throws IOException {
+        return new BufferedWriter(new FileWriter(outputDir + "/split_part_" + part + ".txt"));
+    }
+}
+
+
+
+------------
+  import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+public class PodIdentifier {
+    public static String getHostName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException("Failed to get hostname", e);
+        }
+    }
+
+    public static String getPodNameFromEnv() {
+        return System.getenv("HOSTNAME");
+    }
+}
+
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+@Component
+public class FileProcessorScheduler {
+    private final long delay;
+
+    public FileProcessorScheduler() {
+        String podName = PodIdentifier.getPodNameFromEnv();
+        this.delay = DelayCalculator.calculateDelay(podName);
+    }
+
+    @Scheduled(fixedRate = 60000, initialDelayString = "#{T(java.lang.System).currentTimeMillis() % 60000}") // Example: 60 seconds rate
+    public void processFile() {
+        try {
+            Thread.sleep(delay); // Add the calculated delay
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        // Your file processing logic here
+    }
+}
+
+
+public class DelayCalculator {
+    public static long calculateDelay(String identifier) {
+        int hash = identifier.hashCode();
+        int delayInSeconds = Math.abs(hash % 60); // Delay between 0 and 59 seconds
+        return delayInSeconds * 1000L; // Convert to milliseconds
+    }
+}
+
+
+
