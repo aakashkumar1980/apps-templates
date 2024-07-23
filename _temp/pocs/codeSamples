@@ -105,3 +105,89 @@ public class DelayCalculator {
 
 
 
+
+
+----------
+import subprocess
+import re
+import os
+import tempfile
+
+def import_key(key_file):
+    result = subprocess.run(['gpg', '--import', key_file], capture_output=True, text=True)
+    return result
+
+def list_packets(key_file):
+    result = subprocess.run(['gpg', '--list-packets', key_file], capture_output=True, text=True)
+    return result.stdout
+
+def extract_key_info(packet_output):
+    # Initialize variables
+    encryption_type = None
+    expiry_date = None
+    hash_types = []
+
+    # Regex patterns
+    pub_pattern = re.compile(r'^:public key packet:\s*version \d, algo (\d),.*created (\d+),.*expires (\d+)?')
+    hash_pattern = re.compile(r'digest algo (\d+)')
+    
+    # Mapping of algorithm numbers to names
+    algo_map = {
+        '1': 'RSA',
+        '17': 'DSA',
+        '18': 'ECDSA',
+        '19': 'EdDSA'
+    }
+    
+    hash_algo_map = {
+        '1': 'MD5',
+        '2': 'SHA1',
+        '8': 'SHA256',
+        '9': 'SHA384',
+        '10': 'SHA512',
+        '11': 'SHA224'
+    }
+
+    for line in packet_output.split('\n'):
+        # Extract encryption type
+        pub_match = pub_pattern.match(line)
+        if pub_match:
+            algo_number = pub_match.group(1)
+            encryption_type = algo_map.get(algo_number, f'Unknown (algo {algo_number})')
+            creation_date = int(pub_match.group(2))
+            expires_in = int(pub_match.group(3)) if pub_match.group(3) else 0
+            expiry_date = 'Never' if expires_in == 0 else creation_date + expires_in
+
+        # Extract hash types
+        hash_match = hash_pattern.search(line)
+        if hash_match:
+            hash_algo_number = hash_match.group(1)
+            hash_type = hash_algo_map.get(hash_algo_number, f'Unknown (algo {hash_algo_number})')
+            if hash_type not in hash_types:
+                hash_types.append(hash_type)
+    
+    return encryption_type, hash_types, expiry_date
+
+def main():
+    key_file = 'publickey.asc'
+    
+    # Import key
+    import_result = import_key(key_file)
+    if import_result.returncode != 0:
+        print(f"Error importing key: {import_result.stderr}")
+        return
+    
+    # List packets
+    packet_output = list_packets(key_file)
+    
+    # Extract information
+    encryption_type, hash_types, expiry_date = extract_key_info(packet_output)
+    
+    # Display the results
+    print(f"Encryption Type: {encryption_type}")
+    print(f"Hash Types: {', '.join(hash_types)}")
+    print(f"Expiry Date: {expiry_date}")
+
+if __name__ == '__main__':
+    main()
+
