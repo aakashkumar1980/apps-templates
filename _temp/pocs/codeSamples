@@ -191,3 +191,83 @@ def main():
 if __name__ == '__main__':
     main()
 
+
+
+###### kafka configs ######
+# Kafka broker addresses
+spring.kafka.bootstrap-servers=localhost:9092
+
+# Producer configuration
+spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+spring.kafka.producer.value-serializer=org.apache.kafka.common.serialization.StringSerializer
+
+# Increase number of retries to handle transient failures
+spring.kafka.producer.retries=10
+
+# Backoff between retries
+spring.kafka.producer.retry-backoff-ms=1000
+
+# Set request timeout to allow longer wait time for broker response
+spring.kafka.producer.request.timeout.ms=60000
+
+# Increase delivery timeout to allow more time for retries
+spring.kafka.producer.delivery.timeout.ms=120000
+
+# Set linger time to improve batching (optional - can improve efficiency)
+spring.kafka.producer.linger-ms=10
+
+# Increase buffer memory for batching larger messages (optional)
+spring.kafka.producer.buffer-memory=33554432
+
+
+
+
+# Set metadata max age to force more frequent metadata refresh
+spring.kafka.properties.metadata.max.age.ms=30000
+
+# Enable debug logs for Kafka client to help diagnose issues
+logging.level.org.apache.kafka.clients=DEBUG
+
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Configuration
+public class KafkaProducerConfig {
+
+    @Bean
+    public ProducerFactory<String, String> producerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+
+        // Increase retries and backoff
+        configProps.put(ProducerConfig.RETRIES_CONFIG, 10);
+        configProps.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 1000);
+
+        // Set timeouts
+        configProps.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
+        configProps.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 120000);
+
+        // Reduce metadata refresh interval
+        configProps.put(ProducerConfig.METADATA_MAX_AGE_CONFIG, 30000);
+
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, String> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
+    }
+}
+
+
