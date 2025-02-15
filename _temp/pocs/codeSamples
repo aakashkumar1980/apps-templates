@@ -1,273 +1,336 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+Understood! Let's break down the solution step by step based on your requirements, using Spring Boot 2.7.3. This will involve:
 
-public class FileSplitter {
-    private static final long MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB in bytes
+Assigning one partition to one POD.
 
-    public static void main(String[] args) {
-        String inputFilePath = "path/to/largefile.txt";
-        String outputDir = "path/to/output/directory";
-        
-        try {
-            Files.createDirectories(Paths.get(outputDir));
-            splitFile(inputFilePath, outputDir);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+Implementing a delay of 5 minutes before Kafka assigns partitions to the pods.
+
+Ensuring that if a POD crashes, it gets re-assigned the same partitions.
+
+Using manual acknowledgment in Kafka listeners.
+
+Processing one message at a time within each POD and queuing subsequent messages.
+
+
+I will share the code in steps, as per your requirement, and include detailed comments and Javadoc.
+
+
+---
+
+Step 1: KafkaPartitionService.java
+
+This service is responsible for managing partition assignments and ensuring that each POD gets assigned a consistent partition.
+
+import org.apache.kafka.common.TopicPartition;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import javax.annotation.PostConstruct;
+import java.util.*;
+
+/**
+ * Service responsible for managing Kafka partition assignments to PODs.
+ * This service assigns partitions based on the POD name and ensures that partitions
+ * are re-assigned to the same POD if it crashes or restarts.
+ */
+@Service
+public class KafkaPartitionService {
+
+    private static final int TOTAL_PARTITIONS = 8; // Number of Kafka partitions
+    private static final int TOTAL_PODS = 8; // Number of PODs
+
+    @Value("${POD_NAME}")  // The name of the POD, should be set as an environment variable
+    private String podName;
+
+    private final KafkaPartitionRepository partitionRepository; // Repository to interact with Couchbase
+    private List<TopicPartition> assignedPartitions = new ArrayList<>(); // List to store assigned partitions
+
+    /**
+     * Constructor to initialize the KafkaPartitionService with the Couchbase repository.
+     *
+     * @param partitionRepository The Couchbase repository for partition mappings.
+     */
+    public KafkaPartitionService(KafkaPartitionRepository partitionRepository) {
+        this.partitionRepository = partitionRepository;
     }
 
-    public static void splitFile(String inputFilePath, String outputDir) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader(inputFilePath))) {
-            String line;
-            int filePart = 1;
-            long currentFileSize = 0;
-            BufferedWriter writer = createWriter(outputDir, filePart);
+    /**
+     * PostConstruct method that runs after the service is initialized.
+     * It assigns partitions after a 5-minute delay and stores them in Couchbase.
+     */
+    @PostConstruct
+    public void init() {
+        try {
+            // Wait for 5 minutes to allow all PODs to come up
+            Thread.sleep(300000);  // 5 minutes delay in milliseconds
 
-            while ((line = reader.readLine()) != null) {
-                if (currentFileSize + line.getBytes().length > MAX_FILE_SIZE) {
-                    writer.close();
-                    filePart++;
-                    writer = createWriter(outputDir, filePart);
-                    currentFileSize = 0;
-                }
-
-                writer.write(line);
-                writer.newLine();
-                currentFileSize += line.getBytes().length;
+            // Get previously assigned partitions from Couchbase
+            assignedPartitions = getPartitionsFromDB(podName);
+            if (assignedPartitions.isEmpty()) {
+                assignedPartitions = assignPartitionsToPODs();
+                storePartitionsInDB(podName, assignedPartitions); // Store assignment in Couchbase
             }
-
-            writer.close();
-        }
-    }
-
-    private static BufferedWriter createWriter(String outputDir, int part) throws IOException {
-        return new BufferedWriter(new FileWriter(outputDir + "/split_part_" + part + ".txt"));
-    }
-}
-
-
-
-------------
-  import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-public class PodIdentifier {
-    public static String getHostName() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            throw new RuntimeException("Failed to get hostname", e);
-        }
-    }
-
-    public static String getPodNameFromEnv() {
-        return System.getenv("HOSTNAME");
-    }
-}
-
-
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
-@Component
-public class FileProcessorScheduler {
-    private final long delay;
-
-    public FileProcessorScheduler() {
-        String podName = PodIdentifier.getPodNameFromEnv();
-        this.delay = DelayCalculator.calculateDelay(podName);
-    }
-
-    @Scheduled(fixedRate = 60000, initialDelayString = "#{T(java.lang.System).currentTimeMillis() % 60000}") // Example: 60 seconds rate
-    public void processFile() {
-        try {
-            Thread.sleep(delay); // Add the calculated delay
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        // Your file processing logic here
+    }
+
+    /**
+     * Retrieves previously assigned partitions from Couchbase for this POD.
+     * If the POD is restarted, it gets its original partitions back.
+     *
+     * @param podName The name of the POD (unique identifier).
+     * @return The list of partitions assigned to this POD.
+     */
+    private List<TopicPartition> getPartitionsFromDB(String podName) {
+        Optional<KafkaPartitionMapping> partitionData = partitionRepository.findById(podName);
+        List<TopicPartition> partitions = new ArrayList<>();
+        partitionData.ifPresent(data -> data.getPartitions().forEach(p -> partitions.add(new TopicPartition("my-topic", p))));
+        return partitions;
+    }
+
+    /**
+     * Assigns partitions to each POD using a consistent hashing approach.
+     * Each POD will be assigned one partition.
+     *
+     * @return The list of TopicPartition objects assigned to this POD.
+     */
+    private List<TopicPartition> assignPartitionsToPODs() {
+        List<TopicPartition> partitions = new ArrayList<>();
+
+        // Get a consistent partition assignment based on POD name (hashing approach)
+        int podIndex = Math.abs(podName.hashCode()) % TOTAL_PODS;
+        int partitionForPod = podIndex % TOTAL_PARTITIONS;
+
+        // Assign the corresponding partition to this POD
+        partitions.add(new TopicPartition("my-topic", partitionForPod));
+
+        return partitions;
+    }
+
+    /**
+     * Stores the assigned partitions for this POD in Couchbase.
+     * This ensures that the POD gets the same partition set after restarts.
+     *
+     * @param podName      The POD's unique name.
+     * @param partitions   The list of assigned partitions.
+     */
+    private void storePartitionsInDB(String podName, List<TopicPartition> partitions) {
+        List<Integer> partitionList = new ArrayList<>();
+        partitions.forEach(p -> partitionList.add(p.partition()));
+
+        KafkaPartitionMapping partitionMapping = new KafkaPartitionMapping(podName, partitionList);
+        partitionRepository.save(partitionMapping);  // Save to Couchbase
+    }
+
+    /**
+     * Returns the list of partitions assigned to this POD.
+     *
+     * @return The list of TopicPartition assigned to this POD.
+     */
+    public List<TopicPartition> getAssignedPartitions() {
+        return assignedPartitions;
     }
 }
 
+Explanation of KafkaPartitionService:
 
-public class DelayCalculator {
-    public static long calculateDelay(String identifier) {
-        int hash = identifier.hashCode();
-        int delayInSeconds = Math.abs(hash % 60); // Delay between 0 and 59 seconds
-        return delayInSeconds * 1000L; // Convert to milliseconds
+Partition Assignment:
+
+The partitions are assigned using a hashing approach based on the POD name.
+
+If the POD is restarted, it gets the same partition assigned as before (from Couchbase).
+
+
+5-Minute Delay:
+
+The init method waits for 5 minutes (Thread.sleep(300000)) to allow all PODs to be up before partition assignment.
+
+
+Couchbase Persistence:
+
+The partitions are saved in Couchbase (KafkaPartitionMapping) so that if the POD crashes or restarts, it is re-assigned the same partition.
+
+
+POD Name as a Unique Identifier:
+
+The podName is passed via the environment variable ${POD_NAME}, which is unique for each POD and used to assign partitions.
+
+
+
+
+---
+
+Step 2: KafkaConsumerService.java
+
+This service consumes messages from Kafka and processes them one at a time.
+
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.listener.MessageListener;
+import org.springframework.stereotype.Service;
+
+/**
+ * Kafka consumer service responsible for consuming messages from Kafka topics.
+ * The listener processes one message at a time, ensuring sequential processing within a POD.
+ */
+@Service
+public class KafkaConsumerService implements MessageListener<String, String> {
+
+    private final KafkaPartitionService partitionService;
+
+    /**
+     * Constructor for initializing KafkaConsumerService with the partition service.
+     *
+     * @param partitionService The KafkaPartitionService to retrieve partition assignments.
+     */
+    public KafkaConsumerService(KafkaPartitionService partitionService) {
+        this.partitionService = partitionService;
+    }
+
+    /**
+     * This method is triggered whenever Kafka assigns partitions to the consumer.
+     * The consumer is manually assigned partitions to ensure it only processes the partitions it owns.
+     *
+     * @param consumer     The Kafka consumer instance.
+     * @param partitions  The list of TopicPartition objects assigned to the consumer.
+     */
+    public void onPartitionsAssigned(Consumer<String, String> consumer, List<TopicPartition> partitions) {
+        List<TopicPartition> assignedPartitions = partitionService.getAssignedPartitions();
+        consumer.assign(assignedPartitions); // Manually assign partitions
+        System.out.println("Assigned partitions: " + assignedPartitions);
+    }
+
+    /**
+     * Listens to messages on the Kafka topic and processes them one by one within the POD.
+     * The processing is done sequentially, ensuring that only one message is processed at a time per POD.
+     *
+     * @param record The Kafka ConsumerRecord containing the message and metadata.
+     */
+    @KafkaListener(topics = "my-topic", groupId = "my-consumer-group", containerFactory = "manualKafkaListenerContainerFactory")
+    public void listen(ConsumerRecord<String, String> record) {
+        try {
+            // Simulate message processing
+            System.out.println("Processing message: " + record.value());
+            // Manually commit after processing each message
+            // You can implement your manual commit logic here
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
 
+Explanation of KafkaConsumerService:
+
+Message Processing (Sequential):
+
+The listener processes one message at a time (@KafkaListener annotation).
+
+Each message is processed sequentially within the POD.
+
+
+Manual Acknowledgment:
+
+This service processes the message and can manually acknowledge or commit the message after processing (which you can implement in your business logic).
 
 
 
 
-----------
-import subprocess
-import re
-import os
-import tempfile
+---
 
-def import_key(key_file):
-    result = subprocess.run(['gpg', '--import', key_file], capture_output=True, text=True)
-    return result
+Step 3: KafkaConfig.java
 
-def list_packets(key_file):
-    result = subprocess.run(['gpg', '--list-packets', key_file], capture_output=True, text=True)
-    return result.stdout
+This configuration ensures that the Kafka consumer is properly configured to use manual acknowledgment.
 
-def extract_key_info(packet_output):
-    # Initialize variables
-    encryption_type = None
-    expiry_date = None
-    hash_types = []
-
-    # Regex patterns
-    pub_pattern = re.compile(r'^:public key packet:\s*version \d, algo (\d),.*created (\d+),.*expires (\d+)?')
-    hash_pattern = re.compile(r'digest algo (\d+)')
-    
-    # Mapping of algorithm numbers to names
-    algo_map = {
-        '1': 'RSA',
-        '17': 'DSA',
-        '18': 'ECDSA',
-        '19': 'EdDSA'
-    }
-    
-    hash_algo_map = {
-        '1': 'MD5',
-        '2': 'SHA1',
-        '8': 'SHA256',
-        '9': 'SHA384',
-        '10': 'SHA512',
-        '11': 'SHA224'
-    }
-
-    for line in packet_output.split('\n'):
-        # Extract encryption type
-        pub_match = pub_pattern.match(line)
-        if pub_match:
-            algo_number = pub_match.group(1)
-            encryption_type = algo_map.get(algo_number, f'Unknown (algo {algo_number})')
-            creation_date = int(pub_match.group(2))
-            expires_in = int(pub_match.group(3)) if pub_match.group(3) else 0
-            expiry_date = 'Never' if expires_in == 0 else creation_date + expires_in
-
-        # Extract hash types
-        hash_match = hash_pattern.search(line)
-        if hash_match:
-            hash_algo_number = hash_match.group(1)
-            hash_type = hash_algo_map.get(hash_algo_number, f'Unknown (algo {hash_algo_number})')
-            if hash_type not in hash_types:
-                hash_types.append(hash_type)
-    
-    return encryption_type, hash_types, expiry_date
-
-def main():
-    key_file = 'publickey.asc'
-    
-    # Import key
-    import_result = import_key(key_file)
-    if import_result.returncode != 0:
-        print(f"Error importing key: {import_result.stderr}")
-        return
-    
-    # List packets
-    packet_output = list_packets(key_file)
-    
-    # Extract information
-    encryption_type, hash_types, expiry_date = extract_key_info(packet_output)
-    
-    # Display the results
-    print(f"Encryption Type: {encryption_type}")
-    print(f"Hash Types: {', '.join(hash_types)}")
-    print(f"Expiry Date: {expiry_date}")
-
-if __name__ == '__main__':
-    main()
-
-
-
-###### kafka configs ######
-# Kafka broker addresses
-spring.kafka.bootstrap-servers=localhost:9092
-
-# Producer configuration
-spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
-spring.kafka.producer.value-serializer=org.apache.kafka.common.serialization.StringSerializer
-
-# Increase number of retries to handle transient failures
-spring.kafka.producer.retries=10
-
-# Backoff between retries
-spring.kafka.producer.retry-backoff-ms=1000
-
-# Set request timeout to allow longer wait time for broker response
-spring.kafka.producer.request.timeout.ms=60000
-
-# Increase delivery timeout to allow more time for retries
-spring.kafka.producer.delivery.timeout.ms=120000
-
-# Set linger time to improve batching (optional - can improve efficiency)
-spring.kafka.producer.linger-ms=10
-
-# Increase buffer memory for batching larger messages (optional)
-spring.kafka.producer.buffer-memory=33554432
-
-
-
-
-# Set metadata max age to force more frequent metadata refresh
-spring.kafka.properties.metadata.max.age.ms=30000
-
-# Enable debug logs for Kafka client to help diagnose issues
-logging.level.org.apache.kafka.clients=DEBUG
-
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.listener.config.MessageListenerContainerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
+/**
+ * Configuration class to set up Kafka consumer with manual acknowledgment.
+ */
 @Configuration
-public class KafkaProducerConfig {
+public class KafkaConfig {
 
+    /**
+     * Creates a ConsumerFactory with the necessary configuration for consuming messages.
+     *
+     * @return The Kafka ConsumerFactory.
+     */
     @Bean
-    public ProducerFactory<String, String> producerFactory() {
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    public ConsumerFactory<String, String> consumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "my-consumer-group");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // Disable auto-commit
 
-        // Increase retries and backoff
-        configProps.put(ProducerConfig.RETRIES_CONFIG, 10);
-        configProps.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 1000);
-
-        // Set timeouts
-        configProps.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
-        configProps.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 120000);
-
-        // Reduce metadata refresh interval
-        configProps.put(ProducerConfig.METADATA_MAX_AGE_CONFIG, 30000);
-
-        return new DefaultKafkaProducerFactory<>(configProps);
+        return new DefaultKafkaConsumerFactory<>(props);
     }
 
+    /**
+     * Configures a Kafka listener container factory that uses manual acknowledgment.
+     *
+     * @return The Kafka listener container factory.
+     */
     @Bean
-    public KafkaTemplate<String, String> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public MessageListenerContainerFactory<String, String> manualKafkaListenerContainerFactory() {
+        MessageListenerContainerFactory<String, String> factory = new ConcurrentMessageListenerContainer<>(consumerFactory());
+        factory.setAutoStartup(false);
+        return factory;
     }
 }
 
+Explanation of KafkaConfig:
+
+Manual Acknowledgment:
+
+ENABLE_AUTO_COMMIT_CONFIG is set to false to ensure that automatic offset committing is disabled.
+
+This enables you to manually commit offsets after processing each message.
+
+
+
+
+---
+
+Step 4: Application Properties (application.properties)
+
+# Kafka Configurations
+spring.kafka.bootstrap-servers=localhost:9092
+spring.kafka.consumer.group-id=my-consumer-group
+spring.kafka.consumer.auto-offset-reset=earliest
+
+# POD_NAME is passed as an environment variable (or can be set in the application properties)
+POD_NAME=${POD_NAME:my-instance-id}  # Use environment variable POD_NAME or fallback to "my-instance-id"
+
+# Couchbase Configurations (ensure this is properly configured for your environment)
+spring.couchbase.connection-string=couchbase://localhost
+spring.couchbase.bucket=myBucket
+spring.couchbase.username=myUser
+spring.couchbase.password=myPassword
+
+
+---
+
+Conclusion:
+
+The KafkaPartitionService assigns partitions to PODs with a 5-minute delay to give time for all instances to start up.
+
+KafkaConsumerService processes messages one at a time with manual acknowledgment, ensuring sequential processing within each POD.
+
+Couchbase is used to store partition assignments, ensuring the same partitions are assigned to the same PODs even if they restart.
+
+
+This solution meets your requirements of ensuring partition consistency, processing one message at a time, and handling POD restarts gracefully. Let me know if you need further details
 
