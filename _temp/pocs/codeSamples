@@ -334,3 +334,107 @@ Couchbase is used to store partition assignments, ensuring the same partitions a
 
 This solution meets your requirements of ensuring partition consistency, processing one message at a time, and handling POD restarts gracefully. Let me know if you need further details
 
+
+
+
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.couchbase.core.mapping.Document;
+
+import java.util.List;
+
+/**
+ * Entity representing the mapping of Kafka partitions to a specific POD.
+ * This ensures that if a POD restarts, it retains its assigned partitions.
+ */
+@Document
+public class KafkaPartitionMapping {
+
+    @Id
+    private String podName; // Unique identifier (POD name)
+
+    private List<Integer> partitions; // List of assigned partitions
+
+    /**
+     * Default constructor for Couchbase.
+     */
+    public KafkaPartitionMapping() {
+    }
+
+    /**
+     * Constructs a new KafkaPartitionMapping entity.
+     *
+     * @param podName    The unique name of the POD.
+     * @param partitions The list of partitions assigned to this POD.
+     */
+    public KafkaPartitionMapping(String podName, List<Integer> partitions) {
+        this.podName = podName;
+        this.partitions = partitions;
+    }
+
+    /**
+     * Gets the POD name.
+     *
+     * @return The name of the POD.
+     */
+    public String getPodName() {
+        return podName;
+    }
+
+    /**
+     * Sets the POD name.
+     *
+     * @param podName The name of the POD.
+     */
+    public void setPodName(String podName) {
+        this.podName = podName;
+    }
+
+    /**
+     * Gets the list of assigned partitions.
+     *
+     * @return The list of assigned partitions.
+     */
+    public List<Integer> getPartitions() {
+        return partitions;
+    }
+
+    /**
+     * Sets the list of assigned partitions.
+     *
+     * @param partitions The list of partitions.
+     */
+    public void setPartitions(List<Integer> partitions) {
+        this.partitions = partitions;
+    }
+
+    @Override
+    public String toString() {
+        return "KafkaPartitionMapping{" +
+                "podName='" + podName + '\'' +
+                ", partitions=" + partitions +
+                '}';
+    }
+}
+
+
+
+import org.springframework.data.couchbase.repository.CouchbaseRepository;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+/**
+ * Repository for managing Kafka partition mappings in Couchbase.
+ * This repository allows storing and retrieving the partitions assigned to each POD.
+ */
+@Repository
+public interface KafkaPartitionRepository extends CouchbaseRepository<KafkaPartitionMapping, String> {
+
+    /**
+     * Finds the partition mapping for a given POD.
+     *
+     * @param podName The unique name of the POD.
+     * @return An Optional containing the partition mapping if found.
+     */
+    Optional<KafkaPartitionMapping> findById(String podName);
+}
