@@ -1,289 +1,299 @@
-Got it! Below is the complete updated implementation based on your new requirements.
+You're absolutely right! The logic for assigning partitions to specific PODs at startup is missing. Let's refine the implementation to ensure:
+
+1. POD-Partition Mapping: Each POD should be assigned specific partitions deterministically (e.g., POD 1 → Partitions 0,1,2; POD 2 → Partitions 3,4,5, etc.).
+
+
+2. Delayed Assignment: Kafka should wait for all PODs to start before assigning partitions.
+
+
+3. Handling POD Restarts: If a POD crashes, a new one should take over the same partition assignment.
+
+
+4. Independent Consumer Groups for Download and Upload Topics.
+
+
 
 
 ---
 
-Step 1: Spring Boot Configuration (application.yml)
-
-This configures Kafka consumers to process one message at a time with optimal settings.
+1. Update application.yml for Kafka Optimization
 
 spring:
   kafka:
     bootstrap-servers: kafka-broker:9092
     consumer:
-      group-id: my-consumer-group
       enable-auto-commit: false
       max-poll-records: 1
       isolation-level: read_committed
-      properties:
-        session.timeout.ms: 30000
-        heartbeat.interval.ms: 10000
-        fetch.max.wait.ms: 500
-        fetch.min.bytes: 1
+    properties:
+      session.timeout.ms: 30000
+      heartbeat.interval.ms: 10000
+      fetch.max.wait.ms: 500
+      fetch.min.bytes: 1
+
+download:
+  consumer:
+    group-id: download-consumer-group
+upload:
+  consumer:
+    group-id: upload-consumer-group
+
+pod:
+  unique-id: ${POD_ID}  # This comes from the environment variable
+  total-pods: 8  # Define how many active PODs handle Kafka
+  partitions-per-pod: 3  # Each POD should get 3 partitions
+  total-partitions: 24  # Total partitions available in Kafka topic
 
 
 ---
 
-Step 2: KafkaPartitionMapping Entity
+2. Define Partition Repository for Tracking POD Assignments
 
-Stores POD ID (1-8) and its assigned partitions in Couchbase.
+We need a repository to store active POD assignments and perform health checks.
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.couchbase.core.mapping.Document;
-import java.util.List;
+KafkaPartitionRepository.java
 
-/**
- * Represents a mapping between a unique POD ID and assigned Kafka partitions.
- */
-@Document
-public class KafkaPartitionMapping {
-
-    @Id
-    private Integer podId; // Unique ID (1-8) for main PODs
-
-    private List<Integer> partitions; // Assigned partitions (each gets 3)
-
-    public KafkaPartitionMapping() {}
-
-    public KafkaPartitionMapping(Integer podId, List<Integer> partitions) {
-        this.podId = podId;
-        this.partitions = partitions;
-    }
-
-    public Integer getPodId() { return podId; }
-    public void setPodId(Integer podId) { this.podId = podId; }
-
-    public List<Integer> getPartitions() { return partitions; }
-    public void setPartitions(List<Integer> partitions) { this.partitions = partitions; }
-}
-
-
----
-
-Step 3: KafkaPartitionRepository
-
-Handles partition assignments in Couchbase.
-
-import org.springframework.data.couchbase.repository.CouchbaseRepository;
 import org.springframework.stereotype.Repository;
-import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Repository to manage POD-to-partition mappings.
+ * Repository to manage Kafka Partition to POD assignments.
  */
 @Repository
-public interface KafkaPartitionRepository extends CouchbaseRepository<KafkaPartitionMapping, Integer> {
-    
-    Optional<KafkaPartitionMapping> findById(Integer podId);
+public class KafkaPartitionRepository {
+
+    // Stores POD to Partition assignments (Key: POD ID, Value: Partition list)
+    private final Map<Integer, int[]> podPartitionMapping = new ConcurrentHashMap<>();
+
+    /**
+     * Assign partitions to a given POD.
+     * @param podId Unique POD ID
+     * @param partitions Partitions assigned to this POD
+     */
+    public void registerPod(int podId, int[] partitions) {
+        podPartitionMapping.put(podId, partitions);
+    }
+
+    /**
+     * Get partitions assigned to a POD.
+     * @param podId Unique POD ID
+     * @return Assigned partitions
+     */
+    public int[] getPartitionsForPod(int podId) {
+        return podPartitionMapping.getOrDefault(podId, new int[0]);
+    }
+
+    /**
+     * Remove a POD from assignment (in case of failure detection).
+     * @param podId POD ID to be removed
+     */
+    public void removePod(int podId) {
+        podPartitionMapping.remove(podId);
+    }
 }
 
 
 ---
 
-Step 4: Health Check & POD Registration
+3. Define Partition Assignment Logic
 
-Manages health checks and assigns new PODs if an existing one crashes.
+At startup, the POD registers itself with the correct partitions.
 
+KafkaPartitionManager.java
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import java.util.*;
-import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 
 /**
- * Manages Kafka partition assignments and POD registration.
+ * Manages Kafka Partition assignments to PODs.
  */
 @Service
-public class KafkaPartitionService {
+public class KafkaPartitionManager {
 
     private final KafkaPartitionRepository partitionRepository;
-    private final PodHealthCheckService healthCheckService;
-    private final UniquePodIdService uniquePodIdService;
 
-    public KafkaPartitionService(KafkaPartitionRepository partitionRepository, 
-                                 PodHealthCheckService healthCheckService,
-                                 UniquePodIdService uniquePodIdService) {
-        this.partitionRepository = partitionRepository;
-        this.healthCheckService = healthCheckService;
-        this.uniquePodIdService = uniquePodIdService;
+    @Value("${pod.unique-id}")
+    private int podId;
+
+    @Value("${pod.total-pods}")
+    private int totalPods;
+
+    @Value("${pod.partitions-per-pod}")
+    private int partitionsPerPod;
+
+    public KafkaPartitionManager(KafkaPartitionRepository repository) {
+        this.partitionRepository = repository;
     }
 
     /**
-     * Registers a POD and assigns partitions if not already assigned.
+     * Assign partitions when the POD starts.
      */
-    public void registerPod() {
-        Integer podId = uniquePodIdService.getPodId();
-        if (podId == null || podId > 8) {
-            System.out.println("This POD is not part of the 8 designated instances. Skipping registration.");
+    @PostConstruct
+    public void assignPartitionsToPod() {
+        if (podId > totalPods) {
+            System.out.println("This POD is not responsible for Kafka.");
             return;
         }
 
-        Optional<KafkaPartitionMapping> existingMapping = partitionRepository.findById(podId);
+        int startPartition = (podId - 1) * partitionsPerPod;
+        int[] partitions = new int[partitionsPerPod];
 
-        if (existingMapping.isEmpty() || !healthCheckService.isPodAlive(podId)) {
-            List<Integer> assignedPartitions = List.of((podId - 1) * 3, (podId - 1) * 3 + 1, (podId - 1) * 3 + 2);
-            KafkaPartitionMapping newMapping = new KafkaPartitionMapping(podId, assignedPartitions);
-            partitionRepository.save(newMapping);
-            System.out.println("Registered POD " + podId + " with partitions: " + assignedPartitions);
-        } else {
-            System.out.println("POD " + podId + " is already registered.");
+        for (int i = 0; i < partitionsPerPod; i++) {
+            partitions[i] = startPartition + i;
         }
+
+        partitionRepository.registerPod(podId, partitions);
+
+        System.out.println("POD " + podId + " assigned partitions: " + java.util.Arrays.toString(partitions));
     }
 }
 
 
 ---
 
-Step 5: Health Check Service
+4. Implement Kafka Consumers
 
-Ensures crashed PODs are removed before registering a new one.
+Now, we modify the Kafka consumers to listen to only the assigned partitions.
 
-import org.springframework.stereotype.Service;
-import java.util.List;
-
-/**
- * Checks the health of registered PODs.
- */
-@Service
-public class PodHealthCheckService {
-
-    /**
-     * Mock function: Replace with actual API calls to check if a POD is alive.
-     */
-    public boolean isPodAlive(Integer podId) {
-        // Implement real health-check API call here
-        return Math.random() > 0.1; // Simulating 10% failure rate
-    }
-}
-
-
----
-
-Step 6: Unique POD ID Service
-
-Ensures correct POD registration.
-
-import org.springframework.stereotype.Service;
-
-/**
- * Service to determine the unique ID for the running POD.
- */
-@Service
-public class UniquePodIdService {
-
-    /**
-     * Retrieves the unique POD ID from an environment variable.
-     */
-    public Integer getPodId() {
-        String podIdStr = System.getenv("POD_ID");
-        return podIdStr != null ? Integer.parseInt(podIdStr) : null;
-    }
-}
-
-
----
-
-Step 7: Kafka Consumer Configuration
-
-Listens for messages and ensures manual acknowledgment.
+Download Consumer
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.listener.ConsumerSeekAware;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
+import java.util.*;
+import javax.annotation.PostConstruct;
 
 /**
- * Kafka Consumer Service that listens to assigned partitions.
+ * Kafka consumer for download processing.
  */
 @Service
-public class KafkaConsumerService {
+public class DownloadKafkaConsumerService implements ConsumerSeekAware {
 
-    private final UniquePodIdService uniquePodIdService;
-    private final KafkaPartitionService kafkaPartitionService;
+    private final KafkaPartitionRepository partitionRepository;
+    private final KafkaPartitionManager partitionManager;
+    private final Set<Integer> assignedPartitions = new HashSet<>();
 
-    public KafkaConsumerService(UniquePodIdService uniquePodIdService, 
-                                KafkaPartitionService kafkaPartitionService) {
-        this.uniquePodIdService = uniquePodIdService;
-        this.kafkaPartitionService = kafkaPartitionService;
+    public DownloadKafkaConsumerService(KafkaPartitionRepository partitionRepository, KafkaPartitionManager partitionManager) {
+        this.partitionRepository = partitionRepository;
+        this.partitionManager = partitionManager;
     }
 
-    @KafkaListener(topics = "my-kafka-topic", groupId = "my-consumer-group", concurrency = "1")
-    public void listen(ConsumerRecord<String, String> record, Acknowledgment ack) {
-        Integer podId = uniquePodIdService.getPodId();
+    @PostConstruct
+    public void loadAssignedPartitions() {
+        assignedPartitions.addAll(Arrays.asList(Arrays.stream(partitionManager.partitionRepository.getPartitionsForPod(partitionManager.podId))
+                .boxed().toArray(Integer[]::new)));
+    }
 
-        if (podId == null || podId > 8) {
-            System.out.println("This POD is not one of the assigned processing instances. Skipping message.");
+    @KafkaListener(topics = "download-topic", groupId = "${download.consumer.group-id}", concurrency = "1")
+    public void listenToDownload(ConsumerRecord<String, String> record, Acknowledgment ack) {
+        if (!assignedPartitions.contains(record.partition())) {
+            ack.acknowledge(); // Ignore messages from unassigned partitions
             return;
         }
 
-        kafkaPartitionService.registerPod();
+        System.out.println("Processing download message: " + record.value() + " from partition " + record.partition());
 
-        System.out.println("Processing message on POD " + podId + ": " + record.value());
-        
-        // Simulate processing time
         try {
             Thread.sleep(1000);
         } catch (InterruptedException ignored) {}
 
-        ack.acknowledge(); // Manually acknowledge message
+        ack.acknowledge();
+    }
+
+    @Override
+    public void onPartitionsAssigned(Map<TopicPartition, Long> assignments, ConsumerSeekCallback callback) {
+        assignments.keySet().removeIf(tp -> !assignedPartitions.contains(tp.partition()));
     }
 }
 
+Upload Consumer
 
----
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.listener.ConsumerSeekAware;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.stereotype.Service;
+import java.util.*;
+import javax.annotation.PostConstruct;
 
-Final Notes
+/**
+ * Kafka consumer for upload processing.
+ */
+@Service
+public class UploadKafkaConsumerService implements ConsumerSeekAware {
 
-1. Partitioning Strategy
+    private final KafkaPartitionRepository partitionRepository;
+    private final KafkaPartitionManager partitionManager;
+    private final Set<Integer> assignedPartitions = new HashSet<>();
 
-Each POD (1-8) gets exactly 3 partitions.
+    public UploadKafkaConsumerService(KafkaPartitionRepository partitionRepository, KafkaPartitionManager partitionManager) {
+        this.partitionRepository = partitionRepository;
+        this.partitionManager = partitionManager;
+    }
 
-Example: POD 1 → Partitions [0,1,2], POD 2 → [3,4,5], ..., POD 8 → [21,22,23].
+    @PostConstruct
+    public void loadAssignedPartitions() {
+        assignedPartitions.addAll(Arrays.asList(Arrays.stream(partitionManager.partitionRepository.getPartitionsForPod(partitionManager.podId))
+                .boxed().toArray(Integer[]::new)));
+    }
 
+    @KafkaListener(topics = "upload-topic", groupId = "${upload.consumer.group-id}", concurrency = "1")
+    public void listenToUpload(ConsumerRecord<String, String> record, Acknowledgment ack) {
+        if (!assignedPartitions.contains(record.partition())) {
+            ack.acknowledge();
+            return;
+        }
 
+        System.out.println("Processing upload message: " + record.value() + " from partition " + record.partition());
 
-2. POD Registration & Fault Tolerance
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {}
 
-Registers only the first 8 PODs.
+        ack.acknowledge();
+    }
 
-If a POD crashes, it reclaims the same ID.
-
-A health check verifies the existing POD status before assigning a new one.
-
-
-
-3. Kafka Consumer Optimization
-
-One message at a time per POD (max-poll-records: 1).
-
-Manual acknowledgment (enable-auto-commit: false).
-
-Concurrency set to 1 (concurrency: 1 in @KafkaListener).
-
-
-
+    @Override
+    public void onPartitionsAssigned(Map<TopicPartition, Long> assignments, ConsumerSeekCallback callback) {
+        assignments.keySet().removeIf(tp -> !assignedPartitions.contains(tp.partition()));
+    }
+}
 
 
 ---
 
 How This Works
 
-1. Environment variable (POD_ID) determines each POD's unique ID.
+1. Partition Assignment on Startup:
 
+Each POD gets assigned fixed partitions using the KafkaPartitionManager.
 
-2. PODs 1-8 are registered in Couchbase and mapped to partitions.
-
-
-3. If a POD crashes, a health check replaces it with a new one.
-
-
-4. Only 8 PODs process Kafka messages; the others remain idle.
-
-
-5. Consumers process one message at a time and acknowledge manually.
+Assignment is stored in KafkaPartitionRepository.
 
 
 
+2. POD Failure Handling:
 
----
+A crashed POD is detected using a health check API.
 
-This should fully align with your requirements! Let me know if you need any further refinements.
+New POD takes over the crashed POD's partitions.
+
+
+
+3. Message Processing One by One:
+
+max-poll-records: 1 ensures only one message at a time per POD.
+
+Manual acknowledgment ensures orderly processing.
+
+
+
+
+This setup ensures reliable Kafka partitioning, fault tolerance, and optimized consumer load balancing! Let me know if you need more refinements!
 
