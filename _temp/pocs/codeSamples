@@ -1,150 +1,98 @@
-You're absolutely right! I apologize for the confusion.
+To control the specific partition number dynamically and ensure that the id value directly maps to a corresponding partition (i.e., id = 1 maps to partition 1, id = 2 maps to partition 2, and so on), you can adjust the custom partition assignment logic to directly use the id for mapping.
 
-In Kafka, partition assignment happens at the consumer group level and can either be done:
+Key Adjustments:
 
-1. Statically using the @KafkaListener annotation, specifying the partitions explicitly.
-
-
-2. Dynamically at the consumer configuration level using a PartitionAssignor (Kafka's consumer group assignment strategy).
+1. Direct Mapping: When assigning partitions, you directly map the id value to the partition. For instance, id = 1 maps to partition = 1, id = 2 maps to partition = 2, etc.
 
 
-
-Unfortunately, Kafka doesn't allow dynamic partition assignments within the @KafkaListener annotation itself once the application is running, since the partition assignment is handled when the consumer starts up.
-
-Correct Approach:
-
-To achieve the dynamic partition assignment that you need, you must either:
-
-Use a static partition assignment in the @KafkaListener annotation (which we've already covered).
-
-Or, dynamically assign partitions to the consumers at the consumer configuration level via a custom PartitionAssignor.
+2. Ensure Valid Partition Numbers: The id needs to match a valid partition number. If the number of partitions in the topic is less than the id, you can either reject the assignment or wrap the id to fit within the available partitions (e.g., by using modulo).
 
 
-Let’s walk through the correct solution using the static partition assignment via @KafkaListener and explain how to achieve dynamic partition assignment at the configuration level using a custom PartitionAssignor if necessary.
 
-1. Static Partition Assignment in @KafkaListener (Already Covered)
+Updated CustomPartitionAssignor Implementation:
 
-For a static assignment of partitions to listeners (for example, POD 1 gets partitions 0-2, POD 2 gets partitions 3-5, etc.), use the @KafkaListener annotation with the partitions attribute. Here’s a brief recap:
+public class CustomPartitionAssignor implements ConsumerPartitionAssignor {
 
-@KafkaListener(
-    topics = "download-topic",
-    groupId = "download-consumer-group",
-    containerFactory = "kafkaListenerContainerFactory",
-    partitions = {"0", "1", "2"}  // POD 1: partitions 0, 1, 2
-)
-public void consumePod1(List<ConsumerRecord<String, String>> records, Acknowledgment acknowledgment) {
-    for (ConsumerRecord<String, String> record : records) {
-        try {
-            // Process message
-            acknowledgment.acknowledge();  // Manually acknowledge after processing
-        } catch (Exception e) {
-            // Handle error
-        }
+    private Integer id;
+
+    // Constructor that accepts the dynamic 'id'
+    public CustomPartitionAssignor(Integer id) {
+        this.id = id;
     }
-}
-
-2. Dynamic Partition Assignment at the Configuration Level:
-
-If you need to dynamically assign partitions to the consumers based on the POD ID at startup or runtime, you will need to implement a custom PartitionAssignor. A PartitionAssignor is a Kafka consumer mechanism for deciding how partitions should be assigned to consumers within a group.
-
-Here’s how to implement it:
-
-Steps to Implement a Custom PartitionAssignor:
-
-1. Create a Custom PartitionAssignor:
-
-This will enable dynamic assignment of partitions based on a given logic (like your POD ID).
-
-
-
-
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.clients.consumer.internals.AbstractCoordinator;
-import org.apache.kafka.clients.consumer.internals.ConsumerCoordinator;
-import org.apache.kafka.common.PartitionAssignor;
-import org.apache.kafka.common.utils.Utils;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-public class CustomPartitionAssignor implements PartitionAssignor {
 
     @Override
-    public Assignment assign(Cluster cluster, Map<String, ConsumerGroupMetadata> groupMetadata, List<String> consumers, Map<String, List<TopicPartition>> currentAssignment) {
-        Map<String, List<TopicPartition>> assignments = new HashMap<>();
-        
-        // Get POD ID dynamically (for example, from an environment variable or service)
-        String podId = System.getenv("POD_ID");  // This will be dynamically fetched based on your environment
+    public List<PartitionAssignor.Assignment> assign(List<PartitionAssignor.Subscription> subscriptions) {
+        List<PartitionAssignor.Assignment> assignments = new ArrayList<>();
 
-        // Calculate partition assignments based on POD ID (assign 3 partitions per POD)
-        List<TopicPartition> topicPartitions = cluster.partitionsForTopic("download-topic").stream()
-                .filter(partition -> Integer.parseInt(podId) == partition.partition() / 3)
-                .map(partition -> new TopicPartition(partition.topic(), partition.partition()))
-                .collect(Collectors.toList());
+        // Iterate through the subscriptions to assign partitions dynamically based on 'id'
+        for (PartitionAssignor.Subscription subscription : subscriptions) {
+            List<TopicPartition> topicPartitions = new ArrayList<>();
+            String topic = subscription.topic();
 
-        // Assign partitions to this specific POD (consumer)
-        assignments.put(podId, topicPartitions);
-        
-        return assignments.entrySet().stream().map(entry -> new Assignment(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+            // Get the number of partitions for the topic
+            int numPartitions = subscription.partitions().size();
+
+            // Ensure 'id' is within the range of available partitions
+            // If the id is greater than the number of partitions, use modulo to fit the id into the range
+            int partition = (id - 1) % numPartitions;  // id starts from 1, so we subtract 1
+
+            // Directly map the 'id' to the partition number
+            topicPartitions.add(new TopicPartition(topic, partition));
+
+            // Create an assignment for the pod based on the calculated partition
+            assignments.add(new PartitionAssignor.Assignment(topicPartitions));
+        }
+
+        return assignments;
     }
 
     @Override
     public String name() {
-        return "CustomPartitionAssignor"; // Unique name for this custom assignor
+        return "CustomPartitionAssignor";
     }
 }
 
-3. Use the Custom PartitionAssignor in Kafka Consumer Configuration:
+Key Logic Explained:
 
-To use your custom PartitionAssignor, you need to configure it in your Kafka consumer properties.
+Mapping id to Partition: In this implementation, the id directly corresponds to the partition number. For example, id = 1 maps to partition = 0 (as partitioning starts from 0). If id starts from 1, we subtract 1 to ensure the proper partition mapping.
 
-@Configuration
-public class KafkaConfig {
-
-    @Value("${kafka.bootstrap.servers}")
-    private String bootstrapServers;
-
-    @Bean
-    public ConsumerFactory<String, String> consumerFactory() {
-        Map<String, Object> consumerProps = new HashMap<>();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "download-consumer-group");
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        consumerProps.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, CustomPartitionAssignor.class);  // Use the custom assignor
-
-        return new DefaultKafkaConsumerFactory<>(consumerProps);
-    }
-
-    @Bean
-    public ConcurrentMessageListenerContainer<String, String> messageListenerContainer() {
-        ContainerProperties containerProps = new ContainerProperties("download-topic");
-        containerProps.setMessageListener(new DownloadKafkaConsumerService());
-        
-        return new ConcurrentMessageListenerContainer<>(consumerFactory(), containerProps);
-    }
-}
-
-4. What Happens in This Approach?
-
-Custom Partition Assignor: The CustomPartitionAssignor class dynamically assigns partitions to the consumers based on the POD ID.
-
-The logic in the assign method assigns partitions 0, 1, 2 to POD 1, 3, 4, 5 to POD 2, and so on.
-
-Kafka Configuration: The Kafka consumer configuration is set up to use the CustomPartitionAssignor, which means when consumers join the group, the partitions will be assigned dynamically based on the logic in the assignor.
+Modulo Handling: The modulo operation (id - 1) % numPartitions ensures that if the id exceeds the available partitions, it wraps around (i.e., id = 5 with numPartitions = 3 would map to partition 2). You can adjust this logic if you want to prevent the wrapping behavior.
 
 
-5. Final Thoughts:
+Consumer Configuration:
 
-If you don’t want to use the @KafkaListener annotation with static partitions, then the custom PartitionAssignor is the way to go.
+Make sure the consumer uses this custom partition assignor in its configuration, passing the id dynamically:
 
-If you're fine with static assignment, you can proceed with the @KafkaListener(partitions = {...}) approach as initially explained.
+// Retrieve the pod-specific ID dynamically (e.g., from your DB call)
+Integer id = idService.getId();  // Get the unique pod ID, e.g., 1, 2, etc.
 
-You can also implement automatic health checks to detect and reassign partitions when a POD goes down and a new one comes up (this will need extra logic for dynamic rebalancing).
+// Create a custom partition assignor instance with the retrieved 'id'
+CustomPartitionAssignor customAssignor = new CustomPartitionAssignor(id);
+
+Properties properties = new Properties();
+properties.put("bootstrap.servers", "localhost:9092");
+properties.put("group.id", "my-consumer-group");
+properties.put("enable.auto.commit", "false");
+properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+properties.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+properties.put("partition.assignment.strategy", customAssignor.getClass().getName());
+
+KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+consumer.subscribe(Collections.singletonList("my-topic"));
+
+Additional Considerations:
+
+1. Validating Partition Existence: Ensure that the id provided by your system doesn’t exceed the number of partitions available in the Kafka topic. If the id is larger than the available partitions, you can either:
+
+Reject the assignment or throw an exception if the id is invalid.
+
+Use the modulo logic to map the id to a valid partition, as demonstrated above.
 
 
-Let me know if you need further clarification!
+
+2. Scaling: As more pods are deployed, each one should have a unique id that directly corresponds to a Kafka partition.
+
+
+
+This solution ensures that the id value from your database is used directly to assign a partition to each pod. The id = 1 will map to partition 0, id = 2 will map to partition 1, and so on, with modulo logic for cases when the id exceeds the available partitions.
 
