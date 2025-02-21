@@ -1,0 +1,74 @@
+1. File Engine Processing (Details and Its Stages)
+
+The current File Engine processes around 600 zipped (.gz) files (~50 MB each) daily from Partner 1 via an SFT mailbox. The core processing stages include:
+
+Unzipping: Each file expands to ~400 MB post-extraction.
+
+Data Row Calculations: Performed on unzipped data without content manipulation or transformation.
+
+Encryption (PGP): A resource-intensive step taking ~5 minutes per file, consuming up to 3 GB RAM per process.
+
+Zipping: Files are re-zipped after encryption for final output.
+
+
+2. Issues in Kubernetes PODs in Context of Our File Engine Processing
+
+Memory Overshoot During Encryption:
+
+Each Kubernetes POD (4 CPU, 16 GB RAM) often handles multiple files in parallel due to Kafka topic distribution.
+
+Encryption’s high memory usage (3 GB per file) causes memory overshoots when multiple files run simultaneously, leading to POD crashes and around 20-40 file failures daily.
+
+
+Scalability Limitations with More Partners:
+
+As more partners onboard (increasing file volume), the fixed 48 POD limit risks exponential failure rates due to memory saturation.
+
+Scaling requires duplicating projects for more PODs, increasing infrastructure costs and code maintenance overhead.
+
+
+Idle POD Time and Inefficiency:
+
+PODs remain always on, leading to resource wastage during low or zero file processing times.
+
+This static setup increases costs without delivering performance benefits during idle periods.
+
+
+
+3. Specific Solution and Advantages of Spark for Our File Engine Processing
+
+Dynamic Resource Allocation:
+
+Spark’s cluster architecture dynamically scales based on workload.
+
+When file volumes increase (e.g., more partners), Spark adds resources on demand, preventing memory overshoot.
+
+During low or zero file volumes, resources automatically scale down, eliminating idle resource costs.
+
+
+Memory-Efficient File Handling:
+
+Spark processes files in distributed chunks across nodes, ensuring no single node exceeds its memory capacity.
+
+This distribution effectively handles encryption bottlenecks without causing memory crashes.
+
+
+Improved Scalability Without Code Duplication:
+
+Unlike Kubernetes PODs, Spark does not require project duplication to scale.
+
+Adding more partners or increasing file volume is seamlessly handled by the cluster, reducing code maintenance and infrastructure complexity.
+
+
+Cost Optimization:
+
+Spark clusters only utilize resources during active file processing, leading to cost savings during idle times.
+
+Elastic scaling ensures that you pay for what you use, avoiding the static costs associated with always-on PODs.
+
+
+
+Conclusion
+
+Migrating to Spark eliminates memory overshoot risks, optimizes resource utilization, and offers a cost-effective, scalable solution. Its ability to dynamically handle fluctuating file volumes, avoid idle resource costs, and simplify scaling for additional partners makes it a more efficient choice over Kubernetes PODs for the File Engine processing.
+
