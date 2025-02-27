@@ -1,10 +1,142 @@
-You're right! The GroupAssignment constructor expects a Map<String, Assignment>, not just a list of partitions. Let's correct this.
+If you'd like to set up two Kafka consumers without running them through a main class, and instead handle this with proper Spring Boot components, you can create two separate consumers using Spring Kafka's @KafkaListener annotations or by configuring two KafkaListenerContainerFactory beans. Here's how you can implement two independent consumers for upload and download within a Spring Boot application.
 
-Corrected Implementation for Kafka 3.1.1
+1. Set up Spring Boot with Kafka:
 
-The assign method needs to return a GroupAssignment, which is a map of consumer IDs to Assignment objects. Each Assignment object contains the list of assigned partitions.
+Ensure you have the necessary dependencies in your pom.xml:
 
-Updated Code:
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+</dependency>
+
+2. Configuration Class for Kafka Consumers
+
+We will create two consumers, one for uploading and one for downloading, using a custom PartitionAssignor. We will also configure two consumer groups and set dynamic partition assignments based on pod-specific IDs.
+
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.listener.config.DefaultKafkaListenerContainerFactory;
+import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.annotation.EnableKafka;
+
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+
+@Configuration
+@EnableKafka
+public class KafkaConsumerConfig {
+
+    // Bean to provide upload consumer configuration
+    @Bean
+    public Consumer<String, String> uploadConsumer() {
+        Properties properties = new Properties();
+        properties.put("bootstrap.servers", "localhost:9092");
+        properties.put("group.id", "upload-consumer-group");
+        properties.put("enable.auto.commit", "false");
+        properties.put("key.deserializer", StringDeserializer.class);
+        properties.put("value.deserializer", StringDeserializer.class);
+        properties.put("partition.assignment.strategy", CustomPartitionAssignor.class.getName());
+        
+        // Dynamic pod ID for upload consumer
+        properties.put("custom.id", 1); // Replace with your dynamic value
+        
+        return new KafkaConsumer<>(properties);
+    }
+
+    // Bean to provide download consumer configuration
+    @Bean
+    public Consumer<String, String> downloadConsumer() {
+        Properties properties = new Properties();
+        properties.put("bootstrap.servers", "localhost:9092");
+        properties.put("group.id", "download-consumer-group");
+        properties.put("enable.auto.commit", "false");
+        properties.put("key.deserializer", StringDeserializer.class);
+        properties.put("value.deserializer", StringDeserializer.class);
+        properties.put("partition.assignment.strategy", CustomPartitionAssignor.class.getName());
+        
+        // Dynamic pod ID for download consumer
+        properties.put("custom.id", 2); // Replace with your dynamic value
+        
+        return new KafkaConsumer<>(properties);
+    }
+
+    // Listener container for Upload consumer (you can customize the listeners)
+    @Bean
+    public MessageListenerContainer uploadListenerContainer() {
+        DefaultKafkaListenerContainerFactory<String, String> factory = new DefaultKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(uploadConsumer()));
+        factory.setConcurrency(1);
+
+        ConcurrentMessageListenerContainer<String, String> container = 
+            new ConcurrentMessageListenerContainer<>(factory, new KafkaListenerContainer(String, String));
+        
+        return container;
+    }
+
+    // Listener container for Download consumer
+    @Bean
+    public MessageListenerContainer downloadListenerContainer() {
+        DefaultKafkaListenerContainerFactory<String, String> factory = new DefaultKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(downloadConsumer()));
+        factory.setConcurrency(1);
+
+        ConcurrentMessageListenerContainer<String, String> container = 
+            new ConcurrentMessageListenerContainer<>(factory, new KafkaListenerContainer(String, String));
+        
+        return container;
+    }
+}
+
+3. Kafka Listeners for Upload and Download:
+
+Now, use @KafkaListener to consume messages. The @KafkaListener annotation makes it easy to create listeners that consume messages from topics.
+
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UploadConsumerService {
+
+    // This method will consume messages from the "upload-topic"
+    @KafkaListener(topics = "upload-topic", groupId = "upload-consumer-group")
+    public void listenUploadTopic(String message) {
+        // Handle the uploaded message
+        System.out.println("Upload Consumer received message: " + message);
+    }
+}
+
+@Service
+public class DownloadConsumerService {
+
+    // This method will consume messages from the "download-topic"
+    @KafkaListener(topics = "download-topic", groupId = "download-consumer-group")
+    public void listenDownloadTopic(String message) {
+        // Handle the downloaded message
+        System.out.println("Download Consumer received message: " + message);
+    }
+}
+
+4. Custom Partition Assignor:
+
+The CustomPartitionAssignor is used to control partition assignments dynamically. Here’s how it integrates into the Spring Kafka configuration.
 
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor;
 import org.apache.kafka.clients.consumer.GroupSubscription;
@@ -56,57 +188,36 @@ public class CustomPartitionAssignor implements ConsumerPartitionAssignor {
     }
 }
 
-Key Fixes & Explanation:
+Explanation:
 
-1. Fixed GroupAssignment Usage
+1. Consumer Beans:
 
-Instead of returning a list, we now create a Map<String, Assignment> where:
-
-The key is the consumer ID (consumerId).
-
-The value is an Assignment object containing the list of assigned TopicPartitions.
-
-
-new GroupAssignment(assignmentMap) now correctly returns the expected object.
+We define two Kafka consumer beans: uploadConsumer and downloadConsumer. Each one has its own configuration with different topics, group IDs, and dynamic pod IDs.
 
 
 
-2. Consumer-Specific Assignment
+2. Listener Containers:
 
-Each consumer is assigned only the partition corresponding to its id, ensuring one partition per pod.
-
-
-
-3. Partition Validation
-
-Before assigning a partition, we check numPartitions > 0 to prevent division by zero.
+uploadListenerContainer and downloadListenerContainer are configured to manage the Kafka listeners for the upload and download consumers. These containers manage the lifecycle of consumer threads and handle message consumption.
 
 
 
+3. Listeners (@KafkaListener):
 
-Example Usage:
-
-Integer id = idService.getId();  // Retrieve pod-specific ID dynamically
-
-Properties properties = new Properties();
-properties.put("bootstrap.servers", "localhost:9092");
-properties.put("group.id", "my-consumer-group");
-properties.put("enable.auto.commit", "false");
-properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-properties.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-properties.put("partition.assignment.strategy", CustomPartitionAssignor.class.getName());
-
-KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
-consumer.subscribe(Collections.singletonList("my-topic"));
-
-Final Notes:
-
-One Partition Per Pod → Each pod gets exactly one partition, based on id.
-
-Scalability → If there are more pods than partitions, some pods may share partitions.
-
-Correct Return Type → new GroupAssignment(assignmentMap) now compiles correctly.
+The @KafkaListener annotations are used to create listeners for consuming messages from the respective topics (upload-topic and download-topic).
 
 
-This implementation ensures that each consumer pod independently assigns itself a partition based on its id while adhering to Kafka 3.1.1's GroupAssignment requirements. Let me know if you need further modifications!
+
+4. Custom Partition Assignor:
+
+The custom assignor (CustomPartitionAssignor) is responsible for dynamically assigning partitions based on the pod-specific id. This ensures that each consumer processes a specific partition based on the pod it represents.
+
+
+
+
+Run Your Application:
+
+Now, you can run your Spring Boot application, and the two consumers (UploadConsumerService and DownloadConsumerService) will independently consume messages from their respective topics (upload-topic and download-topic), while the custom partition assignment logic ensures that each pod processes its assigned partition.
+
+Let me know if you need any further details!
 
