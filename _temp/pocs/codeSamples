@@ -1,142 +1,119 @@
-If you'd like to set up two Kafka consumers without running them through a main class, and instead handle this with proper Spring Boot components, you can create two separate consumers using Spring Kafka's @KafkaListener annotations or by configuring two KafkaListenerContainerFactory beans. Here's how you can implement two independent consumers for upload and download within a Spring Boot application.
+Got it! You want a Spring Kafka configuration class where:
 
-1. Set up Spring Boot with Kafka:
+1. POD ID is retrieved dynamically from a DB sequence service instead of an environment variable.
 
-Ensure you have the necessary dependencies in your pom.xml:
 
-<dependency>
-    <groupId>org.springframework.kafka</groupId>
-    <artifactId>spring-kafka</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter</artifactId>
-</dependency>
+2. Custom Partition Assignor assigns one partition per POD dynamically.
 
-2. Configuration Class for Kafka Consumers
 
-We will create two consumers, one for uploading and one for downloading, using a custom PartitionAssignor. We will also configure two consumer groups and set dynamic partition assignments based on pod-specific IDs.
+3. Kafka listener processes only one message at a time, ensuring each POD handles messages sequentially.
+
+
+
+
+---
+
+Step 1: Define a Service to Fetch POD ID from the DB
+
+You'll need a service class that retrieves a unique POD ID from a DB sequence.
+
+PodIdService.java
+
+import org.springframework.stereotype.Service;
+import java.util.concurrent.atomic.AtomicInteger;
+
+@Service
+public class PodIdService {
+    private final AtomicInteger podIdSequence = new AtomicInteger(0); // Simulating DB sequence
+
+    public int getPodId() {
+        return podIdSequence.incrementAndGet(); // Fetching ID from DB sequence (Simulated)
+    }
+}
+
+> Note: Replace this logic with an actual DB call (e.g., JPARepository or JDBC query) in real-world applications.
+
+
+
+
+---
+
+Step 2: Configure Kafka Consumer for Upload
+
+This configuration:
+
+Fetches POD ID dynamically from PodIdService
+
+Ensures one message is processed at a time (max.poll.records=1)
+
+Assigns partitions using CustomPartitionAssignor
+
+
+KafkaConsumerConfig.java
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.listener.config.DefaultKafkaListenerContainerFactory;
-import org.springframework.kafka.listener.MessageListener;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.annotation.EnableKafka;
 
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
-@EnableKafka
 public class KafkaConsumerConfig {
 
-    // Bean to provide upload consumer configuration
-    @Bean
-    public Consumer<String, String> uploadConsumer() {
-        Properties properties = new Properties();
-        properties.put("bootstrap.servers", "localhost:9092");
-        properties.put("group.id", "upload-consumer-group");
-        properties.put("enable.auto.commit", "false");
-        properties.put("key.deserializer", StringDeserializer.class);
-        properties.put("value.deserializer", StringDeserializer.class);
-        properties.put("partition.assignment.strategy", CustomPartitionAssignor.class.getName());
-        
-        // Dynamic pod ID for upload consumer
-        properties.put("custom.id", 1); // Replace with your dynamic value
-        
-        return new KafkaConsumer<>(properties);
+    private final PodIdService podIdService;
+
+    public KafkaConsumerConfig(PodIdService podIdService) {
+        this.podIdService = podIdService;
     }
 
-    // Bean to provide download consumer configuration
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
     @Bean
-    public Consumer<String, String> downloadConsumer() {
-        Properties properties = new Properties();
-        properties.put("bootstrap.servers", "localhost:9092");
-        properties.put("group.id", "download-consumer-group");
-        properties.put("enable.auto.commit", "false");
-        properties.put("key.deserializer", StringDeserializer.class);
-        properties.put("value.deserializer", StringDeserializer.class);
-        properties.put("partition.assignment.strategy", CustomPartitionAssignor.class.getName());
-        
-        // Dynamic pod ID for download consumer
-        properties.put("custom.id", 2); // Replace with your dynamic value
-        
-        return new KafkaConsumer<>(properties);
+    public ConsumerFactory<String, String> uploadConsumerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        int podId = podIdService.getPodId(); // Get POD ID dynamically
+
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "upload-consumer-group");
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1"); // Process only one message at a time
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true"); // Auto-commit after processing
+        config.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, CustomPartitionAssignor.class.getName());
+        config.put("custom.id", podId);  // Pass dynamically fetched POD ID
+
+        return new DefaultKafkaConsumerFactory<>(config);
     }
 
-    // Listener container for Upload consumer (you can customize the listeners)
     @Bean
-    public MessageListenerContainer uploadListenerContainer() {
-        DefaultKafkaListenerContainerFactory<String, String> factory = new DefaultKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(uploadConsumer()));
-        factory.setConcurrency(1);
-
-        ConcurrentMessageListenerContainer<String, String> container = 
-            new ConcurrentMessageListenerContainer<>(factory, new KafkaListenerContainer(String, String));
-        
-        return container;
-    }
-
-    // Listener container for Download consumer
-    @Bean
-    public MessageListenerContainer downloadListenerContainer() {
-        DefaultKafkaListenerContainerFactory<String, String> factory = new DefaultKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(downloadConsumer()));
-        factory.setConcurrency(1);
-
-        ConcurrentMessageListenerContainer<String, String> container = 
-            new ConcurrentMessageListenerContainer<>(factory, new KafkaListenerContainer(String, String));
-        
-        return container;
+    public ConcurrentKafkaListenerContainerFactory<String, String> uploadKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(uploadConsumerFactory());
+        factory.setBatchListener(false); // Ensure single-message processing
+        return factory;
     }
 }
 
-3. Kafka Listeners for Upload and Download:
 
-Now, use @KafkaListener to consume messages. The @KafkaListener annotation makes it easy to create listeners that consume messages from topics.
+---
 
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
+Step 3: Implement Custom Partition Assignor
 
-@Service
-public class UploadConsumerService {
+This class:
 
-    // This method will consume messages from the "upload-topic"
-    @KafkaListener(topics = "upload-topic", groupId = "upload-consumer-group")
-    public void listenUploadTopic(String message) {
-        // Handle the uploaded message
-        System.out.println("Upload Consumer received message: " + message);
-    }
-}
+Retrieves the dynamically assigned POD ID
 
-@Service
-public class DownloadConsumerService {
+Assigns one partition per POD
 
-    // This method will consume messages from the "download-topic"
-    @KafkaListener(topics = "download-topic", groupId = "download-consumer-group")
-    public void listenDownloadTopic(String message) {
-        // Handle the downloaded message
-        System.out.println("Download Consumer received message: " + message);
-    }
-}
 
-4. Custom Partition Assignor:
-
-The CustomPartitionAssignor is used to control partition assignments dynamically. Here’s how it integrates into the Spring Kafka configuration.
+CustomPartitionAssignor.java
 
 import org.apache.kafka.clients.consumer.ConsumerPartitionAssignor;
 import org.apache.kafka.clients.consumer.GroupSubscription;
@@ -148,12 +125,13 @@ import org.apache.kafka.clients.consumer.internals.Assignment;
 import java.util.*;
 
 public class CustomPartitionAssignor implements ConsumerPartitionAssignor {
+    private int podId = 1; // Default POD ID
 
-    private final Integer id;
-
-    // Constructor to initialize with the dynamic pod ID
-    public CustomPartitionAssignor(Integer id) {
-        this.id = id;
+    @Override
+    public void configure(Map<String, ?> configs) {
+        if (configs.containsKey("custom.id")) {
+            podId = Integer.parseInt(configs.get("custom.id").toString());
+        }
     }
 
     @Override
@@ -161,21 +139,18 @@ public class CustomPartitionAssignor implements ConsumerPartitionAssignor {
         Map<String, Assignment> assignmentMap = new HashMap<>();
 
         for (Map.Entry<String, Subscription> entry : groupSubscription.groupSubscription().entrySet()) {
-            String consumerId = entry.getKey();  // Consumer client ID
+            String consumerId = entry.getKey();
             Subscription subscription = entry.getValue();
 
             List<TopicPartition> assignedPartitions = new ArrayList<>();
-
-            // Loop through each subscribed topic
             for (String topic : subscription.topics()) {
                 int numPartitions = metadata.partitionCountForTopic(topic);
                 if (numPartitions > 0) {
-                    int partition = (id - 1) % numPartitions;  // Assign based on pod-specific ID
+                    int partition = (podId - 1) % numPartitions;  // Assign partition dynamically
                     assignedPartitions.add(new TopicPartition(topic, partition));
                 }
             }
 
-            // Create an Assignment object and map it to the consumer
             assignmentMap.put(consumerId, new Assignment(assignedPartitions));
         }
 
@@ -188,36 +163,88 @@ public class CustomPartitionAssignor implements ConsumerPartitionAssignor {
     }
 }
 
-Explanation:
 
-1. Consumer Beans:
+---
 
-We define two Kafka consumer beans: uploadConsumer and downloadConsumer. Each one has its own configuration with different topics, group IDs, and dynamic pod IDs.
+Step 4: Implement Kafka Listener for Upload
 
+This listener:
 
+Listens to upload-topic
 
-2. Listener Containers:
-
-uploadListenerContainer and downloadListenerContainer are configured to manage the Kafka listeners for the upload and download consumers. These containers manage the lifecycle of consumer threads and handle message consumption.
-
+Processes only one message at a time
 
 
-3. Listeners (@KafkaListener):
+UploadConsumer.java
 
-The @KafkaListener annotations are used to create listeners for consuming messages from the respective topics (upload-topic and download-topic).
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
+@Component
+public class UploadConsumer {
+
+    @KafkaListener(topics = "upload-topic", containerFactory = "uploadKafkaListenerContainerFactory")
+    public void listenUpload(String message) {
+        System.out.println("Processing Upload Message: " + message);
+
+        // Simulating message processing
+        try {
+            Thread.sleep(2000); // Simulate processing delay
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("Finished Processing: " + message);
+    }
+}
+
+
+---
+
+How This Works
+
+1. POD ID Retrieval
+
+PodIdService fetches a unique ID from the DB sequence.
+
+The ID is passed as "custom.id" in the Kafka consumer configuration.
 
 
 
-4. Custom Partition Assignor:
+2. Custom Partition Assignment
 
-The custom assignor (CustomPartitionAssignor) is responsible for dynamically assigning partitions based on the pod-specific id. This ensures that each consumer processes a specific partition based on the pod it represents.
-
-
+CustomPartitionAssignor assigns one partition per POD, ensuring messages go to the right partition.
 
 
-Run Your Application:
 
-Now, you can run your Spring Boot application, and the two consumers (UploadConsumerService and DownloadConsumerService) will independently consume messages from their respective topics (upload-topic and download-topic), while the custom partition assignment logic ensures that each pod processes its assigned partition.
+3. Single Message Processing
 
-Let me know if you need any further details!
+max.poll.records=1 ensures the consumer fetches only one message at a time.
+
+The Kafka listener processes the message before fetching another.
+
+
+
+
+
+---
+
+Key Benefits
+
+✅ Dynamic POD ID Assignment: Retrieved from DB sequence service instead of hardcoded config.
+✅ One Message at a Time: Ensures proper load distribution and prevents race conditions.
+✅ Custom Partition Assignment: Each POD gets one dedicated partition, avoiding conflicts.
+✅ Scalable for Kubernetes: Works seamlessly when running multiple PODs.
+
+
+---
+
+Next Steps
+
+If running in Kubernetes, ensure PodIdService assigns unique IDs to each POD.
+
+Replace Thread.sleep() with actual business logic inside UploadConsumer.
+
+
+Let me know if you need any modifications!
 
