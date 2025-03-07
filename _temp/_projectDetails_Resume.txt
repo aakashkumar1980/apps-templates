@@ -1,3 +1,43 @@
+Professional Summary
+
+7+ years of experience in designing and developing scalable microservices and event-driven architectures using Java, Spring Boot, and Kafka.
+
+Strong expertise in batch processing of large files using Kubernetes PODs and integrating cloud storage solutions like AWS S3.
+
+Proficient in REST API development, securing APIs with OAuth2, and managing API traffic using APIGEE API Gateway.
+
+Experience in implementing domain-driven design (DDD), CQRS, and event sourcing to build robust microservices.
+
+Expertise in Java 8+ features, including Streams API, Lambda expressions, functional interfaces, and multithreading.
+
+Hands-on experience with Spring Framework modules, including Spring Boot, Spring Cloud, Spring Security, and Spring Batch.
+
+Skilled in performance optimization and memory analysis using JMeter, VisualVM, and other profiling tools.
+
+Experience in database modeling and working with SQL and NoSQL databases like PostgreSQL, MySQL, and MongoDB.
+
+Full-stack development experience, building web applications using React.js for frontend and Spring Boot for backend services.
+
+Strong knowledge of event-driven messaging systems, implementing Kafka for asynchronous data processing and event streaming.
+
+Proficient in containerization and cloud deployment using Docker, Kubernetes, AWS ECS, and CI/CD pipelines.
+
+Experience in secure file handling with encryption mechanisms and file-based integrations using batch processing frameworks.
+
+Hands-on experience in logging, monitoring, and observability using tools like ELK stack, Prometheus, and Grafana.
+
+Excellent leadership and problem-solving skills, leading teams in troubleshooting complex issues and delivering scalable solutions.
+
+
+This version keeps it concise, relevant, and aligned with modern technologies. Let me know if you want any further refinements!
+
+
+
+
+
+
+
+
 DiMo
 
 Project Summary:
