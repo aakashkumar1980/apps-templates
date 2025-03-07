@@ -3,3 +3,27 @@ DiMo
 Project Summary:
 This project focuses on managing marketing offers for credit card users, enabling targeted promotions and personalized rewards. It includes a comprehensive lifecycle from campaign creation, offer setup, targeting, and advertisement to user redemption and reward processing. The system integrates with an external aggregator via an API and file engine for offer ingestion and transaction data exchange. A microservices architecture ensures scalability, with dedicated services for campaign management, customer engagement, transaction processing, and analytics. Using Kafka for messaging and Kubernetes for file processing enhances performance, while Apigee serves as the API gateway for secure and efficient communication.
 
+
+
+Roles and Responsibilities:
+Microservices Architecture: Designed and implemented microservices using Spring Boot, ensuring scalability and maintainability.
+
+Event-Driven Processing: Utilized Kafka as a messaging backbone to enable asynchronous event-driven communication between microservices.
+
+Cloud Storage & File Processing: Integrated AWS S3 for storing and managing large datasets, along with Kubernetes PODs for batch file processing.
+
+Secure Data Handling: Implemented file encryption mechanisms for secure data transfer and OAuth authentication for securing REST APIs.
+
+Database Modeling: Designed and optimized relational database schemas, ensuring efficient data retrieval and storage.
+
+Java Stream APIs: Leveraged Java Streams for optimized data processing, improving application performance and readability.
+
+Frontend Development: Contributed to UI development using React.js, ensuring a seamless user experience.
+
+Technical Leadership: Led a team, provided solutions to complex issues, and ensured smooth project execution.
+
+Experience: 7 years of expertise in Java, Spring Boot, Kafka, AWS, Kubernetes, React.js, and secure API development.
+
+
+
+
