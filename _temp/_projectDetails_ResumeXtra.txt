@@ -1,0 +1,105 @@
+
+Citi Bank, New York City, NY
+Nov 2020 – Mar 2022
+
+Collaborated in gathering client requirements, analysis, design, and testing using Agile (SCRUM).
+
+Developed Spring Boot microservices in Docker containers and orchestrated with Kubernetes.
+
+Built reusable front-end components with ReactJS and Angular 10, utilizing HTML, CSS, and Bootstrap.
+
+Implemented AWS IAM roles/policies and customized AMIs for disaster recovery.
+
+Designed UI frameworks using AngularJS, HTML5, CSS3, AJAX, and JavaScript.
+
+Deployed patches on WebLogic, OIM, and Oracle SOA.
+
+Developed multithreaded core Java components to enhance performance.
+
+Implemented Swagger for REST API documentation and used Consul for service discovery.
+
+Managed project builds and deployments with Jenkins, Docker, and Maven.
+
+Used AWS services like S3, SQS, DynamoDB, and EC2 for cloud infrastructure.
+
+Configured ELK stack for log aggregation and analysis.
+
+Ensured microservices health checks using Eureka and Spring Boot Admin.
+
+Utilized Kafka for event-driven messaging and Cassandra for data persistence.
+
+Applied JUnit and Mockito for unit testing; tracked issues with JIRA.
+
+
+
+---
+
+Sarnova, Dublin, OH
+Apr 2019 - Oct 2020
+
+Developed RESTful microservices using Java, Scala, and Spring Boot.
+
+Leveraged core Java 8 features, including Lambdas, Streams, and Concurrency for efficient backend logic.
+
+Integrated Spring Security with OAuth2 for enhanced authentication and authorization.
+
+Designed cross-browser accessible interfaces using Angular 4 and TypeScript.
+
+Built multi-tenant SaaS applications with responsive UIs using ReactJS and NodeJS.
+
+Implemented Kafka and RabbitMQ for message-driven architectures.
+
+Automated data analysis and reporting using Python and VBA scripts.
+
+Developed and maintained CI/CD pipelines for cloud deployments using Azure.
+
+Enhanced UI builds and dependency management with Gulp, NPM, and Bower.
+
+Integrated Hibernate with Spring for efficient data access and management.
+
+
+
+---
+
+BCBS, Chicago, IL
+Sep 2017 - Mar 2019
+
+Developed custom UI components and services with Angular 7 and Spring MVC.
+
+Utilized Spring Boot, Hibernate, and JPA for backend development and data persistence.
+
+Designed and implemented RESTful APIs for internal and external communication.
+
+Managed continuous integration/deployment processes using Jenkins.
+
+Built and tested REST services with JUnit, Mockito, and Postman.
+
+Used Maven for building and deploying applications and tracked issues with JIRA.
+
+Developed MongoDB architecture to improve performance and scalability.
+
+
+
+---
+
+Byteridge Software Private Limited, Hyderabad, India
+July 2014 - Aug 2017
+
+Developed and integrated REST APIs using Spring and Hibernate.
+
+Implemented multithreading with Java for efficient data processing.
+
+Automated build processes with UNIX shell scripts.
+
+Worked with DB2 and MongoDB for data persistence and management.
+
+Developed JMS interfaces for asynchronous messaging and data exchange.
+
+Contributed to production support, including server monitoring and issue escalation.
+
+
+
+---
+
+This version streamlines the responsibilities, focusing on key technical achievements and skills while eliminating redundancies. Let me know if you need further adjustments!
+
