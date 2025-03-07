@@ -67,3 +67,32 @@ Experience: 7 years of expertise in Java, Spring Boot, Kafka, AWS, Kubernetes, R
 
 
 
+
+Technical Skills
+Languages: Java (8+), Core Java, J2EE, SQL, PL/SQL, JavaScript, Python (basic)
+
+Web Technologies: HTML, CSS, JavaScript, TypeScript, JSON, AJAX, XML, YAML
+
+Frameworks: Spring Boot, Hibernate, JPA, React.js
+
+Web Services & APIs: RESTful APIs, OpenAPI, Swagger, APIGEE (API Gateway)
+
+Architectural Patterns: Microservices, Event-Driven Architecture, Domain-Driven Design (DDD), CQRS, API Gateway
+
+Messaging & Streaming: Kafka
+
+Application & Web Servers: Tomcat, JBoss, WebSphere, WebLogic, Jetty
+
+Databases: MySQL, MongoDB, Redis
+
+Cloud & DevOps: AWS (S3, EC2, RDS, Lambda, API Gateway), Docker, Kubernetes, CI/CD (Jenkins)
+
+Build & Integration Tools: Maven, Gradle, Jenkins, Git, SonarQube
+
+IDEs & Development Tools: IntelliJ IDEA, Eclipse, VS Code, SQL Developer, Postman, JMeter
+
+Operating Systems: Windows, Linux (Ubuntu, Red Hat, CentOS), macOS
+
+Security & Authentication: OAuth2, JWT, Spring Security
+
+Testing & Monitoring: JUnit, Mockito, Selenium, ELK Stack
