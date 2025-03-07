@@ -1,0 +1,5 @@
+DiMo
+
+Project Summary:
+This project focuses on managing marketing offers for credit card users, enabling targeted promotions and personalized rewards. It includes a comprehensive lifecycle from campaign creation, offer setup, targeting, and advertisement to user redemption and reward processing. The system integrates with an external aggregator via an API and file engine for offer ingestion and transaction data exchange. A microservices architecture ensures scalability, with dedicated services for campaign management, customer engagement, transaction processing, and analytics. Using Kafka for messaging and Kubernetes for file processing enhances performance, while Apigee serves as the API gateway for secure and efficient communication.
+
