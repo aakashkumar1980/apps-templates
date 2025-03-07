@@ -107,93 +107,50 @@ Certainly! Below is a list of the Environments (Technologies Used) for each of t
 
 ---
 
+Here is the environment for the current project (Offers Domain):
+
+Current Project - Offers Domain (Feb 2025 - Present)
+Java, Spring Boot, ReactJS, Docker, Kubernetes, Microservices, AWS, MongoDB, Git, Jenkins, OAuth 2.0, PostgreSQL.
+
+Certainly! Here's a concise list of the Environments (Technologies Used) for each project, including the current one in the Offers domain:
+
+
+---
+
 Citi Bank, New York City, NY (Nov 2020 – Mar 2022)
 
-Technologies Used:
-
-Languages: Java, JavaScript, TypeScript, HTML5, CSS3, AJAX, JSON, SQL
-
-Frameworks/Technologies: Spring Boot, Angular 10, ReactJS, Bootstrap, Spring Cloud, Spring MVC, Spring JPA, Swagger, Consul, Struts, Hibernate
-
-Microservices & Architecture: Docker, Kubernetes, RESTful APIs, Microservices, Spring Boot, AWS (Amazon Web Services), EC2, S3, SQS, DynamoDB, CloudFormation
-
-Security & Authentication: AWS IAM, OAuth 2.0, Spring Security
-
-DevOps & CI/CD: Jenkins, GitHub, Docker, Maven
-
-Logging & Monitoring: ELK (Elastic Stack), Swagger UI, Spring Boot Admin Console, SLF4J
-
-Tools & Utilities: Postman, Rest Client, JIRA, Swagger, JMockito, JUnit, Mock MVC
-
+Java, Spring Boot, Angular 10, ReactJS, AWS, Docker, Kubernetes, Microservices, OAuth 2.0, Jenkins, GitHub, SQL, Swagger.
 
 
 ---
 
 Sarnova, Dublin, OH (Apr 2019 - Oct 2020)
 
-Technologies Used:
-
-Languages: Java 8, Scala, JavaScript, TypeScript, Python, HTML5, CSS3
-
-Frameworks/Technologies: Spring Boot, Hibernate, Struts (MVC), Angular 4, NodeJS, ReactJS, ExpressJS, Play Framework, Apache Kafka, Rabbit MQ
-
-Microservices & Architecture: RESTful APIs, Microservices, Angular, Hibernate, Spring Security, OAuth 2.0
-
-Cloud & Big Data: Azure, Hadoop (Flume, Pig, Hive, HBase, Oozie, Zookeeper, Sqoop, Spark)
-
-Tools & Utilities: GitHub, Jenkins, JIRA, Maven, Gulp, Selenium WebDriver, TestNG
-
-Databases: Cassandra, MongoDB, Oracle
-
-Other: Kafka, ELK Stack, Swagger UI
-
+Java, Scala, Spring Boot, Hibernate, Angular 4, ReactJS, Apache Kafka, Rabbit MQ, Azure, MongoDB, GitHub, Jenkins, Selenium.
 
 
 ---
 
 BCBS, Chicago, IL (Sep 2017 - Mar 2019)
 
-Technologies Used:
-
-Languages: Java, JavaScript, HTML5, CSS3, SQL
-
-Frameworks/Technologies: Spring MVC, Angular 7, Hibernate, Spring Security, Spring AOP
-
-Microservices & Architecture: RESTful Web Services, Microservices, Spring ORM, Hibernate O/R Mapping
-
-DevOps & CI/CD: Jenkins, Maven, SVN, Git
-
-Databases: Oracle, MongoDB
-
-Tools & Utilities: JIRA, Postman, JUnit, Apache Kafka
-
-Others: WebLogic, IBM WebSphere, J2EE Design Patterns, JMS
-
+Java, Spring MVC, Angular 7, Hibernate, Spring Security, RESTful APIs, Jenkins, Maven, Oracle, MongoDB, Kafka.
 
 
 ---
 
 Byteridge Software Private Limited, Hyderabad, India (July 2014 - Aug 2017)
 
-Technologies Used:
-
-Languages: Java, JavaScript, SQL
-
-Frameworks/Technologies: Spring, Hibernate, JPA, RESTful Web Services, J2EE, JMS
-
-Microservices & Architecture: REST APIs, Microservices, Spring ORM, Hibernate ORM
-
-Databases: DB2, MongoDB, Oracle
-
-DevOps & CI/CD: Maven, CVS, Jenkins
-
-Tools & Utilities: JUnit, Mockito, WebLogic, JIRA, Maven
-
-Others: J2EE Design Patterns, Shell Scripting, JMS, JMX, MongoDB
-
+Java, Spring, Hibernate, JPA, RESTful Web Services, J2EE, JMS, DB2, MongoDB, Oracle, Maven, Jenkins.
 
 
 ---
 
-These are the key technologies and tools used in each project based on the details you've provided. Let me know if you'd like further clarification or changes!
+Current Project - Offers Domain (Feb 2025 - Present)
+
+Java, Spring Boot, ReactJS, Docker, Kubernetes, Microservices, AWS, MongoDB, Git, Jenkins, OAuth 2.0.
+
+
+---
+
+Let me know if you'd like further adjustments!
 
