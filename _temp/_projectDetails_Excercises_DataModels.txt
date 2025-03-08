@@ -1,0 +1,225 @@
+Since we are using Couchbase, which is a NoSQL document database, JPA relationships (like @OneToMany, @ManyToOne, etc.) don't work in the traditional RDBMS sense. Instead, we use embedded objects, references (IDs of related documents), or collections within a document.
+
+Here’s a Couchbase-compatible data model with Spring Data annotations while keeping relationships clear.
+
+
+---
+
+1. Campaign Entity (@Document)
+
+Relation: A campaign contains multiple offers (One-to-Many).
+
+@Document
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Campaign {
+    
+    @Id
+    private String id;  // UUID or some identifier
+
+    private String name;
+    private String description;
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    @Field
+    private List<String> offerIds;  // References to Offer documents
+
+}
+
+✔ No @OneToMany, instead storing Offer IDs as a list.
+✔ Queries can be optimized using JOINs in N1QL if needed.
+
+
+---
+
+2. Offer Entity (@Document)
+
+Relation: Offer is linked to a merchant and campaign.
+
+@Document
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Offer {
+
+    @Id
+    private String id; // Offer UUID
+    
+    private String title;
+    private String description;
+    private Double rewardAmount; 
+    private String campaignId; // Reference to Campaign
+
+    @Field
+    private List<String> eligibleCustomerIds; // Customers eligible for this offer
+
+    private String merchantId; // Reference to Merchant
+
+}
+
+✔ References campaignId & merchantId instead of using @ManyToOne
+✔ Stores eligible customers as a list
+
+
+---
+
+3. Merchant Entity (@Document)
+
+Relation: A merchant has multiple offers.
+
+@Document
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Merchant {
+
+    @Id
+    private String id; // Merchant ID
+
+    private String name;
+    private String category;
+    private String location;
+
+    @Field
+    private List<String> offerIds; // References to Offer documents
+}
+
+✔ Merchant stores offer IDs as a list (avoiding @OneToMany).
+✔ Efficient for fast lookups.
+
+
+---
+
+4. Customer Entity (@Document)
+
+Relation: Customers can enroll in offers and redeem them.
+
+@Document
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Customer {
+
+    @Id
+    private String id;  // Customer ID
+    
+    private String name;
+    private String email;
+    private String phoneNumber;
+
+    @Field
+    private List<String> enrolledOfferIds; // Offers the customer is enrolled in
+
+    @Field
+    private List<String> redeemedOfferIds; // Offers redeemed by customer
+}
+
+✔ Stores enrolled & redeemed offer IDs as lists.
+✔ No need for a separate mapping table like in SQL.
+
+
+---
+
+5. Redemption Entity (@Document)
+
+Relation: Redemption links Customer and Offer.
+
+@Document
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Redemption {
+
+    @Id
+    private String id; // Redemption UUID
+    
+    private String customerId; // Reference to Customer
+    private String offerId; // Reference to Offer
+
+    private LocalDateTime redemptionDate;
+    private Double cashbackAmount;
+}
+
+✔ Each redemption stores customer & offer reference.
+✔ No @ManyToOne, everything is stored in document-style.
+
+
+---
+
+6. Advertisement & Engagement Entity (@Document)
+
+Relation: Tracks impressions, enrollments, and engagement with offers.
+
+@Document
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Advertisement {
+
+    @Id
+    private String id; // Unique Advertisement ID
+
+    private String offerId; // Reference to Offer
+    private int clickCount;
+    private int enrollmentCount;
+
+    @Field
+    private Map<String, LocalDateTime> customerClicks; // Customer interactions
+}
+
+✔ Customer click details stored as a Map (customerId -> timestamp).
+✔ Keeps engagement tracking within the document.
+
+
+---
+
+7. Transaction Entity (@Document)
+
+Relation: Links a Customer, Merchant, and Offer.
+
+@Document
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Transaction {
+
+    @Id
+    private String id; // Transaction UUID
+    
+    private String customerId; // Reference to Customer
+    private String merchantId; // Reference to Merchant
+    private String offerId; // Reference to Offer (if applicable)
+
+    private LocalDateTime transactionDate;
+    private Double amount;
+}
+
+✔ Stores references to Customer, Merchant, and Offer.
+✔ No need for complex joins in NoSQL.
+
+
+---
+
+Final Relationship Overview
+
+
+---
+
+Key Takeaways
+
+✅ NoSQL Approach → Uses embedded lists & references instead of joins.
+✅ Fast Reads → Data is pre-joined in document format (avoiding joins).
+✅ Flexible Queries → Couchbase allows N1QL JOINs when needed.
+✅ Scalable → Each entity is independent, making horizontal scaling easier.
+
+Let me know if you need queries for fetching data using Couchbase N1QL!
+
