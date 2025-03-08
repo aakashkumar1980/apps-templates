@@ -1,0 +1,262 @@
+If we were using relational tables (RDBMS like PostgreSQL or MySQL) instead of Couchbase, we would use JPA annotations like @OneToMany, @ManyToOne, and @ManyToMany to model relationships. Below is how the equivalent JPA entity models would look for the same domain.
+
+
+---
+
+1. Campaign Entity (One-to-Many with Offer)
+
+A campaign has multiple offers.
+
+@Entity
+@Table(name = "campaigns")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Campaign {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String description;
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    @OneToMany(mappedBy = "campaign", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Offer> offers;
+}
+
+✔ Uses @OneToMany for offers (each offer has a foreign key to campaign).
+
+
+---
+
+2. Offer Entity (Many-to-One with Campaign & Merchant, Many-to-Many with Customers)
+
+An offer belongs to a campaign and a merchant.
+
+@Entity
+@Table(name = "offers")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Offer {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+    private String description;
+    private Double rewardAmount;
+
+    @ManyToOne
+    @JoinColumn(name = "campaign_id", nullable = false)
+    private Campaign campaign;
+
+    @ManyToOne
+    @JoinColumn(name = "merchant_id", nullable = false)
+    private Merchant merchant;
+
+    @ManyToMany
+    @JoinTable(
+        name = "offer_customers",
+        joinColumns = @JoinColumn(name = "offer_id"),
+        inverseJoinColumns = @JoinColumn(name = "customer_id")
+    )
+    private List<Customer> eligibleCustomers;
+}
+
+✔ Uses @ManyToOne for Campaign & Merchant (foreign key stored in Offer table).
+✔ Uses @ManyToMany for Customers (creates a join table offer_customers).
+
+
+---
+
+3. Merchant Entity (One-to-Many with Offers)
+
+A merchant can have multiple offers.
+
+@Entity
+@Table(name = "merchants")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Merchant {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String category;
+    private String location;
+
+    @OneToMany(mappedBy = "merchant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Offer> offers;
+}
+
+✔ Uses @OneToMany for offers (each offer belongs to a merchant).
+
+
+---
+
+4. Customer Entity (Many-to-Many with Offers, One-to-Many with Redemptions)
+
+A customer can enroll in multiple offers, and they can redeem them.
+
+@Entity
+@Table(name = "customers")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Customer {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String email;
+    private String phoneNumber;
+
+    @ManyToMany(mappedBy = "eligibleCustomers")
+    private List<Offer> enrolledOffers;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Redemption> redemptions;
+}
+
+✔ Uses @ManyToMany for enrolled offers.
+✔ Uses @OneToMany for redemptions (each redemption belongs to one customer).
+
+
+---
+
+5. Redemption Entity (Many-to-One with Customer & Offer)
+
+A customer redeems an offer, creating a redemption record.
+
+@Entity
+@Table(name = "redemptions")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Redemption {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    @ManyToOne
+    @JoinColumn(name = "offer_id", nullable = false)
+    private Offer offer;
+
+    private LocalDateTime redemptionDate;
+    private Double cashbackAmount;
+}
+
+✔ Stores customer_id and offer_id as foreign keys.
+✔ Each redemption belongs to one customer and one offer.
+
+
+---
+
+6. Advertisement & Engagement Entity (Many-to-One with Offer)
+
+Stores impressions & engagement details for offers.
+
+@Entity
+@Table(name = "advertisements")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Advertisement {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "offer_id", nullable = false)
+    private Offer offer;
+
+    private int clickCount;
+    private int enrollmentCount;
+}
+
+✔ Stores engagement stats per offer.
+
+
+---
+
+7. Transaction Entity (Many-to-One with Customer & Merchant, Optional One-to-One with Offer)
+
+A transaction is linked to a customer, merchant, and possibly an offer.
+
+@Entity
+@Table(name = "transactions")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Transaction {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    @ManyToOne
+    @JoinColumn(name = "merchant_id", nullable = false)
+    private Merchant merchant;
+
+    @ManyToOne
+    @JoinColumn(name = "offer_id", nullable = true)
+    private Offer offer;  // Offer might not always be applied
+
+    private LocalDateTime transactionDate;
+    private Double amount;
+}
+
+✔ Links transactions with customers & merchants.
+✔ Optional offer_id in case a transaction is eligible for a cashback offer.
+
+
+---
+
+Final Relationship Overview (RDBMS)
+
+
+---
+
+Key Differences Between Couchbase & RDBMS
+
+
+---
+
+Conclusion
+
+If you need ACID transactions & strict consistency, go for Relational DB (JPA).
+
+If you need high scalability & flexible schema, go for Couchbase (NoSQL).
+
+Couchbase eliminates joins, favoring embedded relationships, while RDBMS relies on foreign keys and joins.
+
+
+Would you like me to generate some SQL queries for fetching data in the relational model?
+
