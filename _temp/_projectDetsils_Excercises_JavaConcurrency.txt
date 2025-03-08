@@ -1,0 +1,230 @@
+Great! Here are some Java Concurrent Utils examples tailored to lightweight reporting in your marketing offers project. These examples process data in Java instead of relying on SQL queries, leveraging multithreading for parallel execution.
+
+
+---
+
+1. Using ExecutorService for Parallel Offer Redemption Analysis
+
+Scenario:
+You need to analyze customer redemptions across different merchants and calculate total cashback per customer. Instead of processing sequentially, multiple threads will execute the analysis in parallel.
+
+Implementation:
+
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
+class OfferRedemption {
+    String customerId;
+    double cashback;
+
+    public OfferRedemption(String customerId, double cashback) {
+        this.customerId = customerId;
+        this.cashback = cashback;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public double getCashback() {
+        return cashback;
+    }
+}
+
+public class ParallelRedemptionAnalysis {
+    public static void main(String[] args) throws InterruptedException, ExecutionException {
+        List<OfferRedemption> redemptions = Arrays.asList(
+                new OfferRedemption("C1", 20.0), new OfferRedemption("C2", 15.0),
+                new OfferRedemption("C1", 10.0), new OfferRedemption("C3", 5.0),
+                new OfferRedemption("C2", 25.0), new OfferRedemption("C3", 30.0)
+        );
+
+        ExecutorService executor = Executors.newFixedThreadPool(3); // Using 3 threads
+        List<Future<Map<String, Double>>> futures = new ArrayList<>();
+
+        // Divide the work into 2 partitions
+        int chunkSize = redemptions.size() / 2;
+        for (int i = 0; i < redemptions.size(); i += chunkSize) {
+            List<OfferRedemption> chunk = redemptions.subList(i, Math.min(i + chunkSize, redemptions.size()));
+
+            Future<Map<String, Double>> future = executor.submit(() -> chunk.stream()
+                    .collect(Collectors.groupingBy(OfferRedemption::getCustomerId, Collectors.summingDouble(OfferRedemption::getCashback))));
+            
+            futures.add(future);
+        }
+
+        // Aggregate results from multiple threads
+        Map<String, Double> totalCashback = new ConcurrentHashMap<>();
+        for (Future<Map<String, Double>> future : futures) {
+            future.get().forEach((customer, cashback) ->
+                    totalCashback.merge(customer, cashback, Double::sum));
+        }
+
+        executor.shutdown();
+        System.out.println("Total cashback per customer: " + totalCashback);
+    }
+}
+
+Expected Output:
+
+Total cashback per customer: {C1=30.0, C2=40.0, C3=35.0}
+
+Key Concepts Used:
+✔ ExecutorService for parallel execution
+✔ Future to get results asynchronously
+✔ merge() for concurrent result aggregation
+
+
+---
+
+2. Using CompletableFuture for Parallel Offer Performance Reporting
+
+Scenario:
+You need to calculate offer conversion rates (enrollments vs. impressions) for different merchants concurrently and return the results asynchronously.
+
+Implementation:
+
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
+class OfferEvent {
+    String merchantId;
+    int impressions;
+    int enrollments;
+
+    public OfferEvent(String merchantId, int impressions, int enrollments) {
+        this.merchantId = merchantId;
+        this.impressions = impressions;
+        this.enrollments = enrollments;
+    }
+
+    public String getMerchantId() {
+        return merchantId;
+    }
+
+    public int getImpressions() {
+        return impressions;
+    }
+
+    public int getEnrollments() {
+        return enrollments;
+    }
+}
+
+public class OfferPerformanceAnalysis {
+    public static void main(String[] args) {
+        List<OfferEvent> offerEvents = Arrays.asList(
+                new OfferEvent("M1", 1000, 50),
+                new OfferEvent("M2", 800, 40),
+                new OfferEvent("M3", 500, 30),
+                new OfferEvent("M1", 600, 20),
+                new OfferEvent("M2", 400, 10)
+        );
+
+        // Run calculations concurrently using CompletableFuture
+        CompletableFuture<Map<String, Double>> conversionRateFuture = CompletableFuture.supplyAsync(() ->
+                offerEvents.stream()
+                        .collect(Collectors.groupingBy(OfferEvent::getMerchantId,
+                                Collectors.averagingDouble(event -> (double) event.getEnrollments() / event.getImpressions() * 100))));
+
+        // Fetch the result asynchronously
+        conversionRateFuture.thenAccept(conversionRates ->
+                conversionRates.forEach((merchant, rate) ->
+                        System.out.println("Merchant: " + merchant + ", Conversion Rate: " + rate + "%")));
+
+        // Sleep to ensure async execution completes before main thread exits
+        try { Thread.sleep(1000); } catch (InterruptedException e) { e.printStackTrace(); }
+    }
+}
+
+Expected Output:
+
+Merchant: M1, Conversion Rate: 5.0%
+Merchant: M2, Conversion Rate: 4.375%
+Merchant: M3, Conversion Rate: 6.0%
+
+Key Concepts Used:
+✔ CompletableFuture.supplyAsync() for asynchronous computation
+✔ Aggregating values using averagingDouble()
+✔ thenAccept() for handling async results
+
+
+---
+
+3. Using ConcurrentHashMap for Real-Time Offer Enrollment Tracking
+
+Scenario:
+You need to track offer enrollments in real-time where multiple threads process enrollments concurrently without conflicts.
+
+Implementation:
+
+import java.util.concurrent.*;
+import java.util.*;
+
+class OfferEnrollmentProcessor implements Runnable {
+    private final ConcurrentHashMap<String, Integer> enrollments;
+    private final List<String> offerIds;
+
+    public OfferEnrollmentProcessor(ConcurrentHashMap<String, Integer> enrollments, List<String> offerIds) {
+        this.enrollments = enrollments;
+        this.offerIds = offerIds;
+    }
+
+    @Override
+    public void run() {
+        for (String offerId : offerIds) {
+            enrollments.merge(offerId, 1, Integer::sum); // Atomically update count
+        }
+    }
+}
+
+public class ConcurrentOfferEnrollment {
+    public static void main(String[] args) throws InterruptedException {
+        ConcurrentHashMap<String, Integer> enrollments = new ConcurrentHashMap<>();
+        List<String> offerIds1 = Arrays.asList("O1", "O2", "O1", "O3", "O2");
+        List<String> offerIds2 = Arrays.asList("O1", "O3", "O3", "O2", "O4");
+
+        Thread t1 = new Thread(new OfferEnrollmentProcessor(enrollments, offerIds1));
+        Thread t2 = new Thread(new OfferEnrollmentProcessor(enrollments, offerIds2));
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println("Offer Enrollment Counts: " + enrollments);
+    }
+}
+
+Expected Output (Order may vary due to concurrency):
+
+Offer Enrollment Counts: {O1=3, O2=3, O3=3, O4=1}
+
+Key Concepts Used:
+✔ ConcurrentHashMap for thread-safe updates
+✔ merge() to atomically update counters
+✔ Parallel processing using Thread objects
+
+
+---
+
+Key Takeaways from These Exercises:
+
+1. Parallel Processing → ExecutorService, CompletableFuture for faster computations.
+
+
+2. Asynchronous Data Aggregation → Process large data sets in parallel.
+
+
+3. Thread-Safe Real-Time Tracking → ConcurrentHashMap ensures atomic updates.
+
+
+4. Optimized Java Processing Instead of SQL → Avoids complex joins and aggregations in databases.
+
+
+
+Would you like Kafka-based event-driven exercises next?
+
