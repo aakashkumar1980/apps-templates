@@ -1,0 +1,305 @@
+Here are some Spring Boot non-blocking REST API examples using Reactor (WebFlux), integrating with Couchbase for the Offers domain.
+
+
+---
+
+1. Campaign Management Service - Create Campaign (POST)
+
+Concept: Using Mono for handling non-blocking request-response.
+
+@RestController
+@RequestMapping("/campaigns")
+@RequiredArgsConstructor
+public class CampaignController {
+
+    private final CampaignService campaignService;
+
+    @PostMapping
+    public Mono<ResponseEntity<Campaign>> createCampaign(@RequestBody Campaign campaign) {
+        return campaignService.createCampaign(campaign)
+                .map(savedCampaign -> ResponseEntity.status(HttpStatus.CREATED).body(savedCampaign));
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class CampaignService {
+
+    private final CampaignRepository campaignRepository;
+
+    public Mono<Campaign> createCampaign(Campaign campaign) {
+        return campaignRepository.save(campaign);
+    }
+}
+
+@Repository
+public interface CampaignRepository extends ReactiveCrudRepository<Campaign, String> {
+}
+
+Key Concepts:
+✔ Mono<T> → Handles single object asynchronously.
+✔ ReactiveCrudRepository → Non-blocking DB operations.
+
+
+---
+
+2. Offer Management Service - Get Offers by Merchant (GET)
+
+Concept: Using Flux for returning multiple non-blocking records.
+
+@RestController
+@RequestMapping("/offers")
+@RequiredArgsConstructor
+public class OfferController {
+
+    private final OfferService offerService;
+
+    @GetMapping("/merchant/{merchantId}")
+    public Flux<Offer> getOffersByMerchant(@PathVariable String merchantId) {
+        return offerService.getOffersByMerchant(merchantId);
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class OfferService {
+
+    private final OfferRepository offerRepository;
+
+    public Flux<Offer> getOffersByMerchant(String merchantId) {
+        return offerRepository.findByMerchantId(merchantId);
+    }
+}
+
+@Repository
+public interface OfferRepository extends ReactiveCrudRepository<Offer, String> {
+    Flux<Offer> findByMerchantId(String merchantId);
+}
+
+Key Concepts:
+✔ Flux<T> → Returns multiple objects asynchronously.
+✔ Reactive Query Methods → findByMerchantId() for Couchbase query execution.
+
+
+---
+
+3. Advertisement & Engagement Service - Track Offer Click (PUT)
+
+Concept: Using Mono<Void> for event tracking.
+
+@RestController
+@RequestMapping("/advertisements")
+@RequiredArgsConstructor
+public class AdvertisementController {
+
+    private final AdvertisementService advertisementService;
+
+    @PutMapping("/{offerId}/click")
+    public Mono<ResponseEntity<Void>> trackOfferClick(@PathVariable String offerId) {
+        return advertisementService.trackOfferClick(offerId)
+                .then(Mono.just(ResponseEntity.ok().build()));
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class AdvertisementService {
+
+    private final AdvertisementRepository advertisementRepository;
+
+    public Mono<Void> trackOfferClick(String offerId) {
+        return advertisementRepository.incrementClickCount(offerId);
+    }
+}
+
+@Repository
+public interface AdvertisementRepository {
+    Mono<Void> incrementClickCount(String offerId);
+}
+
+Key Concepts:
+✔ Mono<Void> → No return value, useful for event tracking.
+✔ Asynchronous DB update without blocking response.
+
+
+---
+
+4. Redemption & Reward Service - Redeem Offer (POST)
+
+Concept: Transactional logic with flatMap() and doOnSuccess().
+
+@RestController
+@RequestMapping("/redemptions")
+@RequiredArgsConstructor
+public class RedemptionController {
+
+    private final RedemptionService redemptionService;
+
+    @PostMapping
+    public Mono<ResponseEntity<RedemptionResponse>> redeemOffer(@RequestBody RedemptionRequest request) {
+        return redemptionService.redeemOffer(request)
+                .map(response -> ResponseEntity.ok(response));
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class RedemptionService {
+
+    private final RedemptionRepository redemptionRepository;
+    private final OfferRepository offerRepository;
+    private final CustomerRepository customerRepository;
+
+    public Mono<RedemptionResponse> redeemOffer(RedemptionRequest request) {
+        return offerRepository.findById(request.getOfferId())
+                .flatMap(offer -> customerRepository.findById(request.getCustomerId())
+                        .flatMap(customer -> {
+                            // Business logic for validation
+                            if (customer.getPoints() < offer.getRequiredPoints()) {
+                                return Mono.error(new RuntimeException("Insufficient points"));
+                            }
+
+                            Redemption redemption = new Redemption(request.getOfferId(), request.getCustomerId());
+                            return redemptionRepository.save(redemption)
+                                    .doOnSuccess(r -> System.out.println("Redemption successful!"))
+                                    .thenReturn(new RedemptionResponse("Success"));
+                        }));
+    }
+}
+
+Key Concepts:
+✔ flatMap() → Chains multiple asynchronous operations.
+✔ doOnSuccess() → Logging success event asynchronously.
+✔ Mono.error() → Non-blocking error handling.
+
+
+---
+
+5. Customer Service - Stream Real-time Customer Transactions (SSE)
+
+Concept: Server-Sent Events (SSE) for real-time data streaming.
+
+@RestController
+@RequestMapping("/customers")
+@RequiredArgsConstructor
+public class CustomerController {
+
+    private final CustomerService customerService;
+
+    @GetMapping(value = "/{customerId}/transactions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Transaction> streamCustomerTransactions(@PathVariable String customerId) {
+        return customerService.getRealTimeTransactions(customerId);
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class CustomerService {
+
+    private final TransactionRepository transactionRepository;
+
+    public Flux<Transaction> getRealTimeTransactions(String customerId) {
+        return transactionRepository.findByCustomerId(customerId)
+                .delayElements(Duration.ofSeconds(1)); // Simulating real-time flow
+    }
+}
+
+@Repository
+public interface TransactionRepository extends ReactiveCrudRepository<Transaction, String> {
+    Flux<Transaction> findByCustomerId(String customerId);
+}
+
+Key Concepts:
+✔ Flux<T> with TEXT_EVENT_STREAM_VALUE → Enables real-time data streaming.
+✔ delayElements(Duration.ofSeconds(1)) → Simulates live data feed.
+
+
+---
+
+6. Transaction Service - Get Transactions with Backpressure Handling (GET)
+
+Concept: Backpressure handling with limitRate().
+
+@RestController
+@RequestMapping("/transactions")
+@RequiredArgsConstructor
+public class TransactionController {
+
+    private final TransactionService transactionService;
+
+    @GetMapping
+    public Flux<Transaction> getTransactions() {
+        return transactionService.getAllTransactions();
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class TransactionService {
+
+    private final TransactionRepository transactionRepository;
+
+    public Flux<Transaction> getAllTransactions() {
+        return transactionRepository.findAll()
+                .limitRate(5); // Controls data flow, prevents overload
+    }
+}
+
+Key Concepts:
+✔ Backpressure Control → limitRate(5) to avoid overwhelming clients.
+✔ Flux Streaming → Returns transactions efficiently in batches.
+
+
+---
+
+7. Merchant Management Service - Bulk Merchant Data Processing (POST)
+
+Concept: Parallel processing of merchants using parallel().
+
+@RestController
+@RequestMapping("/merchants")
+@RequiredArgsConstructor
+public class MerchantController {
+
+    private final MerchantService merchantService;
+
+    @PostMapping("/bulk")
+    public Mono<ResponseEntity<Void>> bulkInsertMerchants(@RequestBody List<Merchant> merchants) {
+        return merchantService.bulkInsertMerchants(merchants)
+                .then(Mono.just(ResponseEntity.status(HttpStatus.CREATED).build()));
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class MerchantService {
+
+    private final MerchantRepository merchantRepository;
+
+    public Mono<Void> bulkInsertMerchants(List<Merchant> merchants) {
+        return Flux.fromIterable(merchants)
+                .parallel()
+                .runOn(Schedulers.parallel())
+                .flatMap(merchantRepository::save)
+                .sequential()
+                .then();
+    }
+}
+
+Key Concepts:
+✔ parallel() + Schedulers.parallel() → Parallel processing of bulk data.
+✔ Efficient insertions without blocking the main thread.
+
+
+---
+
+Key Takeaways
+
+✅ Mono for single async operations
+✅ Flux for streaming multiple async responses
+✅ Backpressure handling with limitRate()
+✅ Parallel bulk processing with parallel()
+✅ Non-blocking Couchbase repository operations
+
+Let me know if you want Kafka-based APIs next!
+
