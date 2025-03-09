@@ -1,0 +1,161 @@
+In Spring Boot, global exception handling can be achieved using @ControllerAdvice, which allows you to handle exceptions across all @RequestMapping methods in your application. You can also use validation annotations on the request body, and any validation errors can be handled using custom exception handlers.
+
+Here’s how you can implement global exception handling along with validation for your REST API controller:
+
+Step-by-Step Implementation:
+
+1. Create Data Model with Validation Annotations
+
+Let's assume you have an OfferRequest object which is the request body for the API.
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+
+public class OfferRequest {
+
+    @NotBlank(message = "Offer name cannot be empty")
+    private String offerName;
+
+    @Positive(message = "Offer value must be greater than 0")
+    private double offerValue;
+
+    // Getters and Setters
+
+    public String getOfferName() {
+        return offerName;
+    }
+
+    public void setOfferName(String offerName) {
+        this.offerName = offerName;
+    }
+
+    public double getOfferValue() {
+        return offerValue;
+    }
+
+    public void setOfferValue(double offerValue) {
+        this.offerValue = offerValue;
+    }
+}
+
+2. Controller Class with Validation
+
+The controller will accept the OfferRequest and validate it automatically. If the validation fails, Spring will throw a MethodArgumentNotValidException which will be caught in the global exception handler.
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+
+@RestController
+@RequestMapping("/offers")
+public class OfferController {
+
+    @PostMapping("/create")
+    public ResponseEntity<String> createOffer(@Valid @RequestBody OfferRequest offerRequest) {
+        // Service logic to handle offer creation
+        return ResponseEntity.ok("Offer created successfully");
+    }
+}
+
+Here, @Valid ensures that the OfferRequest is validated according to the annotations on the fields (e.g., @NotBlank, @Positive).
+
+3. Global Exception Handling with @ControllerAdvice
+
+Now, let’s handle the exceptions globally by creating an exception handler. We will handle the validation errors and return custom messages.
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    // Handle validation errors
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errorMessages = new HashMap<>();
+        
+        // Get all the validation errors from the exception
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String message = error.getDefaultMessage();
+            errorMessages.put(fieldName, message);
+        });
+        
+        return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle other exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleOtherExceptions(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
+Explanation of Global Exception Handling:
+
+1. MethodArgumentNotValidException:
+
+This exception is thrown when the validation fails on the request body (@Valid).
+
+The handleValidationExceptions() method captures the error and extracts the validation messages from the BindingResult. These error messages are then returned as a Map with the field name as the key and the error message as the value.
+
+
+
+2. @ExceptionHandler:
+
+The @ExceptionHandler annotation tells Spring to handle specific exceptions thrown by any of the controller methods. In this case, it handles MethodArgumentNotValidException to deal with validation errors.
+
+
+
+3. FieldError:
+
+We extract field errors from the BindingResult and return them with the respective field names.
+
+
+
+4. Other Exception Handling:
+
+We also handle any unexpected exceptions with a generic Exception handler. This can be customized to handle other specific exceptions if needed.
+
+
+
+
+4. Response Example for Validation Errors
+
+If the user sends an invalid OfferRequest (e.g., missing the offer name or providing a non-positive value for the offer), Spring Boot will respond with a detailed error message, like this:
+
+{
+  "offerName": "Offer name cannot be empty",
+  "offerValue": "Offer value must be greater than 0"
+}
+
+This response is automatically formatted by the GlobalExceptionHandler based on the validation errors in the request.
+
+5. Custom Error Messages in Validation Annotations
+
+The validation annotations like @NotBlank and @Positive provide error messages when the input is invalid. These error messages are then captured in the global exception handler and sent in the response.
+
+
+---
+
+Summary:
+
+@Valid is used to trigger validation in the controller method.
+
+@ControllerAdvice provides centralized exception handling across all controllers.
+
+MethodArgumentNotValidException is handled to return custom validation error messages.
+
+@ExceptionHandler is used to specify which exceptions to handle and how to return custom responses.
+
+
+This approach ensures that your Spring Boot REST API can handle validation errors and other exceptions gracefully while providing meaningful error messages back to the client.
+
