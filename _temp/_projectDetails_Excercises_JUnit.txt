@@ -1,0 +1,402 @@
+Sure! Let's write some JUnit test cases for the REST APIs using Mockito and JUnit for the Spring Boot application. For this example, we will create the following layers based on the previous domain models:
+
+1. Repository Layer: Using JpaRepository to interact with the database.
+
+
+2. Service Layer: Contains the business logic and calls the repository layer.
+
+
+3. Controller Layer: Exposes the REST API and calls the service layer.
+
+
+
+For testing, we will mock the repository and service layer, and use @MockBean to mock the service layer in the controller test.
+
+
+---
+
+Example Test Setup
+
+We'll focus on a couple of REST APIs (for instance, Offer Management API).
+
+1. OfferService (Service Layer)
+
+@Service
+public class OfferService {
+
+    @Autowired
+    private OfferRepository offerRepository;
+
+    public Offer createOffer(Offer offer) {
+        return offerRepository.save(offer);
+    }
+
+    public Offer getOfferById(Long id) {
+        return offerRepository.findById(id).orElseThrow(() -> new RuntimeException("Offer not found"));
+    }
+
+    public List<Offer> getAllOffers() {
+        return offerRepository.findAll();
+    }
+}
+
+2. OfferController (Controller Layer)
+
+@RestController
+@RequestMapping("/api/offers")
+public class OfferController {
+
+    @Autowired
+    private OfferService offerService;
+
+    @PostMapping
+    public ResponseEntity<Offer> createOffer(@RequestBody Offer offer) {
+        Offer createdOffer = offerService.createOffer(offer);
+        return new ResponseEntity<>(createdOffer, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Offer> getOfferById(@PathVariable Long id) {
+        Offer offer = offerService.getOfferById(id);
+        return new ResponseEntity<>(offer, HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Offer>> getAllOffers() {
+        List<Offer> offers = offerService.getAllOffers();
+        return new ResponseEntity<>(offers, HttpStatus.OK);
+    }
+}
+
+3. JUnit Test with Mockito
+
+OfferServiceTest
+
+@RunWith(MockitoJUnitRunner.class)
+public class OfferServiceTest {
+
+    @InjectMocks
+    private OfferService offerService;
+
+    @Mock
+    private OfferRepository offerRepository;
+
+    @Test
+    public void testCreateOffer() {
+        // Arrange
+        Offer offer = new Offer();
+        offer.setId(1L);
+        offer.setTitle("Holiday Offer");
+        offer.setDescription("Get 20% cashback");
+        offer.setRewardAmount(20.0);
+
+        Mockito.when(offerRepository.save(offer)).thenReturn(offer);
+
+        // Act
+        Offer createdOffer = offerService.createOffer(offer);
+
+        // Assert
+        assertNotNull(createdOffer);
+        assertEquals("Holiday Offer", createdOffer.getTitle());
+    }
+
+    @Test
+    public void testGetOfferById() {
+        // Arrange
+        Long offerId = 1L;
+        Offer offer = new Offer();
+        offer.setId(offerId);
+        offer.setTitle("Holiday Offer");
+
+        Mockito.when(offerRepository.findById(offerId)).thenReturn(Optional.of(offer));
+
+        // Act
+        Offer foundOffer = offerService.getOfferById(offerId);
+
+        // Assert
+        assertNotNull(foundOffer);
+        assertEquals("Holiday Offer", foundOffer.getTitle());
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testGetOfferByIdNotFound() {
+        // Arrange
+        Long offerId = 1L;
+        Mockito.when(offerRepository.findById(offerId)).thenReturn(Optional.empty());
+
+        // Act
+        offerService.getOfferById(offerId);
+    }
+
+    @Test
+    public void testGetAllOffers() {
+        // Arrange
+        List<Offer> offers = Arrays.asList(new Offer(), new Offer());
+        Mockito.when(offerRepository.findAll()).thenReturn(offers);
+
+        // Act
+        List<Offer> offerList = offerService.getAllOffers();
+
+        // Assert
+        assertNotNull(offerList);
+        assertEquals(2, offerList.size());
+    }
+}
+
+OfferControllerTest
+
+@RunWith(SpringRunner.class)
+@WebMvcTest(OfferController.class)
+public class OfferControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private OfferService offerService;
+
+    @Test
+    public void testCreateOffer() throws Exception {
+        // Arrange
+        Offer offer = new Offer();
+        offer.setId(1L);
+        offer.setTitle("Holiday Offer");
+        offer.setDescription("Get 20% cashback");
+        offer.setRewardAmount(20.0);
+
+        Mockito.when(offerService.createOffer(Mockito.any(Offer.class))).thenReturn(offer);
+
+        // Act and Assert
+        mockMvc.perform(post("/api/offers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(offer)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("Holiday Offer"))
+                .andExpect(jsonPath("$.rewardAmount").value(20.0));
+    }
+
+    @Test
+    public void testGetOfferById() throws Exception {
+        // Arrange
+        Long offerId = 1L;
+        Offer offer = new Offer();
+        offer.setId(offerId);
+        offer.setTitle("Holiday Offer");
+
+        Mockito.when(offerService.getOfferById(offerId)).thenReturn(offer);
+
+        // Act and Assert
+        mockMvc.perform(get("/api/offers/{id}", offerId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Holiday Offer"));
+    }
+
+    @Test
+    public void testGetAllOffers() throws Exception {
+        // Arrange
+        List<Offer> offers = Arrays.asList(new Offer(), new Offer());
+        Mockito.when(offerService.getAllOffers()).thenReturn(offers);
+
+        // Act and Assert
+        mockMvc.perform(get("/api/offers"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+}
+
+Explanation of JUnit Tests:
+
+1. OfferServiceTest:
+
+Mocking the Repository: Using @Mock to mock the OfferRepository and define behavior with Mockito.when().
+
+JUnit assertions: Use assertNotNull(), assertEquals(), and assertTrue() to assert that the service returns the correct values.
+
+
+
+2. OfferControllerTest:
+
+MockMvc: A Spring Test framework utility for testing controllers. It performs HTTP requests against the controller layer without actually starting up the server.
+
+Mocking Service Layer: Using @MockBean to mock OfferService and simulate business logic.
+
+Mocking HTTP Requests: Use mockMvc.perform() to simulate HTTP requests (like POST, GET) and validate the responses with assertions.
+
+
+
+
+Mockito and MockMvc Key Concepts:
+
+Mockito: Helps mock dependencies like repositories and services so we can focus on testing specific layers without needing real implementations or connections to the database.
+
+MockMvc: Provides a convenient way to test the REST controller layer with the simulated HTTP requests and assertions for response validation.
+
+
+
+---
+
+Summary:
+
+We've created test cases for the Service and Controller layers using JUnit and Mockito.
+
+Mocking allows us to isolate layers and focus on testing the business logic and REST API functionality without relying on the actual database or external resources.
+
+
+
+
+
+№################################
+
+Mockito provides several annotations that simplify mocking and testing by reducing boilerplate code. Here’s a breakdown of the different Mockito annotations along with their uses:
+
+1. @Mock
+
+Use: This annotation is used to create a mock object of a class or interface.
+
+Purpose: It allows you to mock a dependency in the test, so you don’t have to use the real object.
+
+Example:
+
+@Mock
+private List<String> mockedList;
+
+
+2. @InjectMocks
+
+Use: This annotation is used to inject mock objects into the class under test (i.e., service or controller) automatically.
+
+Purpose: Mockito will try to inject the mocked dependencies into the class, either via constructor injection or setter methods.
+
+Example:
+
+@InjectMocks
+private MyService myService;
+
+
+3. @Spy
+
+Use: This annotation is used to create a spy of an existing object (i.e., a partial mock).
+
+Purpose: Unlike @Mock, a spy allows you to mock some methods of the object, but use the real implementation of others.
+
+Example:
+
+@Spy
+private List<String> spyList = new ArrayList<>();
+
+
+4. @MockBean
+
+Use: This annotation is used in Spring Boot tests to replace a bean in the application context with a mock.
+
+Purpose: It is commonly used in @WebMvcTest, @DataJpaTest, or other Spring Boot test annotations to mock dependencies (like services) within the Spring context.
+
+Example:
+
+@MockBean
+private MyService myService;
+
+
+5. @Captor
+
+Use: This annotation is used to create an argument captor, which allows you to capture arguments passed to mocked methods.
+
+Purpose: It’s useful when you want to verify what arguments were passed to a mocked method.
+
+Example:
+
+@Captor
+private ArgumentCaptor<String> captor;
+
+
+6. @BeforeEach (JUnit 5)
+
+Use: This annotation marks a method to be run before each test case. It is used to set up common objects or prepare the environment for each test.
+
+Purpose: To perform setup operations before each test, like initializing mocks or setting default behavior.
+
+Example:
+
+@BeforeEach
+public void setUp() {
+    MockitoAnnotations.openMocks(this);
+}
+
+
+7. @AfterEach (JUnit 5)
+
+Use: This annotation marks a method to be run after each test case.
+
+Purpose: For any cleanup tasks post-test, like resetting mocks or clearing shared resources.
+
+Example:
+
+@AfterEach
+public void tearDown() {
+    // Clean up after each test
+}
+
+
+8. @Test
+
+Use: While not specific to Mockito, this annotation is used to mark a method as a test method.
+
+Purpose: It is part of the JUnit framework, used to define methods that should be run as test cases.
+
+Example:
+
+@Test
+public void testSomeServiceMethod() {
+    // Test implementation
+}
+
+
+9. MockitoAnnotations.openMocks(this)
+
+Use: This method is used to initialize Mockito annotations (like @Mock, @InjectMocks, etc.) before the tests run.
+
+Purpose: It’s typically called in the @Before or @BeforeEach setup method to initialize mocks and inject them into the test class.
+
+Example:
+
+@BeforeEach
+public void setUp() {
+    MockitoAnnotations.openMocks(this);
+}
+
+
+
+---
+
+Summary of Mockito Annotations:
+
+1. @Mock: Used to mock dependencies.
+
+
+2. @InjectMocks: Used to inject mocks into the object under test.
+
+
+3. @Spy: Used to partially mock an existing object.
+
+
+4. @MockBean: Used in Spring tests to replace beans with mocks.
+
+
+5. @Captor: Used to capture arguments passed to mock methods.
+
+
+6. @BeforeEach / @AfterEach: JUnit annotations used to set up and clean up before and after tests.
+
+
+7. @Test: Marks methods as test cases in JUnit.
+
+
+8. MockitoAnnotations.openMocks(this): Initializes mock objects annotated with @Mock and @InjectMocks.
+
+
+
+
+---
+
+These annotations help simplify the process of mocking dependencies and setting up tests, making it easier to focus on the logic of the service or controller you are testing.
+
