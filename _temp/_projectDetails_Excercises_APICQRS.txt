@@ -1,0 +1,328 @@
+Certainly! I will help you convert the existing REST APIs into CQRS (Command Query Responsibility Segregation) pattern by separating the Command and Query responsibilities. The idea is to handle operations like creation, updates, and retrieval of offers using a different approach for commands (mutating actions) and queries (retrieval actions). We’ll also use Kafka as an event bus for better scalability and decoupling.
+
+CQRS Pattern Overview:
+
+Command: Represents the operations that change the state of the system (e.g., create, update).
+
+Query: Represents the operations that retrieve data without altering the state.
+
+Dispatcher: A component that handles sending commands and queries to appropriate handlers.
+
+Event Sourcing: Optional, but often used in CQRS. Changes are captured as events and then replayed to construct the current state. Kafka can be used to send events for persistence or notifying other systems.
+
+
+Key Components of the CQRS pattern:
+
+Command Handler: Handles commands and modifies the state.
+
+Query Handler: Handles queries and retrieves data.
+
+Dispatcher: Routes commands and queries to the appropriate handlers.
+
+
+Example 1: Simple API – Create Offer (Command)
+
+Let’s begin with the Create Offer API as a simple example, which involves a command to create an offer.
+
+1. Command Class (CreateOfferCommand)
+
+public class CreateOfferCommand {
+    private String offerName;
+    private double offerValue;
+
+    // Constructor, Getters and Setters
+    public CreateOfferCommand(String offerName, double offerValue) {
+        this.offerName = offerName;
+        this.offerValue = offerValue;
+    }
+}
+
+2. Command Handler (CreateOfferCommandHandler)
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class CreateOfferCommandHandler {
+    private final OfferRepository offerRepository;
+    private final KafkaProducer kafkaProducer;
+
+    public CreateOfferCommandHandler(OfferRepository offerRepository, KafkaProducer kafkaProducer) {
+        this.offerRepository = offerRepository;
+        this.kafkaProducer = kafkaProducer;
+    }
+
+    public void handle(CreateOfferCommand command) {
+        // Create and save the offer to DB
+        Offer offer = new Offer(command.getOfferName(), command.getOfferValue());
+        offerRepository.save(offer);
+
+        // Publish the event to Kafka
+        kafkaProducer.sendOfferCreatedEvent(offer);
+    }
+}
+
+3. Controller Layer – Create Offer API
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/offers")
+public class OfferController {
+
+    private final CommandDispatcher commandDispatcher;
+
+    @Autowired
+    public OfferController(CommandDispatcher commandDispatcher) {
+        this.commandDispatcher = commandDispatcher;
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<String> createOffer(@RequestBody @Valid OfferRequest offerRequest) {
+        // Create the command from the request
+        CreateOfferCommand createOfferCommand = new CreateOfferCommand(offerRequest.getOfferName(), offerRequest.getOfferValue());
+
+        // Dispatch the command
+        commandDispatcher.dispatch(createOfferCommand);
+
+        return ResponseEntity.ok("Offer created successfully");
+    }
+}
+
+4. Command Dispatcher
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class CommandDispatcher {
+
+    private final CreateOfferCommandHandler createOfferCommandHandler;
+
+    public CommandDispatcher(CreateOfferCommandHandler createOfferCommandHandler) {
+        this.createOfferCommandHandler = createOfferCommandHandler;
+    }
+
+    public void dispatch(CreateOfferCommand command) {
+        createOfferCommandHandler.handle(command);
+    }
+}
+
+5. Kafka Producer (for sending events after command execution)
+
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
+
+@Component
+public class KafkaProducer {
+
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
+    public KafkaProducer(KafkaTemplate<String, String> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void sendOfferCreatedEvent(Offer offer) {
+        kafkaTemplate.send("offer-created-topic", offer.toString());
+    }
+}
+
+
+---
+
+Example 2: Medium Complexity – Get Offer (Query)
+
+Now, let’s handle a Query to retrieve offer details, which doesn't modify any state.
+
+1. Query Class (GetOfferQuery)
+
+public class GetOfferQuery {
+    private Long offerId;
+
+    // Constructor, Getters and Setters
+    public GetOfferQuery(Long offerId) {
+        this.offerId = offerId;
+    }
+}
+
+2. Query Handler (GetOfferQueryHandler)
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class GetOfferQueryHandler {
+
+    private final OfferRepository offerRepository;
+
+    public GetOfferQueryHandler(OfferRepository offerRepository) {
+        this.offerRepository = offerRepository;
+    }
+
+    public Offer handle(GetOfferQuery query) {
+        return offerRepository.findById(query.getOfferId())
+                .orElseThrow(() -> new RuntimeException("Offer not found"));
+    }
+}
+
+3. Controller Layer – Get Offer API
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/offers")
+public class OfferController {
+
+    private final CommandDispatcher commandDispatcher;
+    private final QueryDispatcher queryDispatcher;
+
+    @Autowired
+    public OfferController(CommandDispatcher commandDispatcher, QueryDispatcher queryDispatcher) {
+        this.commandDispatcher = commandDispatcher;
+        this.queryDispatcher = queryDispatcher;
+    }
+
+    @GetMapping("/{offerId}")
+    public ResponseEntity<Offer> getOffer(@PathVariable Long offerId) {
+        // Create the query from the path variable
+        GetOfferQuery getOfferQuery = new GetOfferQuery(offerId);
+
+        // Dispatch the query
+        Offer offer = queryDispatcher.dispatch(getOfferQuery);
+
+        return ResponseEntity.ok(offer);
+    }
+}
+
+4. Query Dispatcher
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class QueryDispatcher {
+
+    private final GetOfferQueryHandler getOfferQueryHandler;
+
+    public QueryDispatcher(GetOfferQueryHandler getOfferQueryHandler) {
+        this.getOfferQueryHandler = getOfferQueryHandler;
+    }
+
+    public Offer dispatch(GetOfferQuery query) {
+        return getOfferQueryHandler.handle(query);
+    }
+}
+
+
+---
+
+Example 3: High Complexity – Update Offer (Command with Event)
+
+Now, let's demonstrate a more complex scenario with an UpdateOfferCommand where we mutate the state and trigger an event. This involves more business logic, including validation and error handling.
+
+1. Command Class (UpdateOfferCommand)
+
+public class UpdateOfferCommand {
+    private Long offerId;
+    private String offerName;
+    private double offerValue;
+
+    // Constructor, Getters and Setters
+    public UpdateOfferCommand(Long offerId, String offerName, double offerValue) {
+        this.offerId = offerId;
+        this.offerName = offerName;
+        this.offerValue = offerValue;
+    }
+}
+
+2. Command Handler (UpdateOfferCommandHandler)
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class UpdateOfferCommandHandler {
+
+    private final OfferRepository offerRepository;
+    private final KafkaProducer kafkaProducer;
+
+    public UpdateOfferCommandHandler(OfferRepository offerRepository, KafkaProducer kafkaProducer) {
+        this.offerRepository = offerRepository;
+        this.kafkaProducer = kafkaProducer;
+    }
+
+    public void handle(UpdateOfferCommand command) {
+        // Validate if the offer exists
+        Offer offer = offerRepository.findById(command.getOfferId())
+                .orElseThrow(() -> new RuntimeException("Offer not found"));
+
+        // Update offer fields
+        offer.setOfferName(command.getOfferName());
+        offer.setOfferValue(command.getOfferValue());
+
+        // Save the updated offer to the database
+        offerRepository.save(offer);
+
+        // Send an event to Kafka (Offer Updated)
+        kafkaProducer.sendOfferUpdatedEvent(offer);
+    }
+}
+
+3. Controller Layer – Update Offer API
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/offers")
+public class OfferController {
+
+    private final CommandDispatcher commandDispatcher;
+
+    @Autowired
+    public OfferController(CommandDispatcher commandDispatcher) {
+        this.commandDispatcher = commandDispatcher;
+    }
+
+    @PutMapping("/{offerId}/update")
+    public ResponseEntity<String> updateOffer(@PathVariable Long offerId, @RequestBody OfferRequest offerRequest) {
+        // Create the command from the request
+        UpdateOfferCommand updateOfferCommand = new UpdateOfferCommand(offerId, offerRequest.getOfferName(), offerRequest.getOfferValue());
+
+        // Dispatch the command
+        commandDispatcher.dispatch(updateOfferCommand);
+
+        return ResponseEntity.ok("Offer updated successfully");
+    }
+}
+
+4. Kafka Producer (for sending events after command execution)
+
+@Component
+public class KafkaProducer {
+
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
+    public KafkaProducer(KafkaTemplate<String, String> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void sendOfferUpdatedEvent(Offer offer) {
+        kafkaTemplate.send("offer-updated-topic", offer.toString());
+    }
+}
+
+
+---
+
+Summary:
+
+1. Simple API: Create Offer (Command) — A command is created, validated, and executed with Kafka sending a creation event.
+
+
+2. Medium Complexity: Get Offer (Query) — A query retrieves data with no side effects.
+
+
+3. High Complexity: Update Offer (Command) — A command updates the offer and publishes an event to Kafka.
+
+
+
+These examples show how to implement CQRS with Spring Boot and Kafka using Command and Query patterns, ensuring separation of concerns and scalability. The dispatcher handles routing of commands and queries, and Kafka serves as an event bus for decoupling different parts of the system.
+
