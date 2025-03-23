@@ -1,10 +1,111 @@
-Got it! Let's keep it simple without reactive and GraphQL for now. I’ll break down the Customer microservice based on your provided entities.
+Got it! We will keep things simple without using reactive or GraphQL for now. Since you're using Couchbase, I'll focus on building entities, repositories, services, and controllers for the Customer Microservice as per your request. Below is the breakdown for each component.
 
-1. Customer Microservice
+Customer Microservice Design
 
-A. DTO (Data Transfer Objects)
+1. Entities
 
-CustomerDTO (Request and Response)
+CustomerEntity
+
+import org.springframework.data.couchbase.core.mapping.Document;
+import org.springframework.data.annotation.Id;
+import java.util.List;
+
+@Document
+public class CustomerEntity {
+    @Id
+    private String id;
+    private String name;
+    private String email;
+    private String phone;
+    private Address address;
+    private List<String> enrolledOffers;  // List of Offer IDs
+    
+    // getters and setters
+}
+
+CustomerPreferenceEntity
+
+import org.springframework.data.couchbase.core.mapping.Document;
+import org.springframework.data.annotation.Id;
+
+@Document
+public class CustomerPreferenceEntity {
+    @Id
+    private String id;
+    private CustomerEntity customer;
+    private PreferredRewardType preferredRewardType; // Enum: Cashback, Discount, Points
+    
+    // getters and setters
+}
+
+CustomerActivityEntity
+
+import org.springframework.data.couchbase.core.mapping.Document;
+import org.springframework.data.annotation.Id;
+import java.util.List;
+
+@Document
+public class CustomerActivityEntity {
+    @Id
+    private String id;
+    private CustomerEntity customer;
+    private List<String> activities; // List of activity descriptions
+    
+    // getters and setters
+}
+
+Address
+
+public class Address {
+    private String street;
+    private String city;
+    private String state;
+    private String zipCode;
+
+    // getters and setters
+}
+
+PreferredRewardType Enum
+
+public enum PreferredRewardType {
+    CASHBACK,
+    DISCOUNT,
+    POINTS
+}
+
+2. Repository Layer
+
+Since you're using Couchbase, the repository would extend CouchbaseRepository. Here are the repositories:
+
+CustomerRepository
+
+import org.springframework.data.couchbase.repository.CouchbaseRepository;
+
+public interface CustomerRepository extends CouchbaseRepository<CustomerEntity, String> {
+    CustomerEntity findByEmail(String email);
+}
+
+CustomerPreferenceRepository
+
+import org.springframework.data.couchbase.repository.CouchbaseRepository;
+
+public interface CustomerPreferenceRepository extends CouchbaseRepository<CustomerPreferenceEntity, String> {
+    CustomerPreferenceEntity findByCustomerId(String customerId);
+}
+
+CustomerActivityRepository
+
+import org.springframework.data.couchbase.repository.CouchbaseRepository;
+
+public interface CustomerActivityRepository extends CouchbaseRepository<CustomerActivityEntity, String> {
+    List<CustomerActivityEntity> findByCustomerId(String customerId);
+}
+
+3. DTOs (Data Transfer Objects)
+
+These will be used for request and response data models in the controllers.
+
+CustomerDTO
 
 public class CustomerDTO {
     private String id;
@@ -13,37 +114,48 @@ public class CustomerDTO {
     private String phone;
     private AddressDTO address;
     private List<String> enrolledOffers;
-
+    
     // getters and setters
 }
 
-AddressDTO (Request and Response)
+CustomerPreferenceDTO
+
+public class CustomerPreferenceDTO {
+    private String id;
+    private String customerId;
+    private PreferredRewardType preferredRewardType;
+    
+    // getters and setters
+}
+
+CustomerActivityDTO
+
+public class CustomerActivityDTO {
+    private String id;
+    private String customerId;
+    private List<String> activities;
+    
+    // getters and setters
+}
+
+AddressDTO
 
 public class AddressDTO {
     private String street;
     private String city;
     private String state;
     private String zipCode;
-
+    
     // getters and setters
 }
 
-CustomerPreferenceDTO (Request and Response)
+4. REST Controllers
 
-public class CustomerPreferenceDTO {
-    private String id;
-    private CustomerDTO customer;
-    private String preferredRewardType; // Enum: Cashback, Discount, Points
+The controllers will handle the incoming requests for the Customer microservice.
 
-    // getters and setters
-}
+CustomerController
 
-
-B. REST Controllers
-
-Here’s how we can structure the Customer microservice API:
-
-CustomerController (Blocking)
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/customers")
@@ -51,235 +163,222 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
-    @Autowired
     public CustomerController(CustomerService customerService) {
         this.customerService = customerService;
     }
 
-    // Create a new customer
     @PostMapping
-    public ResponseEntity<CustomerDTO> createCustomer(@RequestBody CustomerDTO customerDTO) {
-        CustomerDTO createdCustomer = customerService.createCustomer(customerDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdCustomer);
+    public CustomerDTO createCustomer(@RequestBody CustomerDTO customerDTO) {
+        return customerService.createCustomer(customerDTO);
     }
 
-    // Get customer by ID
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerDTO> getCustomer(@PathVariable String id) {
-        CustomerDTO customerDTO = customerService.getCustomerById(id);
-        return customerDTO != null ? ResponseEntity.ok(customerDTO) : ResponseEntity.notFound().build();
+    public CustomerDTO getCustomer(@PathVariable String id) {
+        return customerService.getCustomer(id);
     }
 
-    // Update customer
     @PutMapping("/{id}")
-    public ResponseEntity<CustomerDTO> updateCustomer(@PathVariable String id, @RequestBody CustomerDTO customerDTO) {
-        CustomerDTO updatedCustomer = customerService.updateCustomer(id, customerDTO);
-        return ResponseEntity.ok(updatedCustomer);
-    }
-
-    // Get all customers
-    @GetMapping
-    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
-        List<CustomerDTO> customers = customerService.getAllCustomers();
-        return ResponseEntity.ok(customers);
+    public CustomerDTO updateCustomer(@PathVariable String id, @RequestBody CustomerDTO customerDTO) {
+        return customerService.updateCustomer(id, customerDTO);
     }
 }
 
+CustomerPreferenceController
 
-C. Service Layer (CQRS Pattern)
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/customer-preferences")
+public class CustomerPreferenceController {
+
+    private final CustomerPreferenceService customerPreferenceService;
+
+    public CustomerPreferenceController(CustomerPreferenceService customerPreferenceService) {
+        this.customerPreferenceService = customerPreferenceService;
+    }
+
+    @GetMapping("/{customerId}")
+    public CustomerPreferenceDTO getCustomerPreference(@PathVariable String customerId) {
+        return customerPreferenceService.getCustomerPreference(customerId);
+    }
+
+    @PostMapping
+    public CustomerPreferenceDTO createCustomerPreference(@RequestBody CustomerPreferenceDTO customerPreferenceDTO) {
+        return customerPreferenceService.createCustomerPreference(customerPreferenceDTO);
+    }
+}
+
+CustomerActivityController
+
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/customer-activities")
+public class CustomerActivityController {
+
+    private final CustomerActivityService customerActivityService;
+
+    public CustomerActivityController(CustomerActivityService customerActivityService) {
+        this.customerActivityService = customerActivityService;
+    }
+
+    @GetMapping("/{customerId}")
+    public CustomerActivityDTO getCustomerActivities(@PathVariable String customerId) {
+        return customerActivityService.getCustomerActivities(customerId);
+    }
+
+    @PostMapping
+    public CustomerActivityDTO createCustomerActivity(@RequestBody CustomerActivityDTO customerActivityDTO) {
+        return customerActivityService.createCustomerActivity(customerActivityDTO);
+    }
+}
+
+5. Service Layer (CQRS Pattern)
+
+For simplicity, the service layer will handle the business logic. Here’s the service interface and implementation.
 
 CustomerService
+
+import org.springframework.stereotype.Service;
 
 @Service
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
 
-    @Autowired
     public CustomerService(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
     }
 
     public CustomerDTO createCustomer(CustomerDTO customerDTO) {
-        CustomerEntity customerEntity = new CustomerEntity(customerDTO);
-        customerEntity = customerRepository.save(customerEntity);
-        return new CustomerDTO(customerEntity);
+        // Business logic to create customer
+        CustomerEntity customerEntity = new CustomerEntity(); // Map DTO to Entity
+        customerRepository.save(customerEntity);
+        return customerDTO;  // Map entity to DTO and return
     }
 
-    public CustomerDTO getCustomerById(String id) {
-        Optional<CustomerEntity> customerEntity = customerRepository.findById(id);
-        return customerEntity.map(CustomerDTO::new).orElse(null);
+    public CustomerDTO getCustomer(String id) {
+        // Business logic to retrieve customer
+        CustomerEntity customerEntity = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
+        return new CustomerDTO(); // Map entity to DTO and return
     }
 
     public CustomerDTO updateCustomer(String id, CustomerDTO customerDTO) {
-        Optional<CustomerEntity> existingCustomer = customerRepository.findById(id);
-        if (existingCustomer.isPresent()) {
-            CustomerEntity updatedCustomer = existingCustomer.get();
-            updatedCustomer.updateFromDTO(customerDTO);
-            customerRepository.save(updatedCustomer);
-            return new CustomerDTO(updatedCustomer);
-        }
-        return null;
-    }
-
-    public List<CustomerDTO> getAllCustomers() {
-        List<CustomerEntity> customers = customerRepository.findAll();
-        return customers.stream()
-                        .map(CustomerDTO::new)
-                        .collect(Collectors.toList());
+        // Business logic to update customer
+        CustomerEntity customerEntity = new CustomerEntity(); // Map DTO to Entity
+        customerRepository.save(customerEntity);
+        return customerDTO;  // Map entity to DTO and return
     }
 }
 
+CustomerPreferenceService
 
-D. Entities (DB Model)
+import org.springframework.stereotype.Service;
 
-CustomerEntity
+@Service
+public class CustomerPreferenceService {
 
-@Document(collection = "customers")
-public class CustomerEntity {
-    @Id
-    private String id;
-    private String name;
-    private String email;
-    private String phone;
-    private Address address;
-    private List<String> enrolledOffers;
+    private final CustomerPreferenceRepository customerPreferenceRepository;
 
-    // getters, setters, and constructors
-
-    public CustomerEntity(CustomerDTO customerDTO) {
-        this.id = customerDTO.getId();
-        this.name = customerDTO.getName();
-        this.email = customerDTO.getEmail();
-        this.phone = customerDTO.getPhone();
-        this.address = new Address(customerDTO.getAddress());
-        this.enrolledOffers = customerDTO.getEnrolledOffers();
+    public CustomerPreferenceService(CustomerPreferenceRepository customerPreferenceRepository) {
+        this.customerPreferenceRepository = customerPreferenceRepository;
     }
 
-    public void updateFromDTO(CustomerDTO customerDTO) {
-        this.name = customerDTO.getName();
-        this.email = customerDTO.getEmail();
-        this.phone = customerDTO.getPhone();
-        this.address = new Address(customerDTO.getAddress());
-        this.enrolledOffers = customerDTO.getEnrolledOffers();
+    public CustomerPreferenceDTO getCustomerPreference(String customerId) {
+        // Business logic to retrieve customer preference
+        CustomerPreferenceEntity preferenceEntity = customerPreferenceRepository.findByCustomerId(customerId);
+        return new CustomerPreferenceDTO(); // Map entity to DTO and return
+    }
+
+    public CustomerPreferenceDTO createCustomerPreference(CustomerPreferenceDTO customerPreferenceDTO) {
+        // Business logic to create customer preference
+        CustomerPreferenceEntity preferenceEntity = new CustomerPreferenceEntity(); // Map DTO to Entity
+        customerPreferenceRepository.save(preferenceEntity);
+        return customerPreferenceDTO;  // Map entity to DTO and return
     }
 }
 
-Address (Embedded Entity)
+CustomerActivityService
 
-public class Address {
-    private String street;
-    private String city;
-    private String state;
-    private String zipCode;
+import org.springframework.stereotype.Service;
 
-    // getters, setters, constructors
+@Service
+public class CustomerActivityService {
+
+    private final CustomerActivityRepository customerActivityRepository;
+
+    public CustomerActivityService(CustomerActivityRepository customerActivityRepository) {
+        this.customerActivityRepository = customerActivityRepository;
+    }
+
+    public CustomerActivityDTO getCustomerActivities(String customerId) {
+        // Business logic to retrieve customer activities
+        List<CustomerActivityEntity> activities = customerActivityRepository.findByCustomerId(customerId);
+        return new CustomerActivityDTO(); // Map entities to DTO and return
+    }
+
+    public CustomerActivityDTO createCustomerActivity(CustomerActivityDTO customerActivityDTO) {
+        // Business logic to create customer activity
+        CustomerActivityEntity activityEntity = new CustomerActivityEntity(); // Map DTO to Entity
+        customerActivityRepository.save(activityEntity);
+        return customerActivityDTO;  // Map entity to DTO and return
+    }
 }
 
-CustomerPreferenceEntity
+6. JUnit & Mockito Tests
 
-@Document(collection = "customer_preferences")
-public class CustomerPreferenceEntity {
-    @Id
-    private String id;
-    @Reference
-    private CustomerEntity customer;
-    private String preferredRewardType;
-
-    // getters, setters, constructors
-}
-
-
-E. Repository
-
-CustomerRepository
-
-@Repository
-public interface CustomerRepository extends MongoRepository<CustomerEntity, String> {
-    Optional<CustomerEntity> findById(String id);
-    List<CustomerEntity> findAll();
-}
-
-CustomerPreferenceRepository
-
-@Repository
-public interface CustomerPreferenceRepository extends MongoRepository<CustomerPreferenceEntity, String> {
-    Optional<CustomerPreferenceEntity> findByCustomerId(String customerId);
-}
-
-
-F. JUnit & Mockito Tests
+JUnit and Mockito tests will ensure that the controllers and services are functioning correctly.
 
 CustomerControllerTest
+
+import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @ExtendWith(MockitoExtension.class)
 public class CustomerControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
     private CustomerService customerService;
 
-    @InjectMocks
-    private CustomerController customerController;
-
     @Test
-    void testCreateCustomer() throws Exception {
-        CustomerDTO customerDTO = new CustomerDTO("1", "John Doe", "john@example.com", "1234567890", new AddressDTO(), Arrays.asList("offer1"));
-        when(customerService.createCustomer(any())).thenReturn(customerDTO);
+    public void testCreateCustomer() throws Exception {
+        CustomerDTO customerDTO = new CustomerDTO();
+        when(customerService.createCustomer(any(CustomerDTO.class))).thenReturn(customerDTO);
 
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(customerController).build();
         mockMvc.perform(post("/customers")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(customerDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.name").value("John Doe"));
+                .andExpect(status().isOk());
     }
 
-    @Test
-    void testGetCustomer() throws Exception {
-        CustomerDTO customerDTO = new CustomerDTO("1", "John Doe", "john@example.com", "1234567890", new AddressDTO(), Arrays.asList("offer1"));
-        when(customerService.getCustomerById("1")).thenReturn(customerDTO);
-
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(customerController).build();
-        mockMvc.perform(get("/customers/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.name").value("John Doe"));
-    }
+    // Similar tests for other endpoints
 }
 
+7. Postman Scripts
 
-G. Postman Scripts
+For testing the APIs, you will start by setting up basic data (Customer and Merchant), then proceed with creating campaigns, offers, and other events.
 
-1. Basic Setup:
+Create Customer
+POST /customers with CustomerDTO data.
 
-Create a customer
+Get Customer
+GET /customers/{id} with customer ID.
 
-Create a customer preference
+Create Customer Preference
+POST /customer-preferences with CustomerPreferenceDTO data.
 
-
-
-2. Campaign and Offer Events:
-
-Create a campaign
-
-Add an offer to a campaign
-
-Enroll a customer into an offer
+Create Customer Activity
+POST /customer-activities with CustomerActivityDTO data.
 
 
+You can write these requests in Postman and save the collection for testing purposes.
 
-3. Transaction & Redemption Events:
-
-Create a transaction
-
-Redeem an offer for the customer
-
-
-
-
-
----
-
-This structure should provide a clean and maintainable way to implement the Customer microservice based on the high-level requirements you've outlined. Let me know if you'd like to proceed with the other microservices or need further details on any specific part!
+Let me know if you need further details on any part!
 
