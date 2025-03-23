@@ -1,0 +1,285 @@
+Got it! Let's keep it simple without reactive and GraphQL for now. I’ll break down the Customer microservice based on your provided entities.
+
+1. Customer Microservice
+
+A. DTO (Data Transfer Objects)
+
+CustomerDTO (Request and Response)
+
+public class CustomerDTO {
+    private String id;
+    private String name;
+    private String email;
+    private String phone;
+    private AddressDTO address;
+    private List<String> enrolledOffers;
+
+    // getters and setters
+}
+
+AddressDTO (Request and Response)
+
+public class AddressDTO {
+    private String street;
+    private String city;
+    private String state;
+    private String zipCode;
+
+    // getters and setters
+}
+
+CustomerPreferenceDTO (Request and Response)
+
+public class CustomerPreferenceDTO {
+    private String id;
+    private CustomerDTO customer;
+    private String preferredRewardType; // Enum: Cashback, Discount, Points
+
+    // getters and setters
+}
+
+
+B. REST Controllers
+
+Here’s how we can structure the Customer microservice API:
+
+CustomerController (Blocking)
+
+@RestController
+@RequestMapping("/customers")
+public class CustomerController {
+
+    private final CustomerService customerService;
+
+    @Autowired
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
+
+    // Create a new customer
+    @PostMapping
+    public ResponseEntity<CustomerDTO> createCustomer(@RequestBody CustomerDTO customerDTO) {
+        CustomerDTO createdCustomer = customerService.createCustomer(customerDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCustomer);
+    }
+
+    // Get customer by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<CustomerDTO> getCustomer(@PathVariable String id) {
+        CustomerDTO customerDTO = customerService.getCustomerById(id);
+        return customerDTO != null ? ResponseEntity.ok(customerDTO) : ResponseEntity.notFound().build();
+    }
+
+    // Update customer
+    @PutMapping("/{id}")
+    public ResponseEntity<CustomerDTO> updateCustomer(@PathVariable String id, @RequestBody CustomerDTO customerDTO) {
+        CustomerDTO updatedCustomer = customerService.updateCustomer(id, customerDTO);
+        return ResponseEntity.ok(updatedCustomer);
+    }
+
+    // Get all customers
+    @GetMapping
+    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
+        List<CustomerDTO> customers = customerService.getAllCustomers();
+        return ResponseEntity.ok(customers);
+    }
+}
+
+
+C. Service Layer (CQRS Pattern)
+
+CustomerService
+
+@Service
+public class CustomerService {
+
+    private final CustomerRepository customerRepository;
+
+    @Autowired
+    public CustomerService(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
+    }
+
+    public CustomerDTO createCustomer(CustomerDTO customerDTO) {
+        CustomerEntity customerEntity = new CustomerEntity(customerDTO);
+        customerEntity = customerRepository.save(customerEntity);
+        return new CustomerDTO(customerEntity);
+    }
+
+    public CustomerDTO getCustomerById(String id) {
+        Optional<CustomerEntity> customerEntity = customerRepository.findById(id);
+        return customerEntity.map(CustomerDTO::new).orElse(null);
+    }
+
+    public CustomerDTO updateCustomer(String id, CustomerDTO customerDTO) {
+        Optional<CustomerEntity> existingCustomer = customerRepository.findById(id);
+        if (existingCustomer.isPresent()) {
+            CustomerEntity updatedCustomer = existingCustomer.get();
+            updatedCustomer.updateFromDTO(customerDTO);
+            customerRepository.save(updatedCustomer);
+            return new CustomerDTO(updatedCustomer);
+        }
+        return null;
+    }
+
+    public List<CustomerDTO> getAllCustomers() {
+        List<CustomerEntity> customers = customerRepository.findAll();
+        return customers.stream()
+                        .map(CustomerDTO::new)
+                        .collect(Collectors.toList());
+    }
+}
+
+
+D. Entities (DB Model)
+
+CustomerEntity
+
+@Document(collection = "customers")
+public class CustomerEntity {
+    @Id
+    private String id;
+    private String name;
+    private String email;
+    private String phone;
+    private Address address;
+    private List<String> enrolledOffers;
+
+    // getters, setters, and constructors
+
+    public CustomerEntity(CustomerDTO customerDTO) {
+        this.id = customerDTO.getId();
+        this.name = customerDTO.getName();
+        this.email = customerDTO.getEmail();
+        this.phone = customerDTO.getPhone();
+        this.address = new Address(customerDTO.getAddress());
+        this.enrolledOffers = customerDTO.getEnrolledOffers();
+    }
+
+    public void updateFromDTO(CustomerDTO customerDTO) {
+        this.name = customerDTO.getName();
+        this.email = customerDTO.getEmail();
+        this.phone = customerDTO.getPhone();
+        this.address = new Address(customerDTO.getAddress());
+        this.enrolledOffers = customerDTO.getEnrolledOffers();
+    }
+}
+
+Address (Embedded Entity)
+
+public class Address {
+    private String street;
+    private String city;
+    private String state;
+    private String zipCode;
+
+    // getters, setters, constructors
+}
+
+CustomerPreferenceEntity
+
+@Document(collection = "customer_preferences")
+public class CustomerPreferenceEntity {
+    @Id
+    private String id;
+    @Reference
+    private CustomerEntity customer;
+    private String preferredRewardType;
+
+    // getters, setters, constructors
+}
+
+
+E. Repository
+
+CustomerRepository
+
+@Repository
+public interface CustomerRepository extends MongoRepository<CustomerEntity, String> {
+    Optional<CustomerEntity> findById(String id);
+    List<CustomerEntity> findAll();
+}
+
+CustomerPreferenceRepository
+
+@Repository
+public interface CustomerPreferenceRepository extends MongoRepository<CustomerPreferenceEntity, String> {
+    Optional<CustomerPreferenceEntity> findByCustomerId(String customerId);
+}
+
+
+F. JUnit & Mockito Tests
+
+CustomerControllerTest
+
+@ExtendWith(MockitoExtension.class)
+public class CustomerControllerTest {
+
+    @Mock
+    private CustomerService customerService;
+
+    @InjectMocks
+    private CustomerController customerController;
+
+    @Test
+    void testCreateCustomer() throws Exception {
+        CustomerDTO customerDTO = new CustomerDTO("1", "John Doe", "john@example.com", "1234567890", new AddressDTO(), Arrays.asList("offer1"));
+        when(customerService.createCustomer(any())).thenReturn(customerDTO);
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(customerController).build();
+        mockMvc.perform(post("/customers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(customerDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.name").value("John Doe"));
+    }
+
+    @Test
+    void testGetCustomer() throws Exception {
+        CustomerDTO customerDTO = new CustomerDTO("1", "John Doe", "john@example.com", "1234567890", new AddressDTO(), Arrays.asList("offer1"));
+        when(customerService.getCustomerById("1")).thenReturn(customerDTO);
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(customerController).build();
+        mockMvc.perform(get("/customers/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.name").value("John Doe"));
+    }
+}
+
+
+G. Postman Scripts
+
+1. Basic Setup:
+
+Create a customer
+
+Create a customer preference
+
+
+
+2. Campaign and Offer Events:
+
+Create a campaign
+
+Add an offer to a campaign
+
+Enroll a customer into an offer
+
+
+
+3. Transaction & Redemption Events:
+
+Create a transaction
+
+Redeem an offer for the customer
+
+
+
+
+
+---
+
+This structure should provide a clean and maintainable way to implement the Customer microservice based on the high-level requirements you've outlined. Let me know if you'd like to proceed with the other microservices or need further details on any specific part!
+
