@@ -1,384 +1,155 @@
-Got it! We will keep things simple without using reactive or GraphQL for now. Since you're using Couchbase, I'll focus on building entities, repositories, services, and controllers for the Customer Microservice as per your request. Below is the breakdown for each component.
+Yes! You can achieve this by:
 
-Customer Microservice Design
+1. Fetching SSL certificates from Vault and storing them temporarily in /tmp.
 
-1. Entities
 
-CustomerEntity
+2. Configuring Kafka SSL properties dynamically in a @Configuration class.
 
-import org.springframework.data.couchbase.core.mapping.Document;
-import org.springframework.data.annotation.Id;
-import java.util.List;
 
-@Document
-public class CustomerEntity {
-    @Id
-    private String id;
-    private String name;
-    private String email;
-    private String phone;
-    private Address address;
-    private List<String> enrolledOffers;  // List of Offer IDs
-    
-    // getters and setters
-}
 
-CustomerPreferenceEntity
+Steps to Implement
 
-import org.springframework.data.couchbase.core.mapping.Document;
-import org.springframework.data.annotation.Id;
+1. Add Dependencies
 
-@Document
-public class CustomerPreferenceEntity {
-    @Id
-    private String id;
-    private CustomerEntity customer;
-    private PreferredRewardType preferredRewardType; // Enum: Cashback, Discount, Points
-    
-    // getters and setters
-}
+Ensure you have dependencies for Spring Kafka and Vault:
 
-CustomerActivityEntity
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-kafka</artifactId>
+</dependency>
 
-import org.springframework.data.couchbase.core.mapping.Document;
-import org.springframework.data.annotation.Id;
-import java.util.List;
+<dependency>
+    <groupId>org.springframework.vault</groupId>
+    <artifactId>spring-vault-core</artifactId>
+</dependency>
 
-@Document
-public class CustomerActivityEntity {
-    @Id
-    private String id;
-    private CustomerEntity customer;
-    private List<String> activities; // List of activity descriptions
-    
-    // getters and setters
-}
+2. Vault Service to Fetch Files
 
-Address
-
-public class Address {
-    private String street;
-    private String city;
-    private String state;
-    private String zipCode;
-
-    // getters and setters
-}
-
-PreferredRewardType Enum
-
-public enum PreferredRewardType {
-    CASHBACK,
-    DISCOUNT,
-    POINTS
-}
-
-2. Repository Layer
-
-Since you're using Couchbase, the repository would extend CouchbaseRepository. Here are the repositories:
-
-CustomerRepository
-
-import org.springframework.data.couchbase.repository.CouchbaseRepository;
-
-public interface CustomerRepository extends CouchbaseRepository<CustomerEntity, String> {
-    CustomerEntity findByEmail(String email);
-}
-
-CustomerPreferenceRepository
-
-import org.springframework.data.couchbase.repository.CouchbaseRepository;
-
-public interface CustomerPreferenceRepository extends CouchbaseRepository<CustomerPreferenceEntity, String> {
-    CustomerPreferenceEntity findByCustomerId(String customerId);
-}
-
-CustomerActivityRepository
-
-import org.springframework.data.couchbase.repository.CouchbaseRepository;
-
-public interface CustomerActivityRepository extends CouchbaseRepository<CustomerActivityEntity, String> {
-    List<CustomerActivityEntity> findByCustomerId(String customerId);
-}
-
-3. DTOs (Data Transfer Objects)
-
-These will be used for request and response data models in the controllers.
-
-CustomerDTO
-
-public class CustomerDTO {
-    private String id;
-    private String name;
-    private String email;
-    private String phone;
-    private AddressDTO address;
-    private List<String> enrolledOffers;
-    
-    // getters and setters
-}
-
-CustomerPreferenceDTO
-
-public class CustomerPreferenceDTO {
-    private String id;
-    private String customerId;
-    private PreferredRewardType preferredRewardType;
-    
-    // getters and setters
-}
-
-CustomerActivityDTO
-
-public class CustomerActivityDTO {
-    private String id;
-    private String customerId;
-    private List<String> activities;
-    
-    // getters and setters
-}
-
-AddressDTO
-
-public class AddressDTO {
-    private String street;
-    private String city;
-    private String state;
-    private String zipCode;
-    
-    // getters and setters
-}
-
-4. REST Controllers
-
-The controllers will handle the incoming requests for the Customer microservice.
-
-CustomerController
-
-import org.springframework.web.bind.annotation.*;
-
-@RestController
-@RequestMapping("/customers")
-public class CustomerController {
-
-    private final CustomerService customerService;
-
-    public CustomerController(CustomerService customerService) {
-        this.customerService = customerService;
-    }
-
-    @PostMapping
-    public CustomerDTO createCustomer(@RequestBody CustomerDTO customerDTO) {
-        return customerService.createCustomer(customerDTO);
-    }
-
-    @GetMapping("/{id}")
-    public CustomerDTO getCustomer(@PathVariable String id) {
-        return customerService.getCustomer(id);
-    }
-
-    @PutMapping("/{id}")
-    public CustomerDTO updateCustomer(@PathVariable String id, @RequestBody CustomerDTO customerDTO) {
-        return customerService.updateCustomer(id, customerDTO);
-    }
-}
-
-CustomerPreferenceController
-
-import org.springframework.web.bind.annotation.*;
-
-@RestController
-@RequestMapping("/customer-preferences")
-public class CustomerPreferenceController {
-
-    private final CustomerPreferenceService customerPreferenceService;
-
-    public CustomerPreferenceController(CustomerPreferenceService customerPreferenceService) {
-        this.customerPreferenceService = customerPreferenceService;
-    }
-
-    @GetMapping("/{customerId}")
-    public CustomerPreferenceDTO getCustomerPreference(@PathVariable String customerId) {
-        return customerPreferenceService.getCustomerPreference(customerId);
-    }
-
-    @PostMapping
-    public CustomerPreferenceDTO createCustomerPreference(@RequestBody CustomerPreferenceDTO customerPreferenceDTO) {
-        return customerPreferenceService.createCustomerPreference(customerPreferenceDTO);
-    }
-}
-
-CustomerActivityController
-
-import org.springframework.web.bind.annotation.*;
-
-@RestController
-@RequestMapping("/customer-activities")
-public class CustomerActivityController {
-
-    private final CustomerActivityService customerActivityService;
-
-    public CustomerActivityController(CustomerActivityService customerActivityService) {
-        this.customerActivityService = customerActivityService;
-    }
-
-    @GetMapping("/{customerId}")
-    public CustomerActivityDTO getCustomerActivities(@PathVariable String customerId) {
-        return customerActivityService.getCustomerActivities(customerId);
-    }
-
-    @PostMapping
-    public CustomerActivityDTO createCustomerActivity(@RequestBody CustomerActivityDTO customerActivityDTO) {
-        return customerActivityService.createCustomerActivity(customerActivityDTO);
-    }
-}
-
-5. Service Layer (CQRS Pattern)
-
-For simplicity, the service layer will handle the business logic. Here’s the service interface and implementation.
-
-CustomerService
+Create a service to fetch SSL certificates from Vault and save them in /tmp.
 
 import org.springframework.stereotype.Service;
+import org.springframework.vault.core.VaultOperations;
+import org.springframework.vault.support.VaultResponse;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Service
-public class CustomerService {
+public class VaultSSLService {
+    
+    private final VaultOperations vaultOperations;
+    private static final String TMP_DIR = "/tmp/";
 
-    private final CustomerRepository customerRepository;
-
-    public CustomerService(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
+    public VaultSSLService(VaultOperations vaultOperations) {
+        this.vaultOperations = vaultOperations;
     }
 
-    public CustomerDTO createCustomer(CustomerDTO customerDTO) {
-        // Business logic to create customer
-        CustomerEntity customerEntity = new CustomerEntity(); // Map DTO to Entity
-        customerRepository.save(customerEntity);
-        return customerDTO;  // Map entity to DTO and return
-    }
+    public String fetchAndStoreFile(String vaultPath, String fileName) throws Exception {
+        VaultResponse response = vaultOperations.read(vaultPath);
+        if (response == null || response.getData() == null) {
+            throw new RuntimeException("Failed to retrieve data from Vault at " + vaultPath);
+        }
 
-    public CustomerDTO getCustomer(String id) {
-        // Business logic to retrieve customer
-        CustomerEntity customerEntity = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
-        return new CustomerDTO(); // Map entity to DTO and return
-    }
+        Map<String, Object> data = response.getData();
+        if (!data.containsKey("content")) {
+            throw new RuntimeException("No 'content' found in Vault response");
+        }
 
-    public CustomerDTO updateCustomer(String id, CustomerDTO customerDTO) {
-        // Business logic to update customer
-        CustomerEntity customerEntity = new CustomerEntity(); // Map DTO to Entity
-        customerRepository.save(customerEntity);
-        return customerDTO;  // Map entity to DTO and return
-    }
-}
+        byte[] fileData = ((String) data.get("content")).getBytes(StandardCharsets.UTF_8);
+        String filePath = TMP_DIR + fileName;
 
-CustomerPreferenceService
+        try (FileOutputStream fos = new FileOutputStream(new File(filePath))) {
+            fos.write(fileData);
+        }
 
-import org.springframework.stereotype.Service;
-
-@Service
-public class CustomerPreferenceService {
-
-    private final CustomerPreferenceRepository customerPreferenceRepository;
-
-    public CustomerPreferenceService(CustomerPreferenceRepository customerPreferenceRepository) {
-        this.customerPreferenceRepository = customerPreferenceRepository;
-    }
-
-    public CustomerPreferenceDTO getCustomerPreference(String customerId) {
-        // Business logic to retrieve customer preference
-        CustomerPreferenceEntity preferenceEntity = customerPreferenceRepository.findByCustomerId(customerId);
-        return new CustomerPreferenceDTO(); // Map entity to DTO and return
-    }
-
-    public CustomerPreferenceDTO createCustomerPreference(CustomerPreferenceDTO customerPreferenceDTO) {
-        // Business logic to create customer preference
-        CustomerPreferenceEntity preferenceEntity = new CustomerPreferenceEntity(); // Map DTO to Entity
-        customerPreferenceRepository.save(preferenceEntity);
-        return customerPreferenceDTO;  // Map entity to DTO and return
+        return filePath;
     }
 }
 
-CustomerActivityService
+3. Kafka Configuration Using Vault SSL Files
 
-import org.springframework.stereotype.Service;
+Modify your Spring Kafka configuration to load SSL files dynamically.
 
-@Service
-public class CustomerActivityService {
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.config.SslConfigs;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 
-    private final CustomerActivityRepository customerActivityRepository;
+import java.util.HashMap;
+import java.util.Map;
 
-    public CustomerActivityService(CustomerActivityRepository customerActivityRepository) {
-        this.customerActivityRepository = customerActivityRepository;
+@Configuration
+public class KafkaSSLConfig {
+
+    private final VaultSSLService vaultSSLService;
+
+    public KafkaSSLConfig(VaultSSLService vaultSSLService) {
+        this.vaultSSLService = vaultSSLService;
     }
 
-    public CustomerActivityDTO getCustomerActivities(String customerId) {
-        // Business logic to retrieve customer activities
-        List<CustomerActivityEntity> activities = customerActivityRepository.findByCustomerId(customerId);
-        return new CustomerActivityDTO(); // Map entities to DTO and return
+    @Bean
+    public ProducerFactory<String, String> producerFactory() throws Exception {
+        Map<String, Object> configProps = new HashMap<>();
+        
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "your-kafka-broker:9093");
+
+        // Fetch SSL files from Vault and store in /tmp
+        String trustStorePath = vaultSSLService.fetchAndStoreFile("secret/kafka/truststore", "truststore.jks");
+        String keyStorePath = vaultSSLService.fetchAndStoreFile("secret/kafka/keystore", "keystore.jks");
+
+        // SSL Configurations
+        configProps.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, trustStorePath);
+        configProps.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, "your-truststore-password");
+
+        configProps.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, keyStorePath);
+        configProps.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, "your-keystore-password");
+        configProps.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, "your-key-password");
+
+        configProps.put("security.protocol", "SSL");
+
+        // Serialization settings
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+
+        return new DefaultKafkaProducerFactory<>(configProps);
     }
 
-    public CustomerActivityDTO createCustomerActivity(CustomerActivityDTO customerActivityDTO) {
-        // Business logic to create customer activity
-        CustomerActivityEntity activityEntity = new CustomerActivityEntity(); // Map DTO to Entity
-        customerActivityRepository.save(activityEntity);
-        return customerActivityDTO;  // Map entity to DTO and return
+    @Bean
+    public KafkaTemplate<String, String> kafkaTemplate() throws Exception {
+        return new KafkaTemplate<>(producerFactory());
     }
 }
 
-6. JUnit & Mockito Tests
 
-JUnit and Mockito tests will ensure that the controllers and services are functioning correctly.
+---
 
-CustomerControllerTest
+How This Works
 
-import static org.mockito.Mockito.*;
-import org.junit.jupiter.api.Test;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.beans.factory.annotation.Autowired;
-
-@ExtendWith(MockitoExtension.class)
-public class CustomerControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private CustomerService customerService;
-
-    @Test
-    public void testCreateCustomer() throws Exception {
-        CustomerDTO customerDTO = new CustomerDTO();
-        when(customerService.createCustomer(any(CustomerDTO.class))).thenReturn(customerDTO);
-
-        mockMvc.perform(post("/customers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(customerDTO)))
-                .andExpect(status().isOk());
-    }
-
-    // Similar tests for other endpoints
-}
-
-7. Postman Scripts
-
-For testing the APIs, you will start by setting up basic data (Customer and Merchant), then proceed with creating campaigns, offers, and other events.
-
-Create Customer
-POST /customers with CustomerDTO data.
-
-Get Customer
-GET /customers/{id} with customer ID.
-
-Create Customer Preference
-POST /customer-preferences with CustomerPreferenceDTO data.
-
-Create Customer Activity
-POST /customer-activities with CustomerActivityDTO data.
+1. The VaultSSLService retrieves the SSL files (truststore.jks, keystore.jks) from Vault and saves them in /tmp.
 
 
-You can write these requests in Postman and save the collection for testing purposes.
+2. The KafkaSSLConfig reads these files dynamically and configures Kafka’s producer factory.
 
-Let me know if you need further details on any part!
+
+3. Kafka is now configured to use the SSL files from Vault instead of hardcoding them in application.properties.
+
+
+
+Next Steps
+
+Ensure Vault is running and accessible.
+
+Store SSL files in Vault under secret/kafka/truststore and secret/kafka/keystore, using content as the key.
+
+If needed, enhance security by encrypting the stored files and using dynamic password retrieval.
+
+
+Would you like help in setting up the Vault secrets?
 
