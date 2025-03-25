@@ -1,104 +1,42 @@
-Yes! You can achieve this by:
-
-1. Fetching SSL certificates from Vault and storing them temporarily in /tmp.
+You're welcome! Now, let's configure the Kafka consumer to fetch SSL files from Vault and use them in its configuration.
 
 
-2. Configuring Kafka SSL properties dynamically in a @Configuration class.
+---
 
+Steps to Implement the Kafka Consumer Configuration
 
+1. Consumer Configuration Using Vault SSL Files
 
-Steps to Implement
-
-1. Add Dependencies
-
-Ensure you have dependencies for Spring Kafka and Vault:
-
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-kafka</artifactId>
-</dependency>
-
-<dependency>
-    <groupId>org.springframework.vault</groupId>
-    <artifactId>spring-vault-core</artifactId>
-</dependency>
-
-2. Vault Service to Fetch Files
-
-Create a service to fetch SSL certificates from Vault and save them in /tmp.
-
-import org.springframework.stereotype.Service;
-import org.springframework.vault.core.VaultOperations;
-import org.springframework.vault.support.VaultResponse;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-
-@Service
-public class VaultSSLService {
-    
-    private final VaultOperations vaultOperations;
-    private static final String TMP_DIR = "/tmp/";
-
-    public VaultSSLService(VaultOperations vaultOperations) {
-        this.vaultOperations = vaultOperations;
-    }
-
-    public String fetchAndStoreFile(String vaultPath, String fileName) throws Exception {
-        VaultResponse response = vaultOperations.read(vaultPath);
-        if (response == null || response.getData() == null) {
-            throw new RuntimeException("Failed to retrieve data from Vault at " + vaultPath);
-        }
-
-        Map<String, Object> data = response.getData();
-        if (!data.containsKey("content")) {
-            throw new RuntimeException("No 'content' found in Vault response");
-        }
-
-        byte[] fileData = ((String) data.get("content")).getBytes(StandardCharsets.UTF_8);
-        String filePath = TMP_DIR + fileName;
-
-        try (FileOutputStream fos = new FileOutputStream(new File(filePath))) {
-            fos.write(fileData);
-        }
-
-        return filePath;
-    }
-}
-
-3. Kafka Configuration Using Vault SSL Files
-
-Modify your Spring Kafka configuration to load SSL files dynamically.
-
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.config.SslConfigs;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class KafkaSSLConfig {
+public class KafkaConsumerSSLConfig {
 
     private final VaultSSLService vaultSSLService;
 
-    public KafkaSSLConfig(VaultSSLService vaultSSLService) {
+    public KafkaConsumerSSLConfig(VaultSSLService vaultSSLService) {
         this.vaultSSLService = vaultSSLService;
     }
 
     @Bean
-    public ProducerFactory<String, String> producerFactory() throws Exception {
+    public ConsumerFactory<String, String> consumerFactory() throws Exception {
         Map<String, Object> configProps = new HashMap<>();
         
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "your-kafka-broker:9093");
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "your-kafka-broker:9093");
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "your-consumer-group");
+        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         // Fetch SSL files from Vault and store in /tmp
         String trustStorePath = vaultSSLService.fetchAndStoreFile("secret/kafka/truststore", "truststore.jks");
@@ -114,16 +52,33 @@ public class KafkaSSLConfig {
 
         configProps.put("security.protocol", "SSL");
 
-        // Serialization settings
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-
-        return new DefaultKafkaProducerFactory<>(configProps);
+        return new DefaultKafkaConsumerFactory<>(configProps);
     }
 
     @Bean
-    public KafkaTemplate<String, String> kafkaTemplate() throws Exception {
-        return new KafkaTemplate<>(producerFactory());
+    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() throws Exception {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        return factory;
+    }
+}
+
+
+---
+
+2. Kafka Consumer with @KafkaListener
+
+Now, you can use @KafkaListener to consume messages from a topic.
+
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
+
+@Service
+public class KafkaConsumerService {
+
+    @KafkaListener(topics = "your-topic-name", groupId = "your-consumer-group")
+    public void consume(String message) {
+        System.out.println("Received message: " + message);
     }
 }
 
@@ -132,24 +87,27 @@ public class KafkaSSLConfig {
 
 How This Works
 
-1. The VaultSSLService retrieves the SSL files (truststore.jks, keystore.jks) from Vault and saves them in /tmp.
+1. The KafkaConsumerSSLConfig fetches SSL certificates from Vault and stores them in /tmp.
 
 
-2. The KafkaSSLConfig reads these files dynamically and configures Kafka’s producer factory.
+2. It dynamically configures the consumer factory with the SSL properties.
 
 
-3. Kafka is now configured to use the SSL files from Vault instead of hardcoding them in application.properties.
+3. @KafkaListener is used to listen for messages from Kafka securely over SSL.
 
 
+
+
+---
 
 Next Steps
 
-Ensure Vault is running and accessible.
+Ensure your consumer group matches what’s configured in Kafka.
 
-Store SSL files in Vault under secret/kafka/truststore and secret/kafka/keystore, using content as the key.
+Test the consumer by publishing messages using your producer.
 
-If needed, enhance security by encrypting the stored files and using dynamic password retrieval.
+Secure Vault access to prevent unauthorized access to the SSL certificates.
 
 
-Would you like help in setting up the Vault secrets?
+Let me know if you need help testing this setup!
 
