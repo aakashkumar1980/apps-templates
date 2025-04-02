@@ -1,0 +1,250 @@
+Here is the complete merged example, combining everything we’ve discussed, including:
+
+The tags array with enum, items, minItems, and maxItems.
+
+Multiple schemas using allOf, anyOf, oneOf, and not.
+
+A detailed implementation in Java to validate data against the schema.
+
+
+Complete Example:
+
+1. Schema Example (JSON Format)
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["tag1", "tag2", "tag3"]
+      },
+      "minItems": 1,
+      "maxItems": 5
+    },
+    "id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "phone": {
+      "type": "string",
+      "pattern": "^[0-9]{10}$"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "inactive"]
+    },
+    "birthdate": {
+      "type": "string",
+      "format": "date"
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "city": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string",
+          "pattern": "^[0-9]{5}$"
+        }
+      },
+      "required": ["city", "postalCode"]
+    }
+  },
+  "required": ["tags", "id", "name", "email"],
+  "allOf": [
+    {
+      "properties": {
+        "id": {
+          "minimum": 1
+        }
+      },
+      "required": ["id"]
+    },
+    {
+      "properties": {
+        "name": {
+          "minLength": 3
+        }
+      },
+      "required": ["name"]
+    }
+  ],
+  "anyOf": [
+    {
+      "required": ["email"]
+    },
+    {
+      "required": ["phone"]
+    }
+  ],
+  "oneOf": [
+    {
+      "properties": {
+        "status": {
+          "enum": ["active"]
+        }
+      },
+      "required": ["status"]
+    },
+    {
+      "properties": {
+        "status": {
+          "enum": ["inactive"]
+        }
+      },
+      "required": ["status"]
+    }
+  ],
+  "not": {
+    "properties": {
+      "status": {
+        "enum": ["disabled"]
+      }
+    }
+  }
+}
+
+2. Invalid Data Example (JSON Format)
+
+{
+  "tags": ["tag1", "tag4"],  // "tag4" is not in the allowed enum values
+  "id": 0,                   // Invalid as it's less than minimum value 1
+  "name": "Jo",              // Invalid name length (less than 3 characters)
+  "email": "invalid-email",  // Invalid email format
+  "phone": "12345",          // Invalid phone number (should be exactly 10 digits)
+  "status": "disabled",      // "disabled" is not allowed in the enum
+  "birthdate": "2021-02-31", // Invalid date format
+  "address": {
+    "city": "New York",
+    "postalCode": "NYC"     // Invalid postal code (should match pattern "^[0-9]{5}$")
+  }
+}
+
+3. Java Code for Schema Validation with Multiple Schemas
+
+import com.github.fge.jsonschema.main.JsonSchema;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.github.fge.jackson.JsonLoader;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.core.report.ProcessingMessage;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+public class JsonSchemaValidator {
+    
+    public static Map<String, String> validateJson(String schemaJson, String dataJson) throws IOException, ProcessingException {
+        // Load the schema and data
+        JsonNode schemaNode = JsonLoader.fromString(schemaJson);
+        JsonNode dataNode = JsonLoader.fromString(dataJson);
+
+        // Create JsonSchema object
+        JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
+        JsonSchema schema = factory.getJsonSchema(schemaNode);
+
+        // Validate and collect errors
+        ProcessingReport report = schema.validate(dataNode);
+        Map<String, String> errors = new HashMap<>();
+        if (!report.isSuccess()) {
+            for (ProcessingMessage message : report) {
+                // Collect error details
+                String errorMessage = message.getMessage();
+                String errorPath = message.asJson().get("path").toString();
+                String keyword = message.asJson().get("keyword").toString();
+                String instance = message.asJson().get("instance").toString();
+                String pointer = message.asJson().get("pointer").toString();
+                String regex = message.asJson().has("regex") ? message.asJson().get("regex").toString() : "N/A";
+
+                // Add error to the map
+                errors.put("Path: " + errorPath + " Keyword: " + keyword, 
+                        "Message: " + errorMessage + 
+                        ", Instance: " + instance + 
+                        ", Pointer: " + pointer + 
+                        ", Regex: " + regex);
+            }
+        }
+        return errors;
+    }
+
+    public static void main(String[] args) throws IOException, ProcessingException {
+        String schemaJson = "{...}";  // The schema JSON as defined above
+        String dataJson = "{...}";    // The invalid data JSON as defined above
+
+        // Get the validation errors
+        Map<String, String> errors = validateJson(schemaJson, dataJson);
+        if (!errors.isEmpty()) {
+            errors.forEach((path, error) -> System.out.println(path + " => " + error));
+        } else {
+            System.out.println("Validation successful");
+        }
+    }
+}
+
+Key Points:
+
+1. tags: Defined with enum to restrict values to ["tag1", "tag2", "tag3"], and it must contain at least one tag and at most five tags.
+
+
+2. allOf: Enforces that both id must be ≥ 1 and name must have a minimum length of 3 characters.
+
+
+3. anyOf: Requires either an email or a phone field, but not necessarily both.
+
+
+4. oneOf: Requires that status must be either "active" or "inactive", but not both.
+
+
+5. not: Ensures that the status cannot be "disabled".
+
+
+
+Invalid Data:
+
+The data provided above will fail validation on several points:
+
+tags contains "tag4", which is not part of the allowed values.
+
+id is 0, but it must be at least 1.
+
+name is too short (it should be at least 3 characters).
+
+email is invalid.
+
+phone is too short.
+
+status is "disabled", which is not allowed.
+
+birthdate is invalid (nonexistent date).
+
+postalCode is invalid (does not match the expected pattern).
+
+
+
+Conclusion:
+
+This merged example brings together all the concepts we discussed:
+
+Schema Definition: Various types of constraints like enum, items, pattern, and combined schemas (allOf, anyOf, oneOf, not).
+
+Java Validation: A simple approach using fge/json-schema-validator to validate JSON data against a schema, collect errors, and print them.
+
+Test Data: Invalid data showcasing how the schema enforces various validation rules.
+
+
+This should give you a comprehensive understanding of how to structure your JSON schemas and implement validation in Java. Let me know if you need further clarifications!
+
