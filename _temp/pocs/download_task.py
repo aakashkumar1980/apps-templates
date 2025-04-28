@@ -8,13 +8,23 @@ def run(job):
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
 
-    with pysftp.Connection(partner["host"], username=partner["username"], password=partner["password"], port=partner["port"], cnopts=cnopts) as sftp:
-        sftp.cwd(partner["outbox_path"])
-        for f in batch:
-            try:
-                mark_in_progress(partner["name"], f)
-                sftp.get(f, f"/tmp/{f}")
-                subprocess.run(["hdfs", "dfs", "-put", f"/tmp/{f}", partner["hdfs_target"]])
-                mark_completed(partner["name"], f)
-            except Exception as e:
-                mark_failed(partner["name"], f)
+    try:
+        with pysftp.Connection(partner["host"], username=partner["username"],
+                               password=partner["password"], port=partner["port"], cnopts=cnopts) as sftp:
+            sftp.cwd(partner["outbox_path"])
+
+            for file_name in batch:
+                try:
+                    mark_in_progress(partner["name"], file_name)
+                    local_path = f"/tmp/{partner['name']}_{file_name}"
+                    sftp.get(file_name, local_path)
+
+                    # Put to HDFS
+                    subprocess.run(["hdfs", "dfs", "-put", local_path, partner["hdfs_target"]], check=True)
+
+                    mark_completed(partner["name"], file_name)
+                except Exception as e:
+                    print(f"[ERROR] File: {file_name} - {str(e)}")
+                    mark_failed(partner["name"], file_name)
+    except Exception as e:
+        print(f"[FATAL] Connection failed for {partner['name']}: {e}")
