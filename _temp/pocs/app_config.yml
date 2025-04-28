@@ -1,0 +1,16 @@
+partners:
+  - name: CDLX
+    host: sftp.cdlx.com
+    port: 22
+    username: user1
+    password: pass1
+    outbox_path: /OUTBOX
+    hdfs_target: hdfs://namenode:9000/partners/cdlx/
+
+  - name: RKTN
+    host: sftp.rktn.com
+    port: 22
+    username: user2
+    password: pass2
+    outbox_path: /OUTBOX
+    hdfs_target: hdfs://namenode:9000/partners/rktn/
